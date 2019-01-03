@@ -4,4 +4,9 @@
 const config = require('../../jest.config.base')
 
 /** @type {jest.InitialOptions} */
-module.exports = { ...config, displayName: 'client/browser', rootDir: __dirname }
+module.exports = {
+  ...config,
+  displayName: 'client/browser',
+  rootDir: __dirname,
+  setupFiles: ['<rootDir>/config/polyfills/mutation-observer.js'],
+}

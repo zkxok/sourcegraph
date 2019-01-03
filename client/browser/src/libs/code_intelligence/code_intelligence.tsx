@@ -43,6 +43,7 @@ import { ButtonProps, CodeViewToolbar } from '../../shared/components/CodeViewTo
 import { resolveRev, retryWhenCloneInProgressError } from '../../shared/repo/backend'
 import { eventLogger, sourcegraphUrl } from '../../shared/util/context'
 import { bitbucketServerCodeHost } from '../bitbucket/code_intelligence'
+import { observeSelector } from '../dom/observe'
 import { githubCodeHost } from '../github/code_intelligence'
 import { gitlabCodeHost } from '../gitlab/code_intelligence'
 import { phabricatorCodeHost } from '../phabricator/code_intelligence'
@@ -409,6 +410,10 @@ function handleCodeHost(codeHost: CodeHost): Subscription {
         hoverifier,
         controllers: { platformContext, extensionsController },
     } = initCodeIntelligence(codeHost)
+
+    observeSelector(document.body, '.js-file').subscribe(elem => {
+        console.log('found', elem)
+    })
 
     const subscriptions = new Subscription()
 
