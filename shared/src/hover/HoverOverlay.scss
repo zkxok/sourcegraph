@@ -13,6 +13,18 @@
     $animation-duration: 100ms;
     transition: opacity $animation-duration ease-in-out;
 
+    h1 {
+        font-size: 1.2rem;
+        font-weight: medium;
+        line-height: 10px;
+        margin: 0;
+    }
+
+    ul {
+        margin-bottom: 0;
+        padding-inline-start: 30px;
+    }
+
     &__close-button {
         position: absolute;
         top: 0;
