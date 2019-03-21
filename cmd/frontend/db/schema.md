@@ -315,6 +315,18 @@ Referenced by:
 
 ```
 
+# Table "public.query_histogram"
+```
+ Column |  Type   |                          Modifiers                           
+--------+---------+--------------------------------------------------------------
+ id     | integer | not null default nextval('query_histogram_id_seq'::regclass)
+ query  | text    | not null
+ count  | integer | not null
+Indexes:
+    "query_histogram_pkey" PRIMARY KEY, btree (id)
+
+```
+
 # Table "public.registry_extension_releases"
 ```
         Column         |           Type           |                                Modifiers                                 
