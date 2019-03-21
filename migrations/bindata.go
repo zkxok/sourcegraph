@@ -206,6 +206,8 @@
 // 1528395570_.up.sql (59B)
 // 1528395571_.down.sql (368B)
 // 1528395571_.up.sql (91B)
+// 1528395572_add_query_histogram.down.sql (57B)
+// 1528395572_add_query_histogram.up.sql (205B)
 
 package migrations
 
@@ -4394,6 +4396,46 @@ func _1528395571_UpSql() (*asset, error) {
 	return a, nil
 }
 
+var __1528395572_add_query_histogramDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x72\x75\xf7\xf4\xb3\xe6\xe2\x72\x09\xf2\x0f\x50\x08\x71\x74\xf2\x71\x55\xf0\x74\x53\x70\x8d\xf0\x0c\x0e\x09\x56\x50\x2a\x2c\x4d\x2d\xaa\x8c\xcf\xc8\x2c\x2e\xc9\x4f\x2f\x4a\xcc\x55\xb2\xe6\xe2\x72\xf6\xf7\xf5\xf5\x0c\xb1\xe6\x02\x04\x00\x00\xff\xff\xf7\x60\x20\xa7\x39\x00\x00\x00")
+
+func _1528395572_add_query_histogramDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__1528395572_add_query_histogramDownSql,
+		"1528395572_add_query_histogram.down.sql",
+	)
+}
+
+func _1528395572_add_query_histogramDownSql() (*asset, error) {
+	bytes, err := _1528395572_add_query_histogramDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "1528395572_add_query_histogram.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xf8, 0x9c, 0x7f, 0xa0, 0xbb, 0x2b, 0x40, 0x4, 0xfe, 0x95, 0xd5, 0xa5, 0x74, 0x6b, 0xad, 0xba, 0xa3, 0x32, 0x33, 0x6c, 0xc2, 0x52, 0x9, 0x14, 0xd1, 0xa, 0x5, 0x9, 0xdc, 0xd4, 0xfc, 0x31}}
+	return a, nil
+}
+
+var __1528395572_add_query_histogramUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x3c\xce\xc1\x6a\x84\x30\x14\x85\xe1\x75\xee\x53\x1c\xb2\x6a\x61\xe6\x09\x66\xe5\x94\x50\xa4\xea\x14\x49\x17\xae\x4a\xd4\x8b\x09\x68\xa4\xc9\x15\xeb\xdb\x97\xb6\xe0\xfe\x3b\x87\xff\x6e\x5e\xcb\xe6\x46\xf4\xd2\x9a\xc2\x1a\xd8\xe2\x5e\x19\xe8\xaf\x8d\xd3\xf1\xe9\x43\x96\x75\x4a\x6e\xd1\x78\x22\xa5\xc3\xa8\x91\x39\x05\x37\xa3\x79\x58\x34\x1f\x55\x85\xf7\xb6\xac\x8b\xb6\xc3\x9b\xe9\x2e\xa4\xfe\x77\x1a\xc2\xdf\x72\x9a\x0b\xa9\xeb\x15\x7e\xdd\xb1\xb8\x78\x40\xc2\xc2\x19\x7f\x10\xde\x65\xf4\xcc\x11\x69\x8b\xc8\x21\x0e\x0c\xf1\x21\x43\x5c\x3f\x33\x76\x97\x31\x24\x76\xc2\x23\x29\x3d\xac\x5b\x14\x8d\x10\x85\x27\x4e\xe7\x3b\x3d\xff\xc6\x3f\xea\xba\xb4\x37\xfa\x09\x00\x00\xff\xff\xd9\x6d\x57\x2a\xcd\x00\x00\x00")
+
+func _1528395572_add_query_histogramUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__1528395572_add_query_histogramUpSql,
+		"1528395572_add_query_histogram.up.sql",
+	)
+}
+
+func _1528395572_add_query_histogramUpSql() (*asset, error) {
+	bytes, err := _1528395572_add_query_histogramUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "1528395572_add_query_histogram.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x46, 0xf2, 0x7, 0x3e, 0x4f, 0xb4, 0xeb, 0xaf, 0xba, 0x26, 0xb8, 0xb9, 0xbc, 0x45, 0xa1, 0x87, 0x89, 0xae, 0x81, 0x67, 0xc2, 0x12, 0x15, 0x54, 0x7c, 0xad, 0x2a, 0xbe, 0xab, 0xea, 0xd6, 0x45}}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -4896,6 +4938,10 @@ var _bindata = map[string]func() (*asset, error){
 	"1528395571_.down.sql": _1528395571_DownSql,
 
 	"1528395571_.up.sql": _1528395571_UpSql,
+
+	"1528395572_add_query_histogram.down.sql": _1528395572_add_query_histogramDownSql,
+
+	"1528395572_add_query_histogram.up.sql": _1528395572_add_query_histogramUpSql,
 }
 
 // AssetDir returns the file names below a certain
@@ -5145,6 +5191,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"1528395570_.up.sql":                                          {_1528395570_UpSql, map[string]*bintree{}},
 	"1528395571_.down.sql":                                        {_1528395571_DownSql, map[string]*bintree{}},
 	"1528395571_.up.sql":                                          {_1528395571_UpSql, map[string]*bintree{}},
+	"1528395572_add_query_histogram.down.sql":                     {_1528395572_add_query_histogramDownSql, map[string]*bintree{}},
+	"1528395572_add_query_histogram.up.sql":                       {_1528395572_add_query_histogramUpSql, map[string]*bintree{}},
 }}
 
 // RestoreAsset restores an asset under the given directory.
