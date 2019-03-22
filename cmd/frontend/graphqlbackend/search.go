@@ -65,6 +65,7 @@ func (r *schemaResolver) Search(args *struct {
 	Stats(context.Context) (*searchResultsStats, error)
 }, error) {
 
+	db.QueryHistogram.IncrementQuery(context.Background(), args.Query)
 	query, err := query.ParseAndCheck(args.Query)
 	if err != nil {
 		log15.Debug("graphql search failed to parse", "query", args.Query, "error", err)
