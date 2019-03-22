@@ -324,6 +324,7 @@ Referenced by:
  count  | integer | not null
 Indexes:
     "query_histogram_pkey" PRIMARY KEY, btree (id)
+    "query_histogram_query_key" UNIQUE CONSTRAINT, btree (query)
 
 ```
 
