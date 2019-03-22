@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	zoektrpc "github.com/google/zoekt/rpc"
 	"github.com/pkg/errors"
@@ -64,8 +65,8 @@ func (r *schemaResolver) Search(args *struct {
 	//lint:ignore U1000 is used by graphql via reflection
 	Stats(context.Context) (*searchResultsStats, error)
 }, error) {
-
-	db.QueryHistogram.IncrementQuery(context.Background(), args.Query)
+	ctx, _ := context.WithTimeout(context.Background(), 50*time.Millisecond)
+	db.QueryHistogram.IncrementQuery(ctx, args.Query)
 	query, err := query.ParseAndCheck(args.Query)
 	if err != nil {
 		log15.Debug("graphql search failed to parse", "query", args.Query, "error", err)
