@@ -23,16 +23,15 @@ import (
 	"github.com/sourcegraph/sourcegraph/pkg/symbols/protocol"
 	"github.com/sourcegraph/sourcegraph/pkg/trace"
 	"github.com/sourcegraph/sourcegraph/pkg/vcs/git"
-	log15 "gopkg.in/inconshreveable/log15.v2"
 )
 
-var mockSearchSymbols func(ctx context.Context, args *search.Args, limit int) (res []*fileMatchResolver, common *searchResultsCommon, err error)
+var mockSearchSymbols func(ctx context.Context, args *search.Args, limit int) (res []*FileMatch, common *searchResultsCommon, err error)
 
 // searchSymbols searches the given repos in parallel for symbols matching the given search query
 // it can be used for both search suggestions and search results
 //
 // May return partial results and an error
-func searchSymbols(ctx context.Context, args *search.Args, limit int) (res []*fileMatchResolver, common *searchResultsCommon, err error) {
+func SearchSymbols(ctx context.Context, args *search.Args, limit int) (res []*FileMatch, common *searchResultsCommon, err error) {
 	if mockSearchSymbols != nil {
 		return mockSearchSymbols(ctx, args, limit)
 	}
@@ -99,7 +98,7 @@ func searchSymbols(ctx context.Context, args *search.Args, limit int) (res []*fi
 	return res, common, err
 }
 
-func searchSymbolsInRepo(ctx context.Context, repoRevs *search.RepositoryRevisions, patternInfo *search.PatternInfo, query *query.Query, limit int) (res []*fileMatchResolver, err error) {
+func searchSymbolsInRepo(ctx context.Context, repoRevs *search.RepositoryRevisions, patternInfo *search.PatternInfo, query *query.Query, limit int) (res []*FileMatch, err error) {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "Search symbols in repo")
 	defer func() {
 		if err != nil {
@@ -136,8 +135,8 @@ func searchSymbolsInRepo(ctx context.Context, repoRevs *search.RepositoryRevisio
 		ExcludePattern:  patternInfo.ExcludePattern,
 		First:           limit,
 	})
-	fileMatchesByURI := make(map[string]*fileMatchResolver)
-	fileMatches := make([]*fileMatchResolver, 0)
+	fileMatchesByURI := make(map[string]*FileMatch)
+	fileMatches := make([]*FileMatch, 0)
 	for _, symbol := range symbols {
 		commit := &gitCommitResolver{
 			repo:     &repositoryResolver{repo: repoRevs.Repo},
@@ -179,83 +178,9 @@ func makeFileMatchURIFromSymbol(symbolResolver *symbolResolver, inputRev string)
 }
 
 func symbolRange(s protocol.Symbol) lsp.Range {
-	ch := ctagsSymbolCharacter(s)
+	ch := symbols.CtagsSymbolCharacter(s)
 	return lsp.Range{
 		Start: lsp.Position{Line: s.Line - 1, Character: ch},
 		End:   lsp.Position{Line: s.Line - 1, Character: ch + len(s.Name)},
 	}
-}
-
-// ctagsSymbolCharacter only outputs the line number, not the character (or range). Use the regexp it provides to
-// guess the character.
-func ctagsSymbolCharacter(s protocol.Symbol) int {
-	if s.Pattern == "" {
-		return 0
-	}
-	pattern := strings.TrimPrefix(s.Pattern, "/^")
-	i := strings.Index(pattern, s.Name)
-	if i >= 0 {
-		return i
-	}
-	return 0
-}
-
-func ctagsKindToLSPSymbolKind(kind string) lsp.SymbolKind {
-	// Ctags kinds are determined by the parser and do not (in general) match LSP symbol kinds.
-	switch kind {
-	case "file":
-		return lsp.SKFile
-	case "module":
-		return lsp.SKModule
-	case "namespace":
-		return lsp.SKNamespace
-	case "package", "packageName", "subprogspec":
-		return lsp.SKPackage
-	case "class", "type", "service", "typedef", "union", "section", "subtype", "component":
-		return lsp.SKClass
-	case "method", "methodSpec":
-		return lsp.SKMethod
-	case "property":
-		return lsp.SKProperty
-	case "field", "member", "anonMember":
-		return lsp.SKField
-	case "constructor":
-		return lsp.SKConstructor
-	case "enum", "enumerator":
-		return lsp.SKEnum
-	case "interface":
-		return lsp.SKInterface
-	case "function", "func", "subroutine", "macro", "subprogram", "procedure", "command", "singletonMethod":
-		return lsp.SKFunction
-	case "variable", "var", "functionVar", "define", "alias":
-		return lsp.SKVariable
-	case "constant", "const":
-		return lsp.SKConstant
-	case "string", "message", "heredoc":
-		return lsp.SKString
-	case "number":
-		return lsp.SKNumber
-	case "bool", "boolean":
-		return lsp.SKBoolean
-	case "array":
-		return lsp.SKArray
-	case "object", "literal", "map":
-		return lsp.SKObject
-	case "key", "label", "target", "selector", "id", "tag":
-		return lsp.SKKey
-	case "null":
-		return lsp.SKNull
-	case "enum member", "enumConstant":
-		return lsp.SKEnumMember
-	case "struct":
-		return lsp.SKStruct
-	case "event":
-		return lsp.SKEvent
-	case "operator":
-		return lsp.SKOperator
-	case "type parameter", "annotation":
-		return lsp.SKTypeParameter
-	}
-	log15.Debug("Unknown ctags kind", "kind", kind)
-	return 0
 }
