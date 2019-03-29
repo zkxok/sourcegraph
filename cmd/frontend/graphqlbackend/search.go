@@ -35,8 +35,16 @@ func (r *searchResolver) Results(ctx context.Context) (*searchResultsResolver, e
 	}, err
 }
 
-func (r *searchresolver) suggestions(ctx context.context, args *struct {
+func (r *searchResolver) Suggestions(ctx context.context, args *struct {
 	First *int32
 }) ([]*searchresultsresolver, error) {
 	return nil, nil
+}
+
+func (r *searchResolver) Stats(ctx context.Context) (*searchResultsStatsResolver, error) {
+	stats, err := r.searcher.Stats(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &searchResultsStatsResolver{stats}, err
 }

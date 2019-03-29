@@ -48,22 +48,22 @@ type SearchSuggestion struct {
 	Label string
 }
 
-func (r *searchSuggestionResolver) ToFile() (*gitTreeEntryResolver, bool) {
+func (r *SearchSuggestion) ToFile() (*gitTreeEntryResolver, bool) {
 	res, ok := r.result.(*gitTreeEntryResolver)
 	return res, ok
 }
 
-func (r *searchSuggestionResolver) ToGitBlob() (*gitTreeEntryResolver, bool) {
+func (r *SearchSuggestion) ToGitBlob() (*gitTreeEntryResolver, bool) {
 	res, ok := r.result.(*gitTreeEntryResolver)
 	return res, ok && res.stat.Mode().IsRegular()
 }
 
-func (r *searchSuggestionResolver) ToGitTree() (*gitTreeEntryResolver, bool) {
+func (r *SearchSuggestion) ToGitTree() (*gitTreeEntryResolver, bool) {
 	res, ok := r.result.(*gitTreeEntryResolver)
 	return res, ok && res.stat.Mode().IsDir()
 }
 
-func (r *searchSuggestionResolver) ToSymbol() (*symbolResolver, bool) {
+func (r *SearchSuggestion) ToSymbol() (*symbolResolver, bool) {
 	res, ok := r.result.(*symbolResolver)
 	return res, ok
 }
@@ -83,7 +83,7 @@ func (r *searcher) Suggestions(ctx context.Context, args *SearchSuggestionsArgs)
 		}
 	}
 
-	var suggesters []func(ctx context.Context) ([]*searchSuggestionResolver, error)
+	var suggesters []func(ctx context.Context) ([]*SearchSuggestion, error)
 
 	showRepoSuggestions := func(ctx context.Context) ([]*SearchSuggestion, error) {
 		// * If query contains only a single term (or 1 repogroup: token and a single term), treat it as a repo field here and ignore the other repo queries.
@@ -200,7 +200,7 @@ func (r *searcher) Suggestions(ctx context.Context, args *SearchSuggestionsArgs)
 			if err == context.DeadlineExceeded {
 				err = nil // don't log as error below
 			}
-			var suggestions []*searchSuggestionResolver
+			var suggestions []*SearchSuggestion
 			if results != nil {
 				if len(results.results) > int(*args.First) {
 					results.results = results.results[:*args.First]
@@ -317,7 +317,7 @@ func allEmptyStrings(ss1, ss2 []string) bool {
 	return true
 }
 
-func sortSearchSuggestions(s []*searchSuggestionResolver) {
+func sortSearchSuggestions(s []*SearchSuggestion) {
 	sort.Slice(s, func(i, j int) bool {
 		// Sort by score
 		a, b := s[i], s[j]

@@ -95,7 +95,7 @@ type searcher struct {
 	// Cached resolveRepositories results.
 	reposMu                   sync.Mutex
 	repoRevs, missingRepoRevs []*RepositoryRevisions
-	repoResults               []*searchSuggestion
+	repoResults               []*SearchSuggestion
 	repoOverLimit             bool
 	repoErr                   error
 }

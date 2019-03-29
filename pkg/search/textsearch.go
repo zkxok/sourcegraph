@@ -614,7 +614,7 @@ func zoektIndexedRepos(ctx context.Context, repos []*RepositoryRevisions) (index
 var mockSearchFilesInRepos func(args *Args) ([]*FileMatch, *searchResultsCommon, error)
 
 // searchFilesInRepos searches a set of repos for a pattern.
-func searchFilesInRepos(ctx context.Context, args *Args) (res []*FileMatch, common *searchResultsCommon, err error) {
+func searchFilesInRepos(ctx context.Context, args *Args) (res []*FileMatch, common *SearchResultsCommon, err error) {
 	if mockSearchFilesInRepos != nil {
 		return mockSearchFilesInRepos(args)
 	}

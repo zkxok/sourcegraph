@@ -33,36 +33,46 @@ import (
 
 // SearchResults is a resolver for the GraphQL type `SearchResults`
 type SearchResults struct {
-	results []*SearchResult
-	searchResultsCommon
-	alert *searchAlert
-	start time.Time // when the results started being computed
+	Results []*SearchResult
+	SearchResultsCommon
+	Alert *SearchAlert
+	Start time.Time // when the results started being computed
+	Icon  *string
 }
 
-func (sr *SearchResults) Results() []*SearchResult {
-	return sr.results
-}
-
-func (sr *SearchResults) ResultCount() int32 {
+func (r *SearchResults) ResultCount() int32 {
 	var totalResults int32
-	for _, result := range sr.results {
+	for _, result := range r.Results {
 		totalResults += result.resultCount()
 	}
 	return totalResults
 }
 
-func (sr *SearchResults) ApproximateResultCount() string {
-	count := sr.ResultCount()
-	if sr.LimitHit() || len(sr.cloning) > 0 || len(sr.timedout) > 0 {
+func (r *SearchResults) ApproximateResultCount() string {
+	count := r.ResultCount()
+	if sr.LimitHit() || len(r.Cloning) > 0 || len(r.Timedout) > 0 {
 		return fmt.Sprintf("%d+", count)
 	}
 	return strconv.Itoa(int(count))
 }
 
-func (sr *SearchResults) Alert() *SearchAlert { return sr.alert }
+type SearchFilter struct {
+	Value string
 
-func (sr *SearchResults) ElapsedMilliseconds() int32 {
-	return int32(time.Since(sr.start).Nanoseconds() / int64(time.Millisecond))
+	// the string to be displayed in the UI
+	Label string
+
+	// the number of matches in a particular repository. Only used for `repo:` filters.
+	Count int32
+
+	// whether the results returned for a repository are incomplete
+	LimitHit bool
+
+	// the kind of filter. Should be "repo" or "file".
+	Kind string
+
+	// score is used to select potential filters
+	Score int
 }
 
 // commonFileFilters are common filters used. It is used by DynamicFilters to
@@ -114,7 +124,7 @@ func (sr *SearchResults) DynamicFilters() []*SearchFilter {
 		if rev != "" {
 			filter = filter + fmt.Sprintf(`@%s`, regexp.QuoteMeta(rev))
 		}
-		_, limitHit := sr.searchResultsCommon.partial[api.RepoName(uri)]
+		_, limitHit := sr.SearchResultsCommon.Partial[api.RepoName(uri)]
 		// Increment number of matches per repo. Add will override previous entry for uri
 		repoToMatchCount[uri] += lineMatchCount
 		add(filter, uri, repoToMatchCount[uri], limitHit, "repo")
@@ -131,25 +141,25 @@ func (sr *SearchResults) DynamicFilters() []*SearchFilter {
 		}
 	}
 
-	for _, result := range sr.results {
-		if result.fileMatch != nil {
+	for _, result := range sr.Results {
+		if result.FileMatch != nil {
 			rev := ""
-			if result.fileMatch.inputRev != nil {
-				rev = *result.fileMatch.inputRev
+			if result.FileMatch.InputRev != nil {
+				rev = *result.FileMatch.InputRev
 			}
-			addRepoFilter(string(result.fileMatch.repo.Name), rev, len(result.fileMatch.LineMatches()))
-			addFileFilter(result.fileMatch.JPath, len(result.fileMatch.LineMatches()), result.fileMatch.JLimitHit)
+			addRepoFilter(string(result.FileMatch.Repo.Name), rev, len(result.FileMatch.LineMatches()))
+			addFileFilter(result.FileMatch.JPath, len(result.FileMatch.LineMatches()), result.FileMatch.JLimitHit)
 
-			if len(result.fileMatch.symbols) > 0 {
-				add("type:symbol", "type:symbol", 1, result.fileMatch.JLimitHit, "symbol")
+			if len(result.FileMatch.symbols) > 0 {
+				add("type:symbol", "type:symbol", 1, result.FileMatch.JLimitHit, "symbol")
 			}
 		}
 
-		if result.repo != nil {
+		if result.Repo != nil {
 			// It should be fine to leave this blank since revision specifiers
 			// can only be used with the 'repo:' scope. In that case,
 			// we shouldn't be getting any repositoy name matches back.
-			addRepoFilter(result.repo.URI(), "", 1)
+			addRepoFilter(string(result.Repo.Name), "", 1)
 		}
 		// Add `case:yes` filter to offer easier access to search results matching with case sensitive set to yes
 		// We use count == 0 and limitHit == false since we can't determine that information without
@@ -160,14 +170,14 @@ func (sr *SearchResults) DynamicFilters() []*SearchFilter {
 	filterSlice := make([]*SearchFilter, 0, len(filters))
 	repoFilterSlice := make([]*SearchFilter, 0, len(filters)/2) // heuristic - half of all filters are repo filters.
 	for _, f := range filters {
-		if f.kind == "repo" {
+		if f.Kind == "repo" {
 			repoFilterSlice = append(repoFilterSlice, f)
 		} else {
 			filterSlice = append(filterSlice, f)
 		}
 	}
 	sort.Slice(filterSlice, func(i, j int) bool {
-		return filterSlice[j].score < filterSlice[i].score
+		return filterSlice[j].Score < filterSlice[i].Score
 	})
 	// limit amount of non-repo filters to be rendered arbitrarily to 12
 	if len(filterSlice) > 12 {
@@ -176,34 +186,15 @@ func (sr *SearchResults) DynamicFilters() []*SearchFilter {
 
 	allFilters := append(filterSlice, repoFilterSlice...)
 	sort.Slice(allFilters, func(i, j int) bool {
-		return allFilters[j].score < allFilters[i].score
+		return allFilters[j].Score < allFilters[i].Score
 	})
 
 	return allFilters
 }
 
-type SearchFilter struct {
-	Value string
-
-	// the string to be displayed in the UI
-	Label string
-
-	// the number of matches in a particular repository. Only used for `repo:` filters.
-	Count int32
-
-	// whether the results returned for a repository are incomplete
-	LimitHit bool
-
-	// the kind of filter. Should be "repo" or "file".
-	Kind string
-
-	// score is used to select potential filters
-	Score int
-}
-
 // blameFileMatch blames the specified file match to produce the time at which
 // the first line match inside of it was authored.
-func (sr *SearchResults) blameFileMatch(ctx context.Context, fm *fileMatchResolver) (t time.Time, err error) {
+func (sr *SearchResults) blameFileMatch(ctx context.Context, fm *FileMatch) (t time.Time, err error) {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "blameFileMatch")
 	defer func() {
 		if err != nil {
@@ -214,16 +205,16 @@ func (sr *SearchResults) blameFileMatch(ctx context.Context, fm *fileMatchResolv
 	}()
 
 	// Blame the first line match.
-	lineMatches := fm.LineMatches()
+	lineMatches := fm.JLineMatches
 	if len(lineMatches) == 0 {
 		// No line match
 		return time.Time{}, nil
 	}
-	lm := fm.LineMatches()[0]
-	hunks, err := git.BlameFile(ctx, gitserver.Repo{Name: fm.repo.Name}, fm.JPath, &git.BlameOptions{
-		NewestCommit: fm.commitID,
-		StartLine:    int(lm.LineNumber()),
-		EndLine:      int(lm.LineNumber()),
+	lm := fm.JLineMatches[0]
+	hunks, err := git.BlameFile(ctx, gitserver.Repo{Name: fm.Repo.Name}, fm.JPath, &git.BlameOptions{
+		NewestCommit: fm.CommitID,
+		StartLine:    int(lm.LineNumber),
+		EndLine:      int(lm.LineNumber),
 	})
 	if err != nil {
 		return time.Time{}, err
@@ -266,16 +257,16 @@ func (sr *SearchResults) Sparkline(ctx context.Context) (sparkline []int32, err 
 	// Consider all of our search results as a potential data point in our
 	// sparkline.
 loop:
-	for _, r := range sr.results {
+	for _, r := range sr.Results {
 		r := r // shadow so it doesn't change in the goroutine
 		switch {
-		case r.repo != nil:
+		case r.Repo != nil:
 			// We don't care about repo results here.
 			continue
-		case r.diff != nil:
+		case r.Diff != nil:
 			// Diff searches are cheap, because we implicitly have author date info.
-			addPoint(r.diff.commit.author.date)
-		case r.fileMatch != nil:
+			addPoint(r.Diff.Commit.Author.Date)
+		case r.FileMatch != nil:
 			// File match searches are more expensive, because we must blame the
 			// (first) line in order to know its placement in our sparkline.
 			blameOps++
@@ -292,7 +283,7 @@ loop:
 
 				// Blame the file match in order to retrieve date informatino.
 				var err error
-				t, err := sr.blameFileMatch(ctx, r.fileMatch)
+				t, err := sr.blameFileMatch(ctx, r.FileMatch)
 				if err != nil {
 					log15.Warn("failed to blame fileMatch during sparkline generation", "error", err)
 					return
@@ -319,14 +310,6 @@ func (r *searchResolver) Results(ctx context.Context) (*SearchResults, error) {
 	return rr, nil
 }
 
-type searchResultsStats struct {
-	JApproximateResultCount string
-	JSparkline              []int32
-}
-
-func (srs *searchResultsStats) ApproximateResultCount() string { return srs.JApproximateResultCount }
-func (srs *searchResultsStats) Sparkline() []int32             { return srs.JSparkline }
-
 var (
 	searchResultsStatsCache   = rcache.NewWithTTL("search_results_stats", 3600) // 1h
 	searchResultsStatsCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
@@ -341,7 +324,12 @@ func init() {
 	prometheus.MustRegister(searchResultsStatsCounter)
 }
 
-func (r *searchResolver) Stats(ctx context.Context) (stats *searchResultsStats, err error) {
+type SearchResultsStats struct {
+	JApproximateResultCount string
+	JSparkline              []int32
+}
+
+func (r *searcher) Stats(ctx context.Context) (stats *SearchResultsStats, err error) {
 	// Override user context to ensure that stats for this query are cached
 	// regardless of the user context's cancellation. For example, if
 	// stats/sparklines are slow to load on the homepage and all users navigate
@@ -379,21 +367,21 @@ func (r *searchResolver) Stats(ctx context.Context) (stats *searchResultsStats, 
 			break
 		}
 
-		cloning := len(v.Cloning())
-		timedout := len(v.Timedout())
+		cloning := len(v.Cloning)
+		timedout := len(v.Timedout)
 		if cloning == 0 && timedout == 0 {
 			break // zero results, but no cloning or timed out repos. No point in retrying.
 		}
 
 		if attempts > 5 {
-			log15.Error("failed to generate sparkline due to cloning or timed out repos", "cloning", len(v.Cloning()), "timedout", len(v.Timedout()))
-			return nil, fmt.Errorf("failed to generate sparkline due to %d cloning %d timedout repos", len(v.Cloning()), len(v.Timedout()))
+			log15.Error("failed to generate sparkline due to cloning or timed out repos", "cloning", len(v.Cloning), "timedout", len(v.Timedout))
+			return nil, fmt.Errorf("failed to generate sparkline due to %d cloning %d timedout repos", len(v.Cloning), len(v.Timedout))
 		}
 
 		// We didn't find any search results. Some repos are cloning or timed
 		// out, so try again in a few seconds.
 		attempts++
-		log15.Warn("sparkline generation found 0 search results due to cloning or timed out repos (retrying in 5s)", "cloning", len(v.Cloning()), "timedout", len(v.Timedout()))
+		log15.Warn("sparkline generation found 0 search results due to cloning or timed out repos (retrying in 5s)", "cloning", len(v.Cloning), "timedout", len(v.Timedout))
 		time.Sleep(5 * time.Second)
 	}
 
@@ -401,7 +389,7 @@ func (r *searchResolver) Stats(ctx context.Context) (stats *searchResultsStats, 
 	if err != nil {
 		return nil, err // sparkline generation failed, so don't cache.
 	}
-	stats = &searchResultsStats{
+	stats = &SearchResultsStats{
 		JApproximateResultCount: v.ApproximateResultCount(),
 		JSparkline:              sparkline,
 	}
@@ -428,7 +416,7 @@ type getPatternInfoOptions struct {
 }
 
 // getPatternInfo gets the search pattern info for the query in the resolver.
-func (r *searchResolver) getPatternInfo(opts *getPatternInfoOptions) (*PatternInfo, error) {
+func (r *searcher) getPatternInfo(opts *getPatternInfoOptions) (*PatternInfo, error) {
 	var patternsToCombine []string
 	if opts == nil || !opts.forceFileSearch {
 		for _, v := range r.query.Values(query.FieldDefault) {
@@ -493,12 +481,12 @@ var (
 	maxTimeout = time.Minute
 )
 
-func (r *searchResolver) searchTimeoutFieldSet() bool {
+func (r *searcher) searchTimeoutFieldSet() bool {
 	timeout, _ := r.query.StringValue(query.FieldTimeout)
 	return timeout != "" || r.countIsSet()
 }
 
-func (r *searchResolver) withTimeout(ctx context.Context) (context.Context, context.CancelFunc, error) {
+func (r *searcher) withTimeout(ctx context.Context) (context.Context, context.CancelFunc, error) {
 	d := defaultTimeout
 	timeout, _ := r.query.StringValue(query.FieldTimeout)
 	if timeout != "" {
@@ -801,14 +789,14 @@ func (r *searchResolver) doResults(ctx context.Context, forceOnlyResultType stri
 
 	sortResults(results)
 
-	resultsResolver := SearchResults{
-		start:               start,
-		searchResultsCommon: common,
-		results:             results,
-		alert:               alert,
+	out := SearchResults{
+		Start:               start,
+		SearchResultsCommon: common,
+		Results:             results,
+		Alert:               alert,
 	}
 
-	return &resultsResolver, multiErr.ErrorOrNil()
+	return &out, multiErr.ErrorOrNil()
 }
 
 // isContextError returns true if ctx.Err() is not nil or if err
@@ -821,18 +809,18 @@ func isContextError(ctx context.Context, err error) bool {
 //
 // Note: Any new result types added here also need to be handled properly in search_results.go:301 (sparklines)
 type SearchResult struct {
-	repo      *types.Repo         // repo name match
-	fileMatch *FileMatch          // text match
-	diff      *CommitSearchResult // diff or commit match
+	Repo      *types.Repo         // repo name match
+	FileMatch *FileMatch          // text match
+	Diff      *CommitSearchResult // diff or commit match
 }
 
 // getSearchResultURIs returns the repo name and file uri respectiveley
 func getSearchResultURIs(c *SearchResult) (string, string) {
-	if c.fileMatch != nil {
-		return string(c.fileMatch.repo.Name), c.fileMatch.JPath
+	if c.FileMatch != nil {
+		return string(c.FileMatch.Repo.Name), c.FileMatch.JPath
 	}
-	if c.repo != nil {
-		return string(c.repo.repo.Name), ""
+	if c.Repo != nil {
+		return string(c.Repo.Repo.Name), ""
 	}
 	// Diffs aren't going to be returned with other types of results
 	// and are already ordered in the desired order, so we'll just leave them in place.
@@ -857,24 +845,24 @@ func sortResults(r []*SearchResult) {
 	sort.Slice(r, func(i, j int) bool { return compareSearchResults(r[i], r[j]) })
 }
 
-func (g *SearchResult) ToRepository() (*types.Repo, bool) {
-	return g.repo, g.repo != nil
+func (r *SearchResult) ToRepository() (*types.Repo, bool) {
+	return r.Repo, r.Repo != nil
 }
-func (g *SearchResult) ToFileMatch() (*fileMatchResolver, bool) {
-	return g.fileMatch, g.fileMatch != nil
+func (r *SearchResult) ToFileMatch() (*FileMatch, bool) {
+	return g.FileMatch, g.FileMatch != nil
 }
-func (g *SearchResult) ToCommitSearchResult() (*CommitSearchResult, bool) {
-	return g.diff, g.diff != nil
+func (r *SearchResult) ToCommitSearchResult() (*CommitSearchResult, bool) {
+	return g.Diff, g.Diff != nil
 }
 
-func (g *SearchResult) resultCount() int32 {
+func (r *SearchResult) resultCount() int32 {
 	switch {
-	case g.fileMatch != nil:
-		if l := len(g.fileMatch.LineMatches()); l > 0 {
+	case r.FileMatch != nil:
+		if l := len(g.FileMatch.JLineMatches); l > 0 {
 			return int32(l)
 		}
 		return 1 // 1 to count "empty" results like type:path results
-	case g.diff != nil:
+	case r.Diff != nil:
 		return 1
 	default:
 		return 1
