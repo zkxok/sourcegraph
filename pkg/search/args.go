@@ -4,7 +4,7 @@ package search
 import (
 	"regexp/syntax"
 
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/internal/pkg/search/query"
+	"github.com/sourcegraph/sourcegraph/pkg/search/query"
 )
 
 // PatternInfo is the struct used by vscode pass on search queries. Keep it in
