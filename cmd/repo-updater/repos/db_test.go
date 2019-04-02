@@ -5,6 +5,7 @@ import (
 	"flag"
 	"math/rand"
 	"net/url"
+	"os"
 	"strconv"
 	"testing"
 	"time"
@@ -55,6 +56,18 @@ func testDatabase(t testing.TB) (*sql.DB, func()) {
 		} else {
 			t.Logf("DATABASE %s left intact for inspection", dbname)
 		}
+	}
+}
+
+func TestUpdateDSNFromEnv(t *testing.T) {
+	envPort := os.Getenv("PGPORT")
+	host := "127.0.0.1:" + envPort
+	u := "postgres://" + host
+
+	config, _ := url.Parse(u)
+	repos.UpdateDSNFromEnv(config)
+	if config.Host != host {
+		t.Errorf("host unexpectedly changed: got %s; want %s", config.Host, host)
 	}
 }
 
