@@ -4,10 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
+	"fmt"
 	"net/url"
 	"os"
 	"os/user"
 	"strconv"
+	"strings"
 	"time"
 
 	migr "github.com/golang-migrate/migrate/v4"
@@ -66,6 +68,11 @@ func UpdateDSNFromEnv(dsn *url.URL) {
 	}
 
 	if port := os.Getenv("PGPORT"); port != "" {
+		fmt.Println(dsn.Host, strings.Index(dsn.Host, ":"))
+		if i := strings.Index(dsn.Host, ":"); i != -1 {
+			dsn.Host = dsn.Host[:i]
+		}
+
 		dsn.Host += ":" + port
 	}
 
