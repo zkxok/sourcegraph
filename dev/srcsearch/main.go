@@ -5,16 +5,11 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/mattn/go-isatty"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-	"os/user"
-	"path/filepath"
-	"strings"
-
-	"github.com/mattn/go-isatty"
-	"github.com/pkg/errors"
 )
 
 func main() {
@@ -43,8 +38,7 @@ Other tips:
 	// Configure logging.
 	log.SetFlags(0)
 	log.SetPrefix("")
-	configPath := flag.String("config", "", "")
-	endpoint := flag.String("endpoint", "", "")
+	endpoint := flag.String("endpoint", "https://sourcegraph.com", "")
 	flag.Parse()
 	if flag.NArg() != 1 {
 		log.Println("expected exactly one argument: the search query")
@@ -52,12 +46,12 @@ Other tips:
 		os.Exit(1)
 	}
 	searchQuery := flag.Arg(0)
-	if err := srcsearch(*configPath, *endpoint, searchQuery); err != nil {
+	if err := srcsearch(*endpoint, searchQuery); err != nil {
 		log.Fatalf("srcsearch: %v", err)
 	}
 }
 
-func srcsearch(configPath, endpoint, searchQuery string) error {
+func srcsearch(endpoint, searchQuery string) error {
 	query := `fragment FileMatchFields on FileMatch {
 				repository {
 					name
@@ -175,13 +169,8 @@ func srcsearch(configPath, endpoint, searchQuery string) error {
 		  }
 `
 
-	cfg, err := readConfig(configPath, endpoint)
-	if err != nil {
-		return errors.Wrap(err, "reading config")
-	}
-
 	vars := map[string]interface{}{"query": nullString(searchQuery)}
-	res, err := apiRequest(query, vars, cfg.Endpoint, cfg.AccessToken)
+	res, err := apiRequest(query, vars, endpoint)
 
 	// Print the formatted JSON.
 	fmted, err := marshalIndent(res)
@@ -211,7 +200,7 @@ type result struct {
 // apiRequest makes an API request and returns the result.
 // query is the GraphQL query.
 // vars contains the GraphQL query variables.
-func apiRequest(query string, vars map[string]interface{}, endpoint string, accessToken string) (*result, error) {
+func apiRequest(query string, vars map[string]interface{}, endpoint string) (*result, error) {
 
 	// Create the JSON object.
 	var buf bytes.Buffer
@@ -226,9 +215,6 @@ func apiRequest(query string, vars map[string]interface{}, endpoint string, acce
 	req, err := http.NewRequest("POST", gqlURL(endpoint), nil)
 	if err != nil {
 		return nil, err
-	}
-	if accessToken != "" {
-		req.Header.Set("Authorization", "token "+accessToken)
 	}
 	req.Body = ioutil.NopCloser(&buf)
 
@@ -317,45 +303,4 @@ type searchResults struct {
 	Cloning, Missing, Timedout []map[string]interface{}
 	ResultCount                int
 	ElapsedMilliseconds        int
-}
-
-// config represents the config format.
-type config struct {
-	Endpoint    string `json:"endpoint"`
-	AccessToken string `json:"accessToken"`
-}
-
-// readConfig reads the config file from the given path.
-func readConfig(configPath, endpoint string) (*config, error) {
-	cfgPath := configPath
-	userSpecified := configPath != ""
-	if !userSpecified {
-		u, err := user.Current()
-		if err != nil {
-			return nil, err
-		}
-		cfgPath = filepath.Join(u.HomeDir, "src-config.json")
-	}
-	data, err := ioutil.ReadFile(os.ExpandEnv(cfgPath))
-	if err != nil && (!os.IsNotExist(err) || userSpecified) {
-		return nil, err
-	}
-	var cfg config
-	if err == nil {
-		if err := json.Unmarshal(data, &cfg); err != nil {
-			return nil, err
-		}
-	}
-
-	// Apply config overrides.
-	if envToken := os.Getenv("SRC_ACCESS_TOKEN"); envToken != "" {
-		cfg.AccessToken = envToken
-	}
-	if endpoint != "" {
-		cfg.Endpoint = strings.TrimSuffix(endpoint, "/")
-	}
-	if cfg.Endpoint == "" {
-		cfg.Endpoint = "https://sourcegraph.com"
-	}
-	return &cfg, nil
 }
