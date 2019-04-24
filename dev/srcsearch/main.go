@@ -52,6 +52,20 @@ Other tips:
 }
 
 func srcsearch(endpoint, searchQuery string) error {
+	res, err := search(endpoint, searchQuery)
+	if err != nil {
+		return err
+	}
+	// Print the formatted JSON.
+	fmted, err := marshalIndent(res)
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(fmted))
+	return nil
+}
+
+func search(endpoint, searchQuery string) (*result, error) {
 	query := `fragment FileMatchFields on FileMatch {
 				repository {
 					name
@@ -170,16 +184,7 @@ func srcsearch(endpoint, searchQuery string) error {
 `
 
 	vars := map[string]interface{}{"query": nullString(searchQuery)}
-	res, err := apiRequest(query, vars, endpoint)
-
-	// Print the formatted JSON.
-	fmted, err := marshalIndent(res)
-	if err != nil {
-		return err
-	}
-	fmt.Println(string(fmted))
-
-	return nil
+	return apiRequest(query, vars, endpoint)
 }
 
 // gqlURL returns the URL to the GraphQL endpoint for the given Sourcegraph
