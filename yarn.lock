@@ -1513,7 +1513,8 @@
   integrity sha512-Te7F1RQJLBH4C8wQ2xz0nPC2vpe13F80V+Yv+c3GySOoh4DcLNN4P5u51Kh4aZPqeS5DJ7CKvHyX2SM/1EBXNg==
 
 "@sourcegraph/extension-api-types@link:packages/@sourcegraph/extension-api-types":
-  version "2.0.0"
+  version "0.0.0"
+  uid ""
 
 "@sourcegraph/prettierrc@^2.2.0":
   version "2.2.0"
@@ -2437,13 +2438,6 @@
   version "1.2.2"
   resolved "https://registry.npmjs.org/@types/range-parser/-/range-parser-1.2.2.tgz#fa8e1ad1d474688a757140c91de6dace6f4abc8d"
   integrity sha512-HtKGu+qG1NPvYe1z7ezLsyIaXYyi8SoAVqWDZgDQ8dLrsZvSzUNCwZyfX33uhWxL/SU0ZDQZ3nwZ0nimt507Kw==
-
-"@types/react-circular-progressbar@1.0.2":
-  version "1.0.2"
-  resolved "https://registry.npmjs.org/@types/react-circular-progressbar/-/react-circular-progressbar-1.0.2.tgz#a23e2d0f4e14a89d75c7c2286f8e96702f9862f2"
-  integrity sha512-lFRfduBnlr7HhjI64fMI0Jm3uDYMbdYyTF3sCZ7aNLYmjPOM3L2+/BzKOfRzRITinOL1jA9lbenGASqowULgEw==
-  dependencies:
-    "@types/react" "*"
 
 "@types/react-dom@16.8.3":
   version "16.8.3"
@@ -13664,7 +13658,8 @@ source-map@^0.6.0, source-map@^0.6.1, source-map@~0.6.0, source-map@~0.6.1:
   integrity sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==
 
 "sourcegraph@link:packages/sourcegraph-extension-api":
-  version "23.0.1"
+  version "0.0.0"
+  uid ""
 
 space-separated-tokens@^1.0.0:
   version "1.1.2"
