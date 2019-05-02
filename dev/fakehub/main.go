@@ -39,17 +39,22 @@ into the text box for adding single repos in sourcegraph Site Admin.
 	repoDir := flag.Arg(0)
 	ln, err := net.Listen("tcp", *addr)
 	if err != nil {
-		log.Fatalf("fakehub: %v", err)
+		log.Fatalf("fakehub: listening: %v", err)
 	}
-	if err := fakehub(*n, ln, repoDir); err != nil {
-		log.Fatalf("fakehub: %v", err)
+	log.Printf("listening on http://%s", ln.Addr())
+	s, err := fakehub(*n, ln, repoDir)
+	if err != nil {
+		log.Fatalf("fakehub: configuring server :%v", err)
+	}
+	if err := s.Serve(ln); err != nil {
+		log.Fatalf("fakehub: serving: %v", err)
 	}
 }
 
-func fakehub(n int, ln net.Listener, reposRoot string) error {
+func fakehub(n int, ln net.Listener, reposRoot string) (*http.Server, error) {
 	gitDirs, err := configureRepos(reposRoot)
 	if err != nil {
-		return errors.Wrapf(err, "configuring repos under %s", reposRoot)
+		return nil, errors.Wrapf(err, "configuring repos under %s", reposRoot)
 	}
 
 	// Set up the template vars for pages.
@@ -57,7 +62,7 @@ func fakehub(n int, ln net.Listener, reposRoot string) error {
 	for _, gd := range gitDirs {
 		rd, err := filepath.Rel(reposRoot, gd)
 		if err != nil {
-			return errors.Wrap(err, "getting relative path of git dir")
+			return nil, errors.Wrap(err, "getting relative path of git dir")
 		}
 		relDirs = append(relDirs, rd)
 	}
@@ -66,7 +71,7 @@ func fakehub(n int, ln net.Listener, reposRoot string) error {
 	// Start the HTTP server.
 	mux := &http.ServeMux{}
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		handleDefault(tvars, w, r)
+		handleDefault(tvars, w)
 	})
 
 	if n == 1 {
@@ -79,13 +84,12 @@ func fakehub(n int, ln net.Listener, reposRoot string) error {
 	}
 
 	mux.HandleFunc("/config", func(w http.ResponseWriter, r *http.Request) {
-		handleConfig(tvars, w, r)
+		handleConfig(tvars, w)
 	})
-	s := http.Server{
+	s := &http.Server{
 		Handler: logger(mux),
 	}
-	log.Printf("listening on http://%s", ln.Addr())
-	return s.Serve(ln)
+	return s, nil
 }
 
 // configureRepos finds all .git directories and configures them to be served.
@@ -144,7 +148,7 @@ func logger(h http.Handler) http.HandlerFunc {
 }
 
 // handleDefault shows the root page with links to config and repos.
-func handleDefault(tvars *templateVars, w http.ResponseWriter, r *http.Request) {
+func handleDefault(tvars *templateVars, w http.ResponseWriter) {
 	t1 := `
 <p><a href="/config">config</a></p>
 {{if .Repos}}
@@ -166,12 +170,12 @@ func handleDefault(tvars *templateVars, w http.ResponseWriter, r *http.Request) 
 	}()
 	if err != nil {
 		log.Println(err)
-		fmt.Fprintf(w, "%v", err.Error())
+		_, _ = w.Write([]byte(err.Error()))
 	}
 }
 
 // handleConfig shows the config for pasting into sourcegraph.
-func handleConfig(tvars *templateVars, w http.ResponseWriter, r *http.Request) {
+func handleConfig(tvars *templateVars, w http.ResponseWriter) {
 	t1 := `// Paste this into Site admin | External services | Add external service | Single Git repositories:
 {
   "url": "http://{{.Addr}}",
@@ -192,7 +196,7 @@ func handleConfig(tvars *templateVars, w http.ResponseWriter, r *http.Request) {
 	}()
 	if err != nil {
 		log.Println(err)
-		fmt.Fprintf(w, "%v", err.Error())
+		_, _ = w.Write([]byte(err.Error()))
 	}
 }
 
