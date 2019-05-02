@@ -11,8 +11,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
-	"strings"
 	"text/template"
 
 	"github.com/pkg/errors"
@@ -21,7 +19,7 @@ import (
 func main() {
 	log.SetPrefix("")
 	n := flag.Int("n", 1, "number of instances of each repo to make")
-	addr := flag.String("addr", ":0", "address on which to serve (default picks an unused port)")
+	addr := flag.String("addr", "127.0.0.1:", "address on which to serve (default picks an unused port)")
 	flag.Parse()
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, `usage: fakehub [opts] path/to/dir/containing/git/dirs
@@ -63,17 +61,7 @@ func fakehub(n int, ln net.Listener, reposRoot string) error {
 		}
 		relDirs = append(relDirs, rd)
 	}
-	addr := ln.Addr().String()
-	if strings.HasPrefix(addr, ":") {
-		addr = "127.0.0.1" + addr
-	}
-	// Replace [::] with 127.0.0.1 because [::] breaks double-click link opening in Mac terminals.
-	ipv6Rx, err := regexp.Compile(`^\[::\]`)
-	if err != nil {
-		return errors.Wrap(err, "compiling regexp for IPV6 127.0.0.1")
-	}
-	addr = ipv6Rx.ReplaceAllString(addr, "127.0.0.1")
-	tvars := &templateVars{n, relDirs, addr}
+	tvars := &templateVars{n, relDirs, ln.Addr()}
 
 	// Start the HTTP server.
 	mux := &http.ServeMux{}
@@ -94,10 +82,9 @@ func fakehub(n int, ln net.Listener, reposRoot string) error {
 		handleConfig(tvars, w, r)
 	})
 	s := http.Server{
-		Addr:    addr,
 		Handler: logger(mux),
 	}
-	log.Printf("listening on http://%s", s.Addr)
+	log.Printf("listening on http://%s", ln.Addr())
 	return s.Serve(ln)
 }
 
@@ -187,7 +174,7 @@ func handleDefault(tvars *templateVars, w http.ResponseWriter, r *http.Request) 
 func handleConfig(tvars *templateVars, w http.ResponseWriter, r *http.Request) {
 	t1 := `// Paste this into Site admin | External services | Add external service | Single Git repositories:
 {
-  "url": "http://127.0.0.1{{.Addr}}",
+  "url": "http://{{.Addr}}",
   "repos": [{{range .Repos}}
       "{{.}}",{{end}}
   ]
@@ -212,7 +199,7 @@ func handleConfig(tvars *templateVars, w http.ResponseWriter, r *http.Request) {
 type templateVars struct {
 	n       int
 	RelDirs []string
-	Addr    string
+	Addr    net.Addr
 }
 
 // Repos returns a slice of URL paths for all the repos, including any copies.
