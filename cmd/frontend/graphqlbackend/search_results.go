@@ -424,7 +424,7 @@ loop:
 			continue
 		case r.diff != nil:
 			// Diff searches are cheap, because we implicitly have author date info.
-			addPoint(r.diff.commit.author.date)
+			addPoint(r.diff.Commit().author.date)
 		case r.fileMatch != nil:
 			// File match searches are more expensive, because we must blame the
 			// (first) line in order to know its placement in our sparkline.
