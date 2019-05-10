@@ -2,6 +2,7 @@ gitserver: gitserver
 query-runner: query-runner
 repo-updater: repo-updater
 searcher: searcher
+# TODO(RVT) setup local dev with comby dependency
 replacer: replacer
 symbols: ./cmd/symbols/build.sh execute
 github-proxy: github-proxy
