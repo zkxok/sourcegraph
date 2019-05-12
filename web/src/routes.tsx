@@ -14,7 +14,7 @@ export interface LayoutRouteComponentProps extends RouteComponentProps<any>, Lay
 export interface LayoutRouteProps {
     path: string
     exact?: boolean
-    render: (props: LayoutRouteComponentProps) => React.ReactNode
+    render: React.ComponentType<LayoutRouteComponentProps>
 
     /**
      * Whether or not to force the width of the page to be narrow.
@@ -80,10 +80,7 @@ export const routes: ReadonlyArray<LayoutRouteProps> = [
     },
     {
         path: '/sign-up',
-        render: lazyComponent(
-            async () => ({ SignUpPage: (await import('./auth/SignUpPage')).SignUpPage }),
-            'SignUpPage'
-        ),
+        render: lazyComponent(() => import('./auth/SignUpPage'), 'SignUpPage'),
         exact: true,
         forceNarrowWidth: true,
     },

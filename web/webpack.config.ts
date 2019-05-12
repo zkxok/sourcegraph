@@ -44,7 +44,10 @@ const config: webpack.Configuration = {
         // Enterprise vs. OSS builds use different entrypoints. For app (TypeScript), a single entrypoint is used
         // (enterprise or OSS). For style (SCSS), the OSS entrypoint is always used, and the enterprise entrypoint
         // is appended for enterprise builds.
-        app: isEnterpriseBuild ? path.join(enterpriseDir, 'main.tsx') : path.join(__dirname, 'src', 'main.tsx'),
+        app: [
+            'react-hot-loader/patch',
+            isEnterpriseBuild ? path.join(enterpriseDir, 'main.tsx') : path.join(__dirname, 'src', 'main.tsx'),
+        ],
         style: [
             path.join(__dirname, 'src', 'main.scss'),
             isEnterpriseBuild ? path.join(__dirname, 'src', 'enterprise.scss') : null,
@@ -96,8 +99,33 @@ const config: webpack.Configuration = {
     },
     module: {
         rules: [
+            // Run hot-loading-related Babel plugins on our application code only (because they'd be
+            // slow to run on all JavaScript code).
             {
                 test: /\.[jt]sx?$/,
+                include: path.join(__dirname, 'src'),
+                use: [
+                    {
+                        loader: 'babel-loader',
+                        options: {
+                            cacheDirectory: true,
+                            plugins: [
+                                'react-hot-loader/babel',
+                                [
+                                    '@sourcegraph/babel-plugin-transform-react-hot-loader-wrapper',
+                                    {
+                                        modulePattern: 'web/src/.*\\.tsx$',
+                                        componentNamePattern: 'Page$',
+                                    },
+                                ],
+                            ],
+                        },
+                    },
+                ],
+            },
+            {
+                test: /\.[jt]sx?$/,
+                exclude: path.join(__dirname, 'src'),
                 use: [
                     {
                         loader: 'babel-loader',

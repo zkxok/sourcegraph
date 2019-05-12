@@ -6,7 +6,7 @@ import React, { Attributes, PropsWithChildren, PropsWithRef } from 'react'
  * This should be used in URL routes and anywhere else that Webpack code splitting can occur, to
  * avoid all referenced components being in the initial bundle.
  *
- * @param componentFactory Asynchronously imports the component's module; e.g., `() =>
+ * @param moduleFactory Asynchronously imports the component's module; e.g., `() =>
  * import('./MyComponent')`.
  * @param name The export binding name of the component in its module.
  */
