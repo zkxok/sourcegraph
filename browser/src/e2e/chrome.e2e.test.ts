@@ -1,31 +1,9 @@
 import * as path from 'path'
 import puppeteer from 'puppeteer'
+import { getTokenWithSelector } from '../../../shared/src/util/e2e-test-util'
 import { saveScreenshotsUponFailuresAndClosePage } from '../../../shared/src/util/screenshotReporter'
 
 const chromeExtensionPath = path.resolve(__dirname, '..', '..', 'build/chrome')
-
-async function getTokenWithSelector(
-    page: puppeteer.Page,
-    token: string,
-    selector: string
-): Promise<puppeteer.ElementHandle> {
-    const elements = await page.$$(selector)
-
-    let element: puppeteer.ElementHandle<HTMLElement> | undefined
-    for (const elem of elements) {
-        const text = await page.evaluate(element => element.textContent, elem)
-        if (text === token) {
-            element = elem
-            break
-        }
-    }
-
-    if (!element) {
-        throw new Error(`Unable to find token '${token}' with selector ${selector}`)
-    }
-
-    return element
-}
 
 async function clickElement(page: puppeteer.Page, element: puppeteer.ElementHandle): Promise<void> {
     // Wait for JS to be evaluated (https://github.com/GoogleChrome/puppeteer/issues/1805#issuecomment-357999249).
