@@ -662,6 +662,10 @@ func (d *discussionThreadResolver) Author(ctx context.Context) (*UserResolver, e
 
 func (d *discussionThreadResolver) Title() string { return d.t.Title }
 
+func (d *discussionThreadResolver) Targets(ctx context.Context, args *graphqlutil.ConnectionArgs) *discussionThreadTargetConnectionResolver {
+	return &discussionThreadTargetConnectionResolver{threadID: d.t.ID, args: args}
+}
+
 func (d *discussionThreadResolver) Target(ctx context.Context) (*discussionThreadTargetResolver, error) {
 	// TODO(sqs): This only takes the 1st target. Support multiple targets.
 	targets, err := db.DiscussionThreads.ListTargets(ctx, d.t.ID)
@@ -768,10 +772,16 @@ func (r *discussionThreadsConnectionResolver) PageInfo(ctx context.Context) (*gr
 	return graphqlutil.HasNextPage(r.opt.LimitOffset != nil && len(threads) > r.opt.Limit), nil
 }
 
+var mockViewerCanUseDiscussions func() error
+
 // viewerCanUseDiscussions returns an error if the user in the context cannot
 // use code discussions, e.g. due to the extension not being installed or
 // enabled.
 func viewerCanUseDiscussions(ctx context.Context) error {
+	if mockViewerCanUseDiscussions != nil {
+		return mockViewerCanUseDiscussions()
+	}
+
 	merged, err := viewerFinalSettings(ctx)
 	if err != nil {
 		return err
