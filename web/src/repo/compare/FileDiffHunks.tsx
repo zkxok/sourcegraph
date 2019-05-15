@@ -1,4 +1,4 @@
-import { DiffPart, DOMFunctions, findPositionsFromEvents, Hoverifier } from '@sourcegraph/codeintellify'
+import { DiffPart, findPositionsFromEvents, Hoverifier } from '@sourcegraph/codeintellify'
 import * as H from 'history'
 import { isEqual } from 'lodash'
 import * as React from 'react'

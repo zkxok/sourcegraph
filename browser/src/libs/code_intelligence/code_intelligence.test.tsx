@@ -251,6 +251,7 @@ describe('code_intelligence', () => {
                                 dom: {
                                     getCodeElementFromTarget: jest.fn(),
                                     getCodeElementFromLineNumber: jest.fn(),
+                                    getLineElementFromLineNumber: jest.fn(),
                                     getLineNumberFromCodeElement: jest.fn(),
                                 },
                                 resolveFileInfo: codeView => of(fileInfo),
@@ -316,6 +317,7 @@ describe('code_intelligence', () => {
                                 dom: {
                                     getCodeElementFromTarget: jest.fn(),
                                     getCodeElementFromLineNumber: () => line,
+                                    getLineElementFromLineNumber: jest.fn(),
                                     getLineNumberFromCodeElement: jest.fn(),
                                 },
                                 resolveFileInfo: codeView => of(fileInfo),
@@ -404,6 +406,7 @@ describe('code_intelligence', () => {
                                 dom: {
                                     getCodeElementFromTarget: jest.fn(),
                                     getCodeElementFromLineNumber: jest.fn(),
+                                    getLineElementFromLineNumber: jest.fn(),
                                     getLineNumberFromCodeElement: jest.fn(),
                                 },
                                 resolveFileInfo: codeView => of(fileInfo),

@@ -1,4 +1,4 @@
-import { DOMFunctions } from '@sourcegraph/codeintellify'
+import { DOMFunctions } from '../code_intelligence/code_views'
 
 const getLineNumberCell = (codeElement: HTMLElement) => {
     let elem: HTMLElement | null = codeElement
