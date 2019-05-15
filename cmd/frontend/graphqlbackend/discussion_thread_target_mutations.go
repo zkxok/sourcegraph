@@ -54,7 +54,7 @@ func (r *discussionsMutationResolver) AddTargetToThread(ctx context.Context, arg
 		return nil, errors.New("no current user")
 	}
 
-	threadID, err := unmarshalDiscussionID(args.ThreadID)
+	threadID, err := unmarshalDiscussionThreadID(args.ThreadID)
 	if err != nil {
 		return nil, err
 	}
