@@ -1,6 +1,6 @@
 import { percySnapshot as realPercySnapshot } from '@percy/puppeteer'
 import * as path from 'path'
-import puppeteer, { LaunchOptions } from 'puppeteer'
+import puppeteer from 'puppeteer'
 import {
     ensureHasExternalService,
     ensureLoggedIn,
