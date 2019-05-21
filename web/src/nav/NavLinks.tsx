@@ -113,6 +113,7 @@ export class NavLinks extends React.PureComponent<Props> {
                 {this.props.location.pathname !== '/welcome' && (
                     <WebCommandListPopoverButton
                         {...this.props}
+                        className="nav-item"
                         menu={ContributableMenu.CommandPalette}
                         toggleVisibilityKeybinding={this.props.keybindings.commandPalette}
                     />

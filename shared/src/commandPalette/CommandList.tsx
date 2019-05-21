@@ -292,6 +292,7 @@ export function filterAndRankItems(
 
 export interface CommandListPopoverButtonProps extends CommandListProps {
     toggleVisibilityKeybinding?: Pick<ShortcutProps, 'held' | 'ordered'>[]
+    className?: string
 }
 
 export class CommandListPopoverButton extends React.PureComponent<
@@ -303,6 +304,7 @@ export class CommandListPopoverButton extends React.PureComponent<
     public render(): JSX.Element | null {
         return (
             <PopoverButton
+                className={this.props.className}
                 popoverClassName={this.props.popoverClassName}
                 placement="bottom-end"
                 toggleVisibilityKeybinding={this.props.toggleVisibilityKeybinding}
