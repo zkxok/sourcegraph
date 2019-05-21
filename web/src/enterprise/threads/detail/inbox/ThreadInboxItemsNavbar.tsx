@@ -1,7 +1,8 @@
 import H from 'history'
-import AlertCircleIcon from 'mdi-react/AlertCircleIcon'
+import AlertCircleOutlineIcon from 'mdi-react/AlertCircleOutlineIcon'
 import CancelIcon from 'mdi-react/CancelIcon'
 import FilterIcon from 'mdi-react/FilterIcon'
+import SourcePullIcon from 'mdi-react/SourcePullIcon'
 import React, { useState } from 'react'
 import { MultilineTextField } from '../../../../../../shared/src/components/multilineTextField/MultilineTextField'
 import { ExtensionsControllerProps } from '../../../../../../shared/src/extensions/controller'
@@ -124,7 +125,7 @@ export const ThreadInboxItemsNavbar: React.FunctionComponent<Props> = ({
                                             v.__typename === 'DiscussionThreadTargetRepo'
                                     )
                                     .filter(({ isIgnored }) => !isIgnored).length,
-                                icon: AlertCircleIcon,
+                                icon: AlertCircleOutlineIcon,
                             },
                             {
                                 label: 'ignored',
@@ -149,6 +150,9 @@ export const ThreadInboxItemsNavbar: React.FunctionComponent<Props> = ({
                             thread={thread}
                             buttonClassName="btn-link text-decoration-none"
                         />
+                        <button type="button" className="btn btn-secondary mr-2" onClick={() => setShowFilter(true)}>
+                            <SourcePullIcon className="icon-inline" /> Add all to pull requests
+                        </button>
                         <button type="button" className="btn btn-secondary" onClick={() => setShowFilter(true)}>
                             <FilterIcon /> Filter...
                         </button>

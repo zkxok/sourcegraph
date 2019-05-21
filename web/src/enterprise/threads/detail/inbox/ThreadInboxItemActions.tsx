@@ -1,11 +1,16 @@
 import H from 'history'
 import PencilIcon from 'mdi-react/PencilIcon'
+import SlackIcon from 'mdi-react/SlackIcon'
+import SourceCommitIcon from 'mdi-react/SourceCommitIcon'
+import SourcePullIcon from 'mdi-react/SourcePullIcon'
 import React, { useState } from 'react'
 import { ChatIcon } from '../../../../../../shared/src/components/icons'
 import { ExtensionsControllerProps } from '../../../../../../shared/src/extensions/controller'
 import * as GQL from '../../../../../../shared/src/graphql/schema'
 import { DiscussionsCreate } from '../../../../repo/blob/discussions/DiscussionsCreate'
+import { ThreadInboxItemAddToPullRequest } from './actions/addToPullRequest/ThreadInboxItemAddToPullRequest'
 import { ThreadInboxItemIgnoreButton } from './ThreadInboxItemIgnoreButton'
+import { ThreadInboxItemSlackMessage } from './actions/slackMessage/ThreadInboxItemSlackMessage'
 
 interface Props extends ExtensionsControllerProps {
     inboxItem: GQL.IDiscussionThreadTargetRepo
@@ -38,7 +43,7 @@ export const ThreadInboxItemActions: React.FunctionComponent<Props> = ({
                     commitID="master" // TODO!(sqs)
                     rev="master"
                     filePath="abc"
-                    className="border-top"
+                    className="p-2"
                     onDiscard={() => setIsCreatingDiscussion(false)}
                     extensionsController={extensionsController}
                     history={history}
@@ -46,8 +51,16 @@ export const ThreadInboxItemActions: React.FunctionComponent<Props> = ({
                 />
             ) : (
                 <>
+                    <ThreadInboxItemAddToPullRequest
+                        buttonClassName="btn-link text-decoration-none"
+                        extensionsController={extensionsController}
+                    />
+                    <ThreadInboxItemSlackMessage buttonClassName="btn-link text-decoration-none" />
                     <button onClick={() => setIsCreatingDiscussion(true)} className="btn btn-link text-decoration-none">
                         <ChatIcon className="icon-inline" /> Add comment
+                    </button>
+                    <button onClick={() => alert('not implemented')} className="btn btn-link text-decoration-none">
+                        <SourceCommitIcon className="icon-inline" /> Commit
                     </button>
                     <button onClick={() => alert('not implemented')} className="btn btn-link text-decoration-none">
                         <PencilIcon className="icon-inline" /> Edit

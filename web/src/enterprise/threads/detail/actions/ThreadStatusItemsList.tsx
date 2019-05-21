@@ -14,7 +14,7 @@ import { PullRequestStatusItem } from './PullRequestStatusItem'
 import { ThreadStatusItemsListHeaderFilterButtonDropdown } from './ThreadStatusItemsListHeaderFilterButtonDropdown'
 import { ThreadStatusItemsProgressBar } from './ThreadStatusItemsProgressBar'
 
-const DATA: {
+export interface PullRequest {
     repo: string
     label?: string
     prNumber: number
@@ -22,7 +22,9 @@ const DATA: {
     updatedAt: string
     updatedBy: string
     commentsCount: number
-}[] = [
+}
+
+export const STATUS_ITEMS: PullRequest[] = [
     {
         repo: 'github.com/sourcegraph/sourcegraph',
         prNumber: 2319,
@@ -119,8 +121,8 @@ const DATA: {
 
 const queryStatusItems = (_threadID: string, createPullRequests?: boolean) =>
     of({
-        nodes: createPullRequests ? DATA : DATA.map(d => ({ ...d, status: 'pending' as const })),
-        totalCount: DATA.length,
+        nodes: createPullRequests ? STATUS_ITEMS : STATUS_ITEMS.map(d => ({ ...d, status: 'pending' as const })),
+        totalCount: STATUS_ITEMS.length,
     })
 
 interface Props {
@@ -139,7 +141,7 @@ const LOADING: 'loading' = 'loading'
  */
 export const ThreadStatusItemsList: React.FunctionComponent<Props> = ({ thread, threadSettings, action, location }) => {
     const [itemsOrError, setItemsOrError] = useState<
-        typeof LOADING | { nodes: typeof DATA; totalCount: number } | ErrorLike
+        typeof LOADING | { nodes: typeof STATUS_ITEMS; totalCount: number } | ErrorLike
     >(LOADING)
 
     // tslint:disable-next-line: no-floating-promises because queryStatusItems never throws
