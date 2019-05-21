@@ -31,6 +31,7 @@ interface Props extends QueryParameterProps, ExtensionsControllerProps {
 // tslint:disable: jsx-no-lambda
 export const ThreadInboxItemsNavbar: React.FunctionComponent<Props> = ({
     thread,
+    threadSettings,
     items,
     query,
     onQueryChange,
@@ -41,6 +42,9 @@ export const ThreadInboxItemsNavbar: React.FunctionComponent<Props> = ({
 }) => {
     const [showQuery, setShowQuery] = useState(true)
     const [showFilter, setShowFilter] = useState(false)
+
+    const isHandled = (item: GQL.IDiscussionThreadTargetRepo): boolean =>
+        (threadSettings.pullRequests || []).some(pull => pull.items.includes(item.id))
 
     return (
         <nav className={`d-block ${className}`}>
@@ -125,7 +129,8 @@ export const ThreadInboxItemsNavbar: React.FunctionComponent<Props> = ({
                                         (v): v is GQL.IDiscussionThreadTargetRepo =>
                                             v.__typename === 'DiscussionThreadTargetRepo'
                                     )
-                                    .filter(({ isIgnored }) => !isIgnored).length,
+                                    .filter(({ isIgnored }) => !isIgnored)
+                                    .filter(v => !isHandled(v)).length,
                                 icon: AlertCircleOutlineIcon,
                             },
                             {
@@ -137,7 +142,8 @@ export const ThreadInboxItemsNavbar: React.FunctionComponent<Props> = ({
                                         (v): v is GQL.IDiscussionThreadTargetRepo =>
                                             v.__typename === 'DiscussionThreadTargetRepo'
                                     )
-                                    .filter(({ isIgnored }) => isIgnored).length,
+                                    .filter(({ isIgnored }) => isIgnored)
+                                    .filter(v => !isHandled(v)).length,
                                 icon: CancelIcon,
                             },
                         ]}
@@ -149,6 +155,7 @@ export const ThreadInboxItemsNavbar: React.FunctionComponent<Props> = ({
                         <ThreadInboxRefreshButton
                             {...props}
                             thread={thread}
+                            threadSettings={threadSettings}
                             buttonClassName="btn-link text-decoration-none"
                         />
                         <button type="button" className="btn btn-secondary mr-2" onClick={() => setShowFilter(true)}>

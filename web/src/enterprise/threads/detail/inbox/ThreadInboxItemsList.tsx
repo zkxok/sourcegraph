@@ -91,6 +91,8 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
     useMemo(async () => {
         try {
             const data = await queryInboxItems(thread.id)
+            const isHandled = (item: GQL.IDiscussionThreadTargetRepo): boolean =>
+                (threadSettings.pullRequests || []).some(pull => pull.items.includes(item.id))
             setItemsOrError({
                 ...data,
                 matchingNodes: data.nodes
@@ -100,8 +102,8 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
                     )
                     .filter(
                         item =>
-                            (query.includes('is:open') && !item.isIgnored) ||
-                            (query.includes('is:ignored') && item.isIgnored) ||
+                            (query.includes('is:open') && !item.isIgnored && !isHandled(item)) ||
+                            (query.includes('is:ignored') && item.isIgnored && !isHandled(item)) ||
                             (!query.includes('is:open') && !query.includes('is:ignored'))
                     )
                     .filter(item => {

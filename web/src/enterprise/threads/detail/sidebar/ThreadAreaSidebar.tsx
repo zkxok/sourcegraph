@@ -44,7 +44,7 @@ export const ThreadAreaSidebar: React.FunctionComponent<Props> = ({ thread, clas
             </li>
             <li className="list-group-item py-3">
                 <h6>3 participants</h6>
-                <div className="text-muted">@sqs @alice @bob @carol</div>
+                <div className="text-muted">@sqs @jtal3sf @rrono3 @jstykes</div>
             </li>
             <li className="list-group-item py-3">
                 <h6 className="mb-0 d-flex align-items-center justify-content-between">

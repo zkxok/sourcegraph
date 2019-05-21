@@ -5,11 +5,13 @@ import React, { useCallback, useState } from 'react'
 import { NotificationType } from '../../../../../../shared/src/api/client/services/notifications'
 import { ExtensionsControllerProps } from '../../../../../../shared/src/extensions/controller'
 import * as GQL from '../../../../../../shared/src/graphql/schema'
-import { updateTargetInThread } from '../../../../discussions/backend'
+import { fetchDiscussionThreadAndComments, updateTargetInThread } from '../../../../discussions/backend'
 
 interface Props {
     inboxItem: Pick<GQL.IDiscussionThreadTargetRepo, 'id' | 'isIgnored'>
     onInboxItemUpdate: (item: GQL.DiscussionThreadTarget) => void
+    thread: Pick<GQL.IDiscussionThread, 'id' | 'idWithoutKind'>
+    onThreadUpdate: (thread: GQL.IDiscussionThread) => void
     className?: string
     buttonClassName?: string
     extensionsController: {
@@ -32,6 +34,8 @@ interface Props {
 export const ThreadInboxItemIgnoreButton: React.FunctionComponent<Props> = ({
     inboxItem,
     onInboxItemUpdate,
+    thread,
+    onThreadUpdate,
     className = '',
     buttonClassName = 'btn-secondary',
     extensionsController,
@@ -47,6 +51,7 @@ export const ThreadInboxItemIgnoreButton: React.FunctionComponent<Props> = ({
                     isIgnored: !inboxItem.isIgnored,
                 }).toPromise()
                 onInboxItemUpdate(updatedItem)
+                onThreadUpdate(await fetchDiscussionThreadAndComments(thread.idWithoutKind).toPromise())
             } catch (err) {
                 extensionsController.services.notifications.showMessages.next({
                     message: `Error ${inboxItem.isIgnored ? 'un' : ''}ignoring item: ${err.message}`,
@@ -56,7 +61,7 @@ export const ThreadInboxItemIgnoreButton: React.FunctionComponent<Props> = ({
                 setIsLoading(false)
             }
         },
-        [inboxItem.isIgnored, isLoading]
+        [inboxItem.id, inboxItem.isIgnored, isLoading, onInboxItemUpdate, onThreadUpdate]
     )
     const Icon = inboxItem.isIgnored ? BackupRestoreIcon : WindowCloseIcon
     return (

@@ -14,6 +14,9 @@ interface Props {
     className?: string
 }
 
+const isHandled = (item: GQL.IDiscussionThreadTargetRepo, threadSettings: ThreadSettings): boolean =>
+    (threadSettings.pullRequests || []).some(pull => pull.items.includes(item.id))
+
 /**
  * The navbar for a single thread.
  */
@@ -45,7 +48,17 @@ export const ThreadAreaNavbar: React.FunctionComponent<Props> = ({
                             activeClassName="thread-area-navbar__nav-link--active"
                         >
                             <InboxIcon className="icon-inline" /> Inbox{' '}
-                            <span className="badge badge-secondary">{thread.targets.totalCount}</span>
+                            <span className="badge badge-secondary">
+                                {
+                                    thread.targets.nodes
+                                        .filter(
+                                            (v): v is GQL.IDiscussionThreadTargetRepo =>
+                                                v.__typename === 'DiscussionThreadTargetRepo'
+                                        )
+                                        .filter(v => !v.isIgnored)
+                                        .filter(v => !isHandled(v, threadSettings)).length
+                                }
+                            </span>
                         </NavLink>
                     </div>
                 )}

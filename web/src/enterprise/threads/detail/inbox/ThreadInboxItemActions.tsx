@@ -1,8 +1,6 @@
 import H from 'history'
 import PencilIcon from 'mdi-react/PencilIcon'
-import SlackIcon from 'mdi-react/SlackIcon'
 import SourceCommitIcon from 'mdi-react/SourceCommitIcon'
-import SourcePullIcon from 'mdi-react/SourcePullIcon'
 import React, { useState } from 'react'
 import { ChatIcon } from '../../../../../../shared/src/components/icons'
 import { ExtensionsControllerProps } from '../../../../../../shared/src/extensions/controller'
@@ -14,7 +12,7 @@ import { ThreadInboxItemSlackMessage } from './actions/slackMessage/ThreadInboxI
 import { ThreadInboxItemIgnoreButton } from './ThreadInboxItemIgnoreButton'
 
 interface Props extends ExtensionsControllerProps {
-    thread: Pick<GQL.IDiscussionThread, 'id' | 'settings'>
+    thread: Pick<GQL.IDiscussionThread, 'id' | 'idWithoutKind' | 'settings'>
     onThreadUpdate: (thread: GQL.IDiscussionThread) => void
     threadSettings: ThreadSettings
     inboxItem: GQL.IDiscussionThreadTargetRepo
@@ -79,6 +77,8 @@ export const ThreadInboxItemActions: React.FunctionComponent<Props> = ({
                     <ThreadInboxItemIgnoreButton
                         inboxItem={inboxItem}
                         onInboxItemUpdate={onInboxItemUpdate}
+                        thread={thread}
+                        onThreadUpdate={onThreadUpdate}
                         className="text-decoration-none"
                         buttonClassName="btn-link"
                         extensionsController={extensionsController}

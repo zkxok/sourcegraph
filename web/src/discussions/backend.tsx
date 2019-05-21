@@ -65,7 +65,7 @@ const discussionThreadFieldsFragment = gql`
             ...UserFields
         }
         title
-        targets(first: 1) {
+        targets {
             nodes {
                 __typename
                 ...DiscussionThreadTargetFields
