@@ -8,6 +8,7 @@ import { HeroPage } from '../../../../components/HeroPage'
 import { ThreadSettings } from '../../settings'
 import { ThreadAreaContext } from '../ThreadArea'
 import { ThreadActionsPullRequests } from './pullRequests/ThreadActionsPullRequests'
+import { ThreadActionsAreaSidebar } from './ThreadActionsAreaSidebar'
 import { ThreadActionsOverview } from './ThreadActionsOverview'
 
 const NotFoundPage = () => (
@@ -32,15 +33,16 @@ export const ThreadActionsArea: React.FunctionComponent<Props> = ({
     threadSettings,
     ...props
 }) => {
-    const context: ThreadAreaContext = {
+    const context: ThreadAreaContext & { areaURL: string } = {
         thread,
         onThreadUpdate,
         threadSettings,
+        areaURL: props.match.url,
     }
 
     return (
         <div className="thread-actions-area container d-flex">
-            <div className="flex-0">SIDEBAR</div>
+            <ThreadActionsAreaSidebar {...context} className="flex-0 mr-2" />
             <div className="flex-1">
                 <ErrorBoundary location={props.location}>
                     <Switch>

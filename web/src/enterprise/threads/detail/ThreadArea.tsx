@@ -127,7 +127,6 @@ export const ThreadArea: React.FunctionComponent<Props> = props => {
                             <Route
                                 path={`${props.match.url}/actions`}
                                 key="hardcoded-key" // see https://github.com/ReactTraining/react-router/issues/4578#issuecomment-334489490
-                                exact={true}
                                 // tslint:disable-next-line:jsx-no-lambda
                                 render={routeComponentProps => (
                                     <ThreadActionsArea {...context} {...routeComponentProps} />
