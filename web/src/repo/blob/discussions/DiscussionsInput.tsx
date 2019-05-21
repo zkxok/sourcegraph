@@ -51,6 +51,8 @@ interface Props extends ExtensionsControllerProps {
 
     /** Called when the title value changes. */
     onTitleChange?: (title: string) => void
+
+    className?: string
 }
 
 interface State {
@@ -263,7 +265,7 @@ export class DiscussionsInput extends React.PureComponent<Props, State> {
         }
 
         return (
-            <Form className="discussions-input" onSubmit={this.nextSubmit}>
+            <Form className={`discussions-input ${this.props.className || ''}`} onSubmit={this.nextSubmit}>
                 {this.props.titleMode === TitleMode.Explicit && (
                     <input
                         className="form-control discussions-input__title"
