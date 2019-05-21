@@ -8,8 +8,8 @@ import { MultilineTextField } from '../../../../../../shared/src/components/mult
 import * as GQL from '../../../../../../shared/src/graphql/schema'
 import { ListHeaderQueryLinksNav } from '../../components/ListHeaderQueryLinks'
 import { QueryParameterProps } from '../../components/withQueryParameter/WithQueryParameter'
-import { ThreadSourceItemsListFilter } from './ThreadSourceItemsListFilter'
-import { ThreadSourceItemsListHeaderFilterButtonDropdown } from './ThreadSourceItemsListHeaderFilterButtonDropdown'
+import { ThreadInboxItemsListFilter } from './ThreadInboxItemsListFilter'
+import { ThreadInboxItemsListHeaderFilterButtonDropdown } from './ThreadInboxItemsListHeaderFilterButtonDropdown'
 
 interface Props extends QueryParameterProps {
     thread: Pick<GQL.IDiscussionThread, 'title' | 'id'>
@@ -21,10 +21,10 @@ interface Props extends QueryParameterProps {
 }
 
 /**
- * The navbar for the list of thread source items.
+ * The navbar for the list of thread inbox items.
  */
 // tslint:disable: jsx-no-lambda
-export const ThreadSourceItemsNavbar: React.FunctionComponent<Props> = ({
+export const ThreadInboxItemsNavbar: React.FunctionComponent<Props> = ({
     thread,
     items,
     query,
@@ -47,7 +47,7 @@ export const ThreadSourceItemsNavbar: React.FunctionComponent<Props> = ({
                 <div className="d-flex flex-wrap">
                     <div className={`input-group align-items-start mt-2 ${showQuery ? '' : 'w-auto mr-2'}`}>
                         <label
-                            htmlFor="thread-source-items-navbar__query"
+                            htmlFor="thread-inbox-items-navbar__query"
                             className="input-group-prepend"
                             // style={{ marginTop: '0.35rem' }}
                         >
@@ -55,7 +55,7 @@ export const ThreadSourceItemsNavbar: React.FunctionComponent<Props> = ({
                         </label>
                         {showQuery ? (
                             <MultilineTextField
-                                id="thread-source-items-navbar__query"
+                                id="thread-inbox-items-navbar__query"
                                 type="text"
                                 className="form-control flex-1"
                                 // readOnly={true} // TODO!(sqs): make editable but require confirmation
@@ -71,14 +71,14 @@ export const ThreadSourceItemsNavbar: React.FunctionComponent<Props> = ({
                             </button>
                         )}
                     </div>
-                    <ThreadSourceItemsListFilter value={query} onChange={onQueryChange} className="flex-1 mt-2" />
+                    <ThreadInboxItemsListFilter value={query} onChange={onQueryChange} className="flex-1 mt-2" />
                 </div>
             )}
             <div className="row justify-content-between mt-1">
                 {showFilter && (
                     <div className="col-md-6 d-flex align-items-center">
                         <span className="ml-md-5 pl-md-4" />
-                        <ThreadSourceItemsListHeaderFilterButtonDropdown
+                        <ThreadInboxItemsListHeaderFilterButtonDropdown
                             header="Filter by repository"
                             items={[
                                 'sourcegraph/sourcegraph',
@@ -89,19 +89,19 @@ export const ThreadSourceItemsNavbar: React.FunctionComponent<Props> = ({
                             ]}
                         >
                             Repository
-                        </ThreadSourceItemsListHeaderFilterButtonDropdown>
-                        <ThreadSourceItemsListHeaderFilterButtonDropdown
+                        </ThreadInboxItemsListHeaderFilterButtonDropdown>
+                        <ThreadInboxItemsListHeaderFilterButtonDropdown
                             header="Filter by who's assigned"
                             items={['sqs (you)', 'ekonev', 'jleiner', 'ziyang', 'kting7', 'ffranksena']}
                         >
                             Assignee
-                        </ThreadSourceItemsListHeaderFilterButtonDropdown>
-                        <ThreadSourceItemsListHeaderFilterButtonDropdown
+                        </ThreadInboxItemsListHeaderFilterButtonDropdown>
+                        <ThreadInboxItemsListHeaderFilterButtonDropdown
                             header="Sort by"
                             items={['Priority', 'Most recently updated', 'Least recently updated']}
                         >
                             Sort
-                        </ThreadSourceItemsListHeaderFilterButtonDropdown>
+                        </ThreadInboxItemsListHeaderFilterButtonDropdown>
                     </div>
                 )}
                 <div className="col-md-6 d-flex align-items-center">

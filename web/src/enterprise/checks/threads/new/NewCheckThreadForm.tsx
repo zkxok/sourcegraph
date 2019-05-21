@@ -77,7 +77,7 @@ export const NewCheckThreadForm: React.FunctionComponent<Props> = ({ checkTempla
                     onChange={onBodyChange}
                 />
             </div>
-            <button type="submit" disabled={creationOrError === LOADING} className="btn btn-primary mt-2">
+            <button type="submit" disabled={creationOrError === LOADING} className="btn btn-primary">
                 {creationOrError === LOADING ? (
                     <LoadingSpinner className="icon-inline" />
                 ) : (

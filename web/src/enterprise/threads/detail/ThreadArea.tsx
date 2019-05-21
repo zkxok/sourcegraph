@@ -13,10 +13,10 @@ import { ThreadsAreaContext } from '../global/ThreadsArea'
 import { ThreadSettings } from '../settings'
 import { ThreadActivityPage } from './activity/ThreadActivityPage'
 import { ThreadDiscussionPage } from './discussion/ThreadDiscussionPage'
+import { ThreadInboxPage } from './inbox/ThreadInboxPage'
 import { ThreadOverview } from './overview/ThreadOverview'
 import { ThreadSettingsPage } from './settings/ThreadSettingsPage'
 import { ThreadAreaSidebar } from './sidebar/ThreadAreaSidebar'
-import { ThreadSourcesPage } from './sources/ThreadSourcesPage'
 import { ThreadAreaNavbar } from './ThreadAreaNavbar'
 
 const NotFoundPage = () => (
@@ -76,7 +76,13 @@ export const ThreadArea: React.FunctionComponent<Props> = props => {
                 handlePosition="left"
                 storageKey="thread-area__sidebar-resizable"
                 defaultSize={216 /* px */}
-                element={<ThreadAreaSidebar {...context} className="thread-area__sidebar flex-1 overflow-auto" />}
+                element={
+                    <ThreadAreaSidebar
+                        {...context}
+                        className="thread-area__sidebar flex-1 overflow-auto"
+                        history={props.history}
+                    />
+                }
             />
             <div className="flex-1 overflow-auto">
                 <ErrorBoundary location={props.location}>
@@ -103,7 +109,7 @@ export const ThreadArea: React.FunctionComponent<Props> = props => {
                                 exact={true}
                                 // tslint:disable-next-line:jsx-no-lambda
                                 render={routeComponentProps => (
-                                    <ThreadSourcesPage {...routeComponentProps} {...context} />
+                                    <ThreadInboxPage {...routeComponentProps} {...context} />
                                 )}
                             />
                         )}

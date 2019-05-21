@@ -10,11 +10,11 @@ import { displayRepoName } from '../../../../../../shared/src/components/RepoFil
 import { ExtensionsControllerProps } from '../../../../../../shared/src/extensions/controller'
 import * as GQL from '../../../../../../shared/src/graphql/schema'
 import { fetchHighlightedFileLines } from '../../../../repo/backend'
-import { SourceItemActions } from './SourceItemActions'
+import { ThreadInboxItemActions } from './ThreadInboxItemActions'
 
 interface Props extends ExtensionsControllerProps {
     item: GQL.IDiscussionThreadTargetRepo
-    onSourceItemUpdate: (item: GQL.DiscussionThreadTarget) => void
+    onInboxItemUpdate: (item: GQL.DiscussionThreadTarget) => void
     className?: string
     isLightTheme: boolean
     history: H.History
@@ -31,11 +31,11 @@ const statusIcon = (
 }
 
 /**
- * A source item in a thread that refers to a text document location.
+ * An inbox item in a thread that refers to a text document location.
  */
-export const TextDocumentLocationSourceItem: React.FunctionComponent<Props> = ({
+export const TextDocumentLocationInboxItem: React.FunctionComponent<Props> = ({
     item,
-    onSourceItemUpdate,
+    onInboxItemUpdate,
     className = '',
     isLightTheme,
     ...props
@@ -104,10 +104,10 @@ export const TextDocumentLocationSourceItem: React.FunctionComponent<Props> = ({
                     fetchHighlightedFileLines={fetchHighlightedFileLines}
                 />
             )}
-            <SourceItemActions
+            <ThreadInboxItemActions
                 {...props}
-                sourceItem={item}
-                onSourceItemUpdate={onSourceItemUpdate}
+                inboxItem={item}
+                onInboxItemUpdate={onInboxItemUpdate}
                 className="border-top"
             />
         </div>

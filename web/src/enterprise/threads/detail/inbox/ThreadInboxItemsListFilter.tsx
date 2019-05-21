@@ -13,10 +13,10 @@ interface Props {
 }
 
 /**
- * The filter control (dropdown and input field) for a list of thread source items.
+ * The filter control (dropdown and input field) for a list of thread inbox items.
  */
 // tslint:disable: jsx-no-lambda
-export const ThreadSourceItemsListFilter: React.FunctionComponent<Props> = ({ value, onChange, className }) => {
+export const ThreadInboxItemsListFilter: React.FunctionComponent<Props> = ({ value, onChange, className }) => {
     const [uncommittedValue, setUncommittedValue] = useState(value)
     const [isOpen, setIsOpen] = useState(false)
 

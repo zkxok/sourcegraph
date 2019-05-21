@@ -13,9 +13,9 @@ interface Props {
 }
 
 /**
- * A button dropdown with filter options shown in the list of a thread's source items.
+ * A button dropdown with filter options shown in the list of a thread's inbox items.
  */
-export const ThreadSourceItemsListHeaderFilterButtonDropdown: React.FunctionComponent<Props> = ({
+export const ThreadInboxItemsListHeaderFilterButtonDropdown: React.FunctionComponent<Props> = ({
     children,
     header,
     items,

@@ -1,5 +1,6 @@
 export interface ThreadSettings {
-    query?: string
+    providers?: string[]
+    queries?: string[]
     createPullRequests?: boolean
     pullRequestTemplate?: {
         title?: string

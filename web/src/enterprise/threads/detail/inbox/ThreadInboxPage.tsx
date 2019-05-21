@@ -4,7 +4,7 @@ import { ExtensionsControllerProps } from '../../../../../../shared/src/extensio
 import * as GQL from '../../../../../../shared/src/graphql/schema'
 import { ErrorLike } from '../../../../../../shared/src/util/errors'
 import { ThreadSettings } from '../../settings'
-import { ThreadSourceItemsList } from './ThreadSourceItemsList'
+import { ThreadInboxItemsList } from './ThreadInboxItemsList'
 
 interface Props extends ExtensionsControllerProps {
     thread: GQL.IDiscussionThread
@@ -16,13 +16,13 @@ interface Props extends ExtensionsControllerProps {
     isLightTheme: boolean
 }
 
-/** The default thread source items query. */
+/** The default thread inbox query. */
 const DEFAULT_QUERY = 'is:active'
 
 /**
- * The sources page for a single thread.
+ * The inbox page for a single thread.
  */
-export const ThreadSourcesPage: React.FunctionComponent<Props> = ({
+export const ThreadInboxPage: React.FunctionComponent<Props> = ({
     thread,
     onThreadUpdate,
     threadSettings,
@@ -37,8 +37,8 @@ export const ThreadSourcesPage: React.FunctionComponent<Props> = ({
     }
 
     return (
-        <div className="thread-sources-page container">
-            <ThreadSourceItemsList
+        <div className="thread-inbox-page container">
+            <ThreadInboxItemsList
                 {...props}
                 thread={thread}
                 threadSettings={threadSettings}

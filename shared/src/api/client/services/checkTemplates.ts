@@ -1,5 +1,6 @@
 import { Observable } from 'rxjs'
 import { map } from 'rxjs/operators'
+import { ThreadSettings } from '../../../../../web/src/enterprise/threads/settings'
 import { FeatureProviderRegistry } from './registry'
 
 export interface CheckTemplate {
@@ -8,7 +9,7 @@ export interface CheckTemplate {
     description?: string
     icon?: any
     iconColor?: string
-    settings?: object
+    settings?: ThreadSettings
 }
 
 export interface CheckTemplateRegistrationOptions {}

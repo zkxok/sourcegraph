@@ -8,8 +8,8 @@ import * as GQL from '../../../../../../shared/src/graphql/schema'
 import { updateTargetInThread } from '../../../../discussions/backend'
 
 interface Props {
-    sourceItem: Pick<GQL.IDiscussionThreadTargetRepo, 'id' | 'isIgnored'>
-    onSourceItemUpdate: (item: GQL.DiscussionThreadTarget) => void
+    inboxItem: Pick<GQL.IDiscussionThreadTargetRepo, 'id' | 'isIgnored'>
+    onInboxItemUpdate: (item: GQL.DiscussionThreadTarget) => void
     className?: string
     buttonClassName?: string
     extensionsController: {
@@ -27,11 +27,11 @@ interface Props {
 }
 
 /**
- * A button that changes the ignored status of a source item.
+ * A button that changes the ignored status of an inbox item.
  */
-export const SourceItemIgnoreButton: React.FunctionComponent<Props> = ({
-    sourceItem,
-    onSourceItemUpdate,
+export const ThreadInboxItemIgnoreButton: React.FunctionComponent<Props> = ({
+    inboxItem,
+    onInboxItemUpdate,
     className = '',
     buttonClassName = 'btn-secondary',
     extensionsController,
@@ -43,26 +43,26 @@ export const SourceItemIgnoreButton: React.FunctionComponent<Props> = ({
             setIsLoading(true)
             try {
                 const updatedItem = await updateTargetInThread({
-                    targetID: sourceItem.id,
-                    isIgnored: !sourceItem.isIgnored,
+                    targetID: inboxItem.id,
+                    isIgnored: !inboxItem.isIgnored,
                 }).toPromise()
-                onSourceItemUpdate(updatedItem)
+                onInboxItemUpdate(updatedItem)
             } catch (err) {
                 extensionsController.services.notifications.showMessages.next({
-                    message: `Error ${sourceItem.isIgnored ? 'un' : ''}ignoring item: ${err.message}`,
+                    message: `Error ${inboxItem.isIgnored ? 'un' : ''}ignoring item: ${err.message}`,
                     type: NotificationType.Error,
                 })
             } finally {
                 setIsLoading(false)
             }
         },
-        [sourceItem.isIgnored, isLoading]
+        [inboxItem.isIgnored, isLoading]
     )
-    const Icon = sourceItem.isIgnored ? BackupRestoreIcon : WindowCloseIcon
+    const Icon = inboxItem.isIgnored ? BackupRestoreIcon : WindowCloseIcon
     return (
         <button type="submit" disabled={isLoading} className={`btn ${buttonClassName} ${className}`} onClick={onClick}>
             {isLoading ? <LoadingSpinner className="icon-inline" /> : <Icon className="icon-inline" />}{' '}
-            {sourceItem.isIgnored ? 'Unignore' : 'Ignore'}
+            {inboxItem.isIgnored ? 'Unignore' : 'Ignore'}
         </button>
     )
 }

@@ -13,8 +13,8 @@ import { addTargetToThread, discussionThreadTargetFieldsFragment } from '../../.
 import { search } from '../../../../search/backend'
 import { QueryParameterProps } from '../../components/withQueryParameter/WithQueryParameter'
 import { ThreadSettings } from '../../settings'
-import { TextDocumentLocationSourceItem } from './TextDocumentLocationSourceItem'
-import { ThreadSourceItemsNavbar } from './ThreadSourceItemsNavbar'
+import { TextDocumentLocationInboxItem } from './TextDocumentLocationItem'
+import { ThreadInboxItemsNavbar } from './ThreadInboxItemsNavbar'
 
 const queryMatches = (
     query: string,
@@ -65,10 +65,10 @@ const queryMatches = (
         .toPromise()
 
 // TODO!(sqs): use relative path/rev for DiscussionThreadTargetRepo
-const querySourceItems = (threadID: GQL.ID): Promise<GQL.IDiscussionThreadTargetConnection> =>
+const queryInboxItems = (threadID: GQL.ID): Promise<GQL.IDiscussionThreadTargetConnection> =>
     queryGraphQL(
         gql`
-            query ThreadSourceItems($threadID: ID!) {
+            query ThreadInboxItems($threadID: ID!) {
                 node(id: $threadID) {
                     __typename
                     ... on DiscussionThread {
@@ -117,9 +117,9 @@ interface Props extends ExtensionsControllerProps, QueryParameterProps {
 const LOADING: 'loading' = 'loading'
 
 /**
- * The list of thread source items.
+ * The list of thread inbox items.
  */
-export const ThreadSourceItemsList: React.FunctionComponent<Props> = ({
+export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
     thread,
     threadSettings,
     query,
@@ -138,15 +138,15 @@ export const ThreadSourceItemsList: React.FunctionComponent<Props> = ({
         try {
             setItemsOrError(
                 thread.type === GQL.ThreadType.CHECK
-                    ? await queryMatches(threadSettings.query || '', thread.id, { extensionsController })
-                    : await querySourceItems(thread.id)
+                    ? await queryMatches(threadSettings.queries || '', thread.id, { extensionsController })
+                    : await queryInboxItems(thread.id)
             )
         } catch (err) {
             setItemsOrError(asError(err))
         }
     }, [thread.id])
 
-    const onSourceItemUpdate = useCallback(
+    const onInboxItemUpdate = useCallback(
         (updatedItem: GQL.DiscussionThreadTarget) => {
             if (itemsOrError !== LOADING && !isErrorLike(itemsOrError)) {
                 setItemsOrError({
@@ -168,7 +168,7 @@ export const ThreadSourceItemsList: React.FunctionComponent<Props> = ({
     )
 
     return (
-        <div className="thread-source-items-list position-relative">
+        <div className="thread-inbox-items-list position-relative">
             {isErrorLike(itemsOrError) ? (
                 <div className="alert alert-danger mt-2">{itemsOrError.message}</div>
             ) : (
@@ -176,13 +176,13 @@ export const ThreadSourceItemsList: React.FunctionComponent<Props> = ({
                     {itemsOrError !== LOADING && !isErrorLike(itemsOrError) && (
                         <WithStickyTop scrollContainerSelector=".thread-area">
                             {({ isStuck }) => (
-                                <ThreadSourceItemsNavbar
+                                <ThreadInboxItemsNavbar
                                     thread={thread}
                                     items={itemsOrError}
                                     query={query}
                                     onQueryChange={onQueryChange}
                                     includeThreadInfo={isStuck}
-                                    className={`sticky-top position-sticky row bg-body thread-source-items-list__navbar py-2 px-3 ${
+                                    className={`sticky-top position-sticky row bg-body thread-inbox-items-list__navbar py-2 px-3 ${
                                         isStuck ? 'border-top border-bottom shadow' : ''
                                     }`}
                                     location={location}
@@ -193,7 +193,7 @@ export const ThreadSourceItemsList: React.FunctionComponent<Props> = ({
                     {itemsOrError === LOADING ? (
                         <LoadingSpinner className="mt-2" />
                     ) : itemsOrError.nodes.length === 0 ? (
-                        <p className="p-2 mb-0 text-muted">No source items found.</p>
+                        <p className="p-2 mb-0 text-muted">Inbox is empty.</p>
                     ) : (
                         <ul className="list-unstyled">
                             {itemsOrError.nodes
@@ -203,10 +203,10 @@ export const ThreadSourceItemsList: React.FunctionComponent<Props> = ({
                                 )
                                 .map((item, i) => (
                                     <li key={i}>
-                                        <TextDocumentLocationSourceItem
+                                        <TextDocumentLocationInboxItem
                                             key={i}
                                             item={item}
-                                            onSourceItemUpdate={onSourceItemUpdate}
+                                            onInboxItemUpdate={onInboxItemUpdate}
                                             className="my-3"
                                             isLightTheme={isLightTheme}
                                             history={history}

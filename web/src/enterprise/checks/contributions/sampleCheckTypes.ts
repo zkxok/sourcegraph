@@ -57,7 +57,11 @@ export const CHECK_TYPES: CheckTemplate[] = [
         icon: ReactIcon,
         iconColor: '#00d8ff',
         settings: {
-            query: "file:\\.[tj]sx$ (key=\")|(defaultValue=)|PropTypes|\\w+=\\{[`'][^$'`]*[`']\\} timeout:10s",
+            queries: [
+                'file:\\.[tj]sx$ key="hardcoded timeout:10s',
+                'file:\\.[tj]sx$ defaultValue=',
+                "file:\\.[tj]sx$ \\w+=\\{[`'][^$'`]*[`']\\}",
+            ],
         },
     },
     {

@@ -5,23 +5,23 @@ import { ChatIcon } from '../../../../../../shared/src/components/icons'
 import { ExtensionsControllerProps } from '../../../../../../shared/src/extensions/controller'
 import * as GQL from '../../../../../../shared/src/graphql/schema'
 import { DiscussionsCreate } from '../../../../repo/blob/discussions/DiscussionsCreate'
-import { SourceItemIgnoreButton } from './SourceItemIgnoreButton'
+import { ThreadInboxItemIgnoreButton } from './ThreadInboxItemIgnoreButton'
 
 interface Props extends ExtensionsControllerProps {
-    sourceItem: GQL.IDiscussionThreadTargetRepo
-    onSourceItemUpdate: (item: GQL.DiscussionThreadTarget) => void
+    inboxItem: GQL.IDiscussionThreadTargetRepo
+    onInboxItemUpdate: (item: GQL.DiscussionThreadTarget) => void
     className?: string
     history: H.History
     location: H.Location
 }
 
 /**
- * The actions that can be performed on a source item.
+ * The actions that can be performed on an item in a thread inbox.
  */
 // tslint:disable: jsx-no-lambda
-export const SourceItemActions: React.FunctionComponent<Props> = ({
-    sourceItem,
-    onSourceItemUpdate,
+export const ThreadInboxItemActions: React.FunctionComponent<Props> = ({
+    inboxItem,
+    onInboxItemUpdate,
     className,
     history,
     location,
@@ -52,9 +52,9 @@ export const SourceItemActions: React.FunctionComponent<Props> = ({
                     <button onClick={() => alert('not implemented')} className="btn btn-link text-decoration-none">
                         <PencilIcon className="icon-inline" /> Edit
                     </button>
-                    <SourceItemIgnoreButton
-                        sourceItem={sourceItem}
-                        onSourceItemUpdate={onSourceItemUpdate}
+                    <ThreadInboxItemIgnoreButton
+                        inboxItem={inboxItem}
+                        onInboxItemUpdate={onInboxItemUpdate}
                         className="text-decoration-none"
                         buttonClassName="btn-link"
                         extensionsController={extensionsController}
