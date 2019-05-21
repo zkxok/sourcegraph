@@ -10,10 +10,14 @@ import { displayRepoName } from '../../../../../../shared/src/components/RepoFil
 import { ExtensionsControllerProps } from '../../../../../../shared/src/extensions/controller'
 import * as GQL from '../../../../../../shared/src/graphql/schema'
 import { fetchHighlightedFileLines } from '../../../../repo/backend'
+import { ThreadSettings } from '../../settings'
 import { ThreadInboxItemActions } from './ThreadInboxItemActions'
 
 interface Props extends ExtensionsControllerProps {
-    item: GQL.IDiscussionThreadTargetRepo
+    thread: Pick<GQL.IDiscussionThread, 'id' | 'settings'>
+    onThreadUpdate: (thread: GQL.IDiscussionThread) => void
+    threadSettings: ThreadSettings
+    inboxItem: GQL.IDiscussionThreadTargetRepo
     onInboxItemUpdate: (item: GQL.DiscussionThreadTarget) => void
     className?: string
     isLightTheme: boolean
@@ -34,33 +38,35 @@ const statusIcon = (
  * An inbox item in a thread that refers to a text document location.
  */
 export const TextDocumentLocationInboxItem: React.FunctionComponent<Props> = ({
-    item,
+    inboxItem,
     onInboxItemUpdate,
     className = '',
     isLightTheme,
     ...props
 }) => {
-    const Icon = statusIcon(item)
+    const Icon = statusIcon(inboxItem)
     return (
         <div className={`card border ${className}`}>
             <div className="card-header d-flex align-items-center">
                 <Icon
                     className={classNames('icon-inline', 'mr-2', 'h5', 'mb-0', {
-                        'text-info': !item.isIgnored,
-                        'text-muted': item.isIgnored,
+                        'text-info': !inboxItem.isIgnored,
+                        'text-muted': inboxItem.isIgnored,
                     })}
                     data-tooltip={upperFirst(status)}
                 />
                 <div className="flex-1">
                     <h3 className="d-flex align-items-center mb-0 h6">
-                        <LinkOrSpan to={item.url} className="text-body">
-                            {item.path ? (
+                        <LinkOrSpan to={inboxItem.url} className="text-body">
+                            {inboxItem.path ? (
                                 <>
-                                    <span className="font-weight-normal">{displayRepoName(item.repository.name)}</span>{' '}
-                                    › {item.path}
+                                    <span className="font-weight-normal">
+                                        {displayRepoName(inboxItem.repository.name)}
+                                    </span>{' '}
+                                    › {inboxItem.path}
                                 </>
                             ) : (
-                                displayRepoName(item.repository.name)
+                                displayRepoName(inboxItem.repository.name)
                             )}
                         </LinkOrSpan>
                     </h3>
@@ -81,20 +87,20 @@ export const TextDocumentLocationInboxItem: React.FunctionComponent<Props> = ({
                     )}
                     </div>*/}
             </div>
-            {item.path && (
+            {inboxItem.path && (
                 <CodeExcerpt
-                    repoName={item.repository.name}
+                    repoName={inboxItem.repository.name}
                     commitID="master" // TODO!(sqs)
-                    filePath={item.path}
+                    filePath={inboxItem.path}
                     context={3}
                     highlightRanges={
-                        item.selection
+                        inboxItem.selection
                             ? [
                                   {
-                                      line: item.selection.startLine,
-                                      character: item.selection.startCharacter,
+                                      line: inboxItem.selection.startLine,
+                                      character: inboxItem.selection.startCharacter,
                                       highlightLength:
-                                          item.selection.endCharacter - item.selection.startCharacter || 10, // TODO!(sqs): hack to avoid having non-highlighted lines
+                                          inboxItem.selection.endCharacter - inboxItem.selection.startCharacter || 10, // TODO!(sqs): hack to avoid having non-highlighted lines
                                   },
                               ]
                             : []
@@ -106,7 +112,7 @@ export const TextDocumentLocationInboxItem: React.FunctionComponent<Props> = ({
             )}
             <ThreadInboxItemActions
                 {...props}
-                inboxItem={item}
+                inboxItem={inboxItem}
                 onInboxItemUpdate={onInboxItemUpdate}
                 className="border-top"
             />

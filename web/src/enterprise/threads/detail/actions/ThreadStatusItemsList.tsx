@@ -9,112 +9,80 @@ import { of } from 'rxjs'
 import * as GQL from '../../../../../../shared/src/graphql/schema'
 import { asError, ErrorLike, isErrorLike } from '../../../../../../shared/src/util/errors'
 import { ListHeaderQueryLinksNav } from '../../components/ListHeaderQueryLinks'
-import { ThreadSettings } from '../../settings'
+import { PullRequest, ThreadSettings } from '../../settings'
 import { PullRequestStatusItem } from './PullRequestStatusItem'
 import { ThreadStatusItemsListHeaderFilterButtonDropdown } from './ThreadStatusItemsListHeaderFilterButtonDropdown'
 import { ThreadStatusItemsProgressBar } from './ThreadStatusItemsProgressBar'
 
-export interface PullRequest {
-    repo: string
-    label?: string
-    prNumber: number
-    status: 'open' | 'merged' | 'closed' | 'pending'
-    updatedAt: string
-    updatedBy: string
-    commentsCount: number
-}
-
 export const STATUS_ITEMS: PullRequest[] = [
     {
         repo: 'github.com/sourcegraph/sourcegraph',
-        prNumber: 2319,
+        number: 2319,
         status: 'pending',
-        updatedAt: new Date(Date.now() - 3900000).toISOString(),
-        updatedBy: 'jason',
         commentsCount: 73,
     },
     {
         repo: 'github.com/sourcegraph/go-diff',
-        prNumber: 87,
+        number: 87,
         status: 'open',
-        updatedAt: new Date(Date.now() - 10000000).toISOString(),
-        updatedBy: 'alice',
         commentsCount: 1,
     },
     {
         repo: 'github.com/sourcegraph/codeintellify',
         label: 'client/chrome/',
-        prNumber: 1841,
+        number: 1841,
         status: 'open',
-        updatedAt: new Date(Date.now() - 5000000).toISOString(),
-        updatedBy: 'lguychard',
         commentsCount: 7,
     },
     {
         repo: 'github.com/sourcegraph/codeintellify',
         label: 'client/firefox/',
-        prNumber: 1842,
+        number: 1842,
         status: 'open',
-        updatedAt: new Date(Date.now() - 2300000).toISOString(),
-        updatedBy: 'felixfbecker',
         commentsCount: 2,
     },
     {
         repo: 'github.com/sourcegraph/csp',
-        prNumber: 9,
+        number: 9,
         status: 'closed',
-        updatedAt: new Date(Date.now() - 9300000).toISOString(),
-        updatedBy: 'peter91',
         commentsCount: 5,
     },
     {
         repo: 'github.com/sourcegraph/sitemap',
-        prNumber: 48,
+        number: 48,
         status: 'closed',
-        updatedAt: new Date(Date.now() - 4100000).toISOString(),
-        updatedBy: 'carol',
         commentsCount: 0,
     },
     {
         repo: 'github.com/sourcegraph/sourcegraph-lightstep',
-        prNumber: 51,
+        number: 51,
         status: 'merged',
-        updatedAt: new Date(Date.now() - 7100000).toISOString(),
-        updatedBy: 'tsenart',
         commentsCount: 1,
     },
     {
         repo: 'github.com/sourcegraph/docsite',
         label: 'cmd/docsite/',
-        prNumber: 149,
+        number: 149,
         status: 'merged',
-        updatedAt: new Date(Date.now() - 5500000).toISOString(),
-        updatedBy: 'felixfbecker',
         commentsCount: 5,
     },
     {
         repo: 'github.com/sourcegraph/docsite',
         label: 'pkg/markdown/',
-        prNumber: 150,
+        number: 150,
         status: 'merged',
-        updatedAt: new Date(Date.now() - 3500000).toISOString(),
-        updatedBy: 'ryan-blunden',
         commentsCount: 2,
     },
     {
         repo: 'github.com/sourcegraph/thyme',
-        prNumber: 147,
+        number: 147,
         status: 'merged',
-        updatedAt: new Date(Date.now() - 100000).toISOString(),
-        updatedBy: 'beyang',
         commentsCount: 21,
     },
     {
         repo: 'github.com/sourcegraph/sourcegraph-git-extras',
-        prNumber: 511,
+        number: 511,
         status: 'merged',
-        updatedAt: new Date(Date.now() - 6200000).toISOString(),
-        updatedBy: 'xyzhao',
         commentsCount: 2,
     },
 ]

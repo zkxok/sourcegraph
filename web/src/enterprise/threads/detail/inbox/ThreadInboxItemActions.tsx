@@ -8,11 +8,15 @@ import { ChatIcon } from '../../../../../../shared/src/components/icons'
 import { ExtensionsControllerProps } from '../../../../../../shared/src/extensions/controller'
 import * as GQL from '../../../../../../shared/src/graphql/schema'
 import { DiscussionsCreate } from '../../../../repo/blob/discussions/DiscussionsCreate'
+import { ThreadSettings } from '../../settings'
 import { ThreadInboxItemAddToPullRequest } from './actions/addToPullRequest/ThreadInboxItemAddToPullRequest'
-import { ThreadInboxItemIgnoreButton } from './ThreadInboxItemIgnoreButton'
 import { ThreadInboxItemSlackMessage } from './actions/slackMessage/ThreadInboxItemSlackMessage'
+import { ThreadInboxItemIgnoreButton } from './ThreadInboxItemIgnoreButton'
 
 interface Props extends ExtensionsControllerProps {
+    thread: Pick<GQL.IDiscussionThread, 'id' | 'settings'>
+    onThreadUpdate: (thread: GQL.IDiscussionThread) => void
+    threadSettings: ThreadSettings
     inboxItem: GQL.IDiscussionThreadTargetRepo
     onInboxItemUpdate: (item: GQL.DiscussionThreadTarget) => void
     className?: string
@@ -25,6 +29,9 @@ interface Props extends ExtensionsControllerProps {
  */
 // tslint:disable: jsx-no-lambda
 export const ThreadInboxItemActions: React.FunctionComponent<Props> = ({
+    thread,
+    onThreadUpdate,
+    threadSettings,
     inboxItem,
     onInboxItemUpdate,
     className,
@@ -52,6 +59,10 @@ export const ThreadInboxItemActions: React.FunctionComponent<Props> = ({
             ) : (
                 <>
                     <ThreadInboxItemAddToPullRequest
+                        thread={thread}
+                        threadSettings={threadSettings}
+                        onThreadUpdate={onThreadUpdate}
+                        inboxItem={inboxItem}
                         buttonClassName="btn-link text-decoration-none"
                         extensionsController={extensionsController}
                     />

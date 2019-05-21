@@ -1,3 +1,4 @@
+import { applyEdits, Edit } from '@sqs/jsonc-parser'
 import { Observable } from 'rxjs'
 import { map } from 'rxjs/operators'
 import { gql } from '../../../shared/src/graphql/graphql'
@@ -5,6 +6,7 @@ import * as GQL from '../../../shared/src/graphql/schema'
 import { createAggregateError } from '../../../shared/src/util/errors'
 import { memoizeObservable } from '../../../shared/src/util/memoizeObservable'
 import { mutateGraphQL, queryGraphQL } from '../backend/graphql'
+import { ThreadSettings } from '../enterprise/threads/settings'
 
 const discussionCommentFieldsFragment = gql`
     fragment DiscussionCommentFields on DiscussionComment {
@@ -287,6 +289,40 @@ export async function updateThread(input: GQL.IDiscussionThreadUpdateInput): Pro
             })
         )
         .toPromise()
+}
+
+/**
+ * Updates the settings of a discussion thread.
+ *
+ * @return The updated discussion thread.
+ */
+export async function updateThreadSettings(
+    thread: Pick<GQL.IDiscussionThread, 'id' | 'settings'>,
+    edits: Edit[]
+): Promise<GQL.IDiscussionThread>
+export async function updateThreadSettings(
+    thread: Pick<GQL.IDiscussionThread, 'id' | 'settings'>,
+    // tslint:disable-next-line: unified-signatures
+    newSettings: string
+): Promise<GQL.IDiscussionThread>
+export async function updateThreadSettings(
+    thread: Pick<GQL.IDiscussionThread, 'id' | 'settings'>,
+    // tslint:disable-next-line: unified-signatures
+    newSettings: ThreadSettings
+): Promise<GQL.IDiscussionThread>
+export async function updateThreadSettings(
+    thread: Pick<GQL.IDiscussionThread, 'id' | 'settings'>,
+    arg: string | Edit[] | ThreadSettings
+): Promise<GQL.IDiscussionThread> {
+    return updateThread({
+        threadID: thread.id,
+        settings:
+            typeof arg === 'string'
+                ? arg
+                : Array.isArray(arg)
+                ? applyEdits(thread.settings, arg)
+                : JSON.stringify(arg, null, 2),
+    })
 }
 
 /**

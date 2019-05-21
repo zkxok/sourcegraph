@@ -56,7 +56,7 @@ const queryInboxItems = (threadID: GQL.ID): Promise<GQL.IDiscussionThreadTargetC
         .toPromise()
 
 interface Props extends ExtensionsControllerProps, QueryParameterProps {
-    thread: Pick<GQL.IDiscussionThread, 'id' | 'idWithoutKind' | 'title' | 'type'>
+    thread: Pick<GQL.IDiscussionThread, 'id' | 'idWithoutKind' | 'title' | 'type' | 'settings'>
     onThreadUpdate: (thread: GQL.IDiscussionThread) => void
     threadSettings: ThreadSettings
 
@@ -162,7 +162,10 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
                                     <li key={i}>
                                         <TextDocumentLocationInboxItem
                                             key={i}
-                                            item={item}
+                                            thread={thread}
+                                            threadSettings={threadSettings}
+                                            onThreadUpdate={onThreadUpdate}
+                                            inboxItem={item}
                                             onInboxItemUpdate={onInboxItemUpdate}
                                             className="my-3"
                                             isLightTheme={isLightTheme}
