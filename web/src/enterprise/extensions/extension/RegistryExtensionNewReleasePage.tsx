@@ -86,10 +86,14 @@ export const RegistryExtensionNewReleasePage = withAuthenticatedUser<Props>(
         // tslint:disable-next-line: no-floating-promises
         useMemo(async () => {
             if (extension.manifest && !isErrorLike(extension.manifest) && extension.manifest.url) {
-                const resp = await fetch(extension.manifest.url)
-                if (resp.status === 200) {
-                    setBundle(await resp.text())
+                try {
+                    const resp = await fetch(extension.manifest.url)
+                    setBundle(resp.status === 200 ? await resp.text() : '')
+                } catch (err) {
+                    setBundle('')
                 }
+            } else {
+                setBundle('')
             }
         }, [extension])
 
