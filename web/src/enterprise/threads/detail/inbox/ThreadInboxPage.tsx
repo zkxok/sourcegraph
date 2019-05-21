@@ -2,13 +2,12 @@ import H from 'history'
 import React from 'react'
 import { ExtensionsControllerProps } from '../../../../../../shared/src/extensions/controller'
 import * as GQL from '../../../../../../shared/src/graphql/schema'
-import { ErrorLike } from '../../../../../../shared/src/util/errors'
 import { ThreadSettings } from '../../settings'
 import { ThreadInboxItemsList } from './ThreadInboxItemsList'
 
 interface Props extends ExtensionsControllerProps {
     thread: GQL.IDiscussionThread
-    onThreadUpdate: (thread: GQL.IDiscussionThread | ErrorLike) => void
+    onThreadUpdate: (thread: GQL.IDiscussionThread) => void
     threadSettings: ThreadSettings
 
     history: H.History
@@ -17,7 +16,7 @@ interface Props extends ExtensionsControllerProps {
 }
 
 /** The default thread inbox query. */
-const DEFAULT_QUERY = 'is:active'
+const DEFAULT_QUERY = 'is:open'
 
 /**
  * The inbox page for a single thread.
@@ -41,6 +40,7 @@ export const ThreadInboxPage: React.FunctionComponent<Props> = ({
             <ThreadInboxItemsList
                 {...props}
                 thread={thread}
+                onThreadUpdate={onThreadUpdate}
                 threadSettings={threadSettings}
                 query={query}
                 onQueryChange={onQueryChange}

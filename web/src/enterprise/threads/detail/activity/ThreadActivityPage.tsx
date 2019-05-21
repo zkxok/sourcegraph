@@ -9,7 +9,7 @@ import { ThreadStatusItemsList } from './ThreadStatusItemsList'
 
 interface Props {
     thread: GQL.IDiscussionThread
-    onThreadUpdate: (thread: GQL.IDiscussionThread | ErrorLike) => void
+    onThreadUpdate: (thread: GQL.IDiscussionThread) => void
     threadSettings: ThreadSettings
 
     history: H.History

@@ -67,8 +67,9 @@ func (r *discussionsMutationResolver) AddTargetToThread(ctx context.Context, arg
 	// Avoid adding duplicates.
 	{
 		targets, err := db.DiscussionThreads.ListTargets(ctx, db.DiscussionThreadsListTargetsOptions{
-			RepoID: target.RepoID,
-			Path:   *target.Path,
+			ThreadID: threadID,
+			RepoID:   target.RepoID,
+			Path:     *target.Path,
 		})
 		if err != nil {
 			return nil, errors.Wrap(err, "DiscussionThreads.ListTargets")

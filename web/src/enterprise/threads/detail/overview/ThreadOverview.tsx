@@ -15,7 +15,7 @@ import { ThreadDescription } from './ThreadDescription'
 
 interface Props extends ExtensionsControllerProps {
     thread: GQL.IDiscussionThread
-    onThreadUpdate: (thread: GQL.IDiscussionThread | ErrorLike) => void
+    onThreadUpdate: (thread: GQL.IDiscussionThread) => void
     threadSettings: ThreadSettings
 
     history: H.History

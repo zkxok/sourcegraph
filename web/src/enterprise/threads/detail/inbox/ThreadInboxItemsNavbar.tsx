@@ -1,18 +1,22 @@
 import H from 'history'
-import AlertDecagramIcon from 'mdi-react/AlertDecagramIcon'
+import AlertCircleIcon from 'mdi-react/AlertCircleIcon'
 import CancelIcon from 'mdi-react/CancelIcon'
-import CheckIcon from 'mdi-react/CheckIcon'
 import FilterIcon from 'mdi-react/FilterIcon'
 import React, { useState } from 'react'
 import { MultilineTextField } from '../../../../../../shared/src/components/multilineTextField/MultilineTextField'
+import { ExtensionsControllerProps } from '../../../../../../shared/src/extensions/controller'
 import * as GQL from '../../../../../../shared/src/graphql/schema'
 import { ListHeaderQueryLinksNav } from '../../components/ListHeaderQueryLinks'
 import { QueryParameterProps } from '../../components/withQueryParameter/WithQueryParameter'
+import { ThreadSettings } from '../../settings'
 import { ThreadInboxItemsListFilter } from './ThreadInboxItemsListFilter'
 import { ThreadInboxItemsListHeaderFilterButtonDropdown } from './ThreadInboxItemsListHeaderFilterButtonDropdown'
+import { ThreadInboxRefreshButton } from './ThreadInboxRefreshButton'
 
-interface Props extends QueryParameterProps {
-    thread: Pick<GQL.IDiscussionThread, 'title' | 'id'>
+interface Props extends QueryParameterProps, ExtensionsControllerProps {
+    thread: Pick<GQL.IDiscussionThread, 'id' | 'idWithoutKind' | 'title'>
+    onThreadUpdate: (thread: GQL.IDiscussionThread) => void
+    threadSettings: ThreadSettings
     items: GQL.IDiscussionThreadTargetConnection
 
     includeThreadInfo: boolean
@@ -32,6 +36,7 @@ export const ThreadInboxItemsNavbar: React.FunctionComponent<Props> = ({
     includeThreadInfo,
     className = '',
     location,
+    ...props
 }) => {
     const [showQuery, setShowQuery] = useState(true)
     const [showFilter, setShowFilter] = useState(false)
@@ -107,27 +112,30 @@ export const ThreadInboxItemsNavbar: React.FunctionComponent<Props> = ({
                 <div className="col-md-6 d-flex align-items-center">
                     <span className="mr-1">Show:</span>
                     <ListHeaderQueryLinksNav
-                        query={'TODO!(sqs)'}
+                        query={query}
                         links={[
                             {
                                 label: 'open',
                                 queryField: 'is',
                                 queryValues: ['open'],
-                                count: items.nodes.filter(({ status }) => status === 'open').length,
-                                icon: AlertDecagramIcon,
-                            },
-                            {
-                                label: 'closed',
-                                queryField: 'is',
-                                queryValues: ['closed'],
-                                count: items.nodes.filter(({ status }) => status === 'closed').length,
-                                icon: CheckIcon,
+                                count: items.nodes
+                                    .filter(
+                                        (v): v is GQL.IDiscussionThreadTargetRepo =>
+                                            v.__typename === 'DiscussionThreadTargetRepo'
+                                    )
+                                    .filter(({ isIgnored }) => !isIgnored).length,
+                                icon: AlertCircleIcon,
                             },
                             {
                                 label: 'ignored',
                                 queryField: 'is',
                                 queryValues: ['ignored'],
-                                count: items.nodes.filter(({ status }) => status === 'ignored').length,
+                                count: items.nodes
+                                    .filter(
+                                        (v): v is GQL.IDiscussionThreadTargetRepo =>
+                                            v.__typename === 'DiscussionThreadTargetRepo'
+                                    )
+                                    .filter(({ isIgnored }) => isIgnored).length,
                                 icon: CancelIcon,
                             },
                         ]}
@@ -136,6 +144,11 @@ export const ThreadInboxItemsNavbar: React.FunctionComponent<Props> = ({
                 </div>
                 {!showFilter && (
                     <div className="col-md-6 d-flex justify-content-end">
+                        <ThreadInboxRefreshButton
+                            {...props}
+                            thread={thread}
+                            buttonClassName="btn-link text-decoration-none"
+                        />
                         <button type="button" className="btn btn-secondary" onClick={() => setShowFilter(true)}>
                             <FilterIcon /> Filter...
                         </button>

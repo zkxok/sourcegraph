@@ -11,7 +11,7 @@ import { ThreadSettings } from '../../settings'
 
 interface Props {
     thread: Pick<GQL.IDiscussionThread, 'id' | 'title' | 'settings'>
-    onThreadUpdate: (thread: GQL.IDiscussionThread | ErrorLike) => void
+    onThreadUpdate: (thread: GQL.IDiscussionThread) => void
     threadSettings: ThreadSettings
 }
 

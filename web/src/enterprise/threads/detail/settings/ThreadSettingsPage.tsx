@@ -13,7 +13,7 @@ import { ThreadSettingsEditForm } from './ThreadSettingsEditForm'
 interface Props extends ExtensionsControllerProps {
     thread: GQL.IDiscussionThread
     threadSettings: ThreadSettings
-    onThreadUpdate: (thread: GQL.IDiscussionThread | ErrorLike) => void
+    onThreadUpdate: (thread: GQL.IDiscussionThread) => void
     isLightTheme: boolean
     history: H.History
 }

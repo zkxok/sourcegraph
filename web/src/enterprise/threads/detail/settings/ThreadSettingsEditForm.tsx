@@ -10,7 +10,7 @@ import { ThreadSettingsEditor } from '../../form/ThreadSettingsEditor'
 
 interface Props {
     thread: Pick<GQL.IDiscussionThread, 'id' | 'settings'>
-    onThreadUpdate: (thread: GQL.IDiscussionThread | ErrorLike) => void
+    onThreadUpdate: (thread: GQL.IDiscussionThread) => void
     className?: string
     isLightTheme: boolean
     history: H.History

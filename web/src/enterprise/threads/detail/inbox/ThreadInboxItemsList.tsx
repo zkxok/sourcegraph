@@ -1,68 +1,18 @@
 import { LoadingSpinner } from '@sourcegraph/react-loading-spinner'
 import H from 'history'
 import React, { useCallback, useMemo, useState } from 'react'
-import { from, of } from 'rxjs'
-import { first, map, switchMap } from 'rxjs/operators'
+import { map } from 'rxjs/operators'
 import { WithStickyTop } from '../../../../../../shared/src/components/withStickyTop/WithStickyTop'
 import { ExtensionsControllerProps } from '../../../../../../shared/src/extensions/controller'
 import { gql } from '../../../../../../shared/src/graphql/graphql'
 import * as GQL from '../../../../../../shared/src/graphql/schema'
 import { asError, createAggregateError, ErrorLike, isErrorLike } from '../../../../../../shared/src/util/errors'
 import { queryGraphQL } from '../../../../backend/graphql'
-import { addTargetToThread, discussionThreadTargetFieldsFragment } from '../../../../discussions/backend'
-import { search } from '../../../../search/backend'
+import { discussionThreadTargetFieldsFragment } from '../../../../discussions/backend'
 import { QueryParameterProps } from '../../components/withQueryParameter/WithQueryParameter'
 import { ThreadSettings } from '../../settings'
 import { TextDocumentLocationInboxItem } from './TextDocumentLocationItem'
 import { ThreadInboxItemsNavbar } from './ThreadInboxItemsNavbar'
-
-const queryMatches = (
-    query: string,
-    threadID: GQL.ID,
-    { extensionsController }: ExtensionsControllerProps
-): Promise<GQL.IDiscussionThreadTargetConnection> =>
-    search(query, { extensionsController })
-        .pipe(
-            switchMap(r => {
-                if (isErrorLike(r)) {
-                    throw new Error(r.message)
-                }
-
-                const nodes = r.results
-                    .filter((r): r is GQL.IFileMatch => r.__typename === 'FileMatch')
-                    .map((r: GQL.IFileMatch) =>
-                        addTargetToThread({
-                            threadID,
-                            target: {
-                                repo: {
-                                    repositoryID: r.repository.id,
-                                    revision: r.file.commit.oid,
-                                    path: r.file.path,
-                                    selection: {
-                                        startLine: r.lineMatches[0].lineNumber,
-                                        endLine: r.lineMatches[0].lineNumber,
-                                        startCharacter: r.lineMatches[0].offsetAndLengths[0][0],
-                                        endCharacter:
-                                            r.lineMatches[0].offsetAndLengths[0][0] +
-                                            r.lineMatches[0].offsetAndLengths[0][1],
-                                    },
-                                },
-                            },
-                        }).toPromise()
-                    )
-
-                return from(Promise.all(nodes)).pipe(
-                    map(nodes => ({
-                        __typename: 'DiscussionThreadTargetConnection' as const,
-                        nodes,
-                        totalCount: r.resultCount,
-                        pageInfo: { __typename: 'PageInfo' as const, hasNextPage: r.limitHit },
-                    }))
-                )
-            }),
-            first()
-        )
-        .toPromise()
 
 // TODO!(sqs): use relative path/rev for DiscussionThreadTargetRepo
 const queryInboxItems = (threadID: GQL.ID): Promise<GQL.IDiscussionThreadTargetConnection> =>
@@ -106,7 +56,8 @@ const queryInboxItems = (threadID: GQL.ID): Promise<GQL.IDiscussionThreadTargetC
         .toPromise()
 
 interface Props extends ExtensionsControllerProps, QueryParameterProps {
-    thread: Pick<GQL.IDiscussionThread, 'id' | 'title' | 'type'>
+    thread: Pick<GQL.IDiscussionThread, 'id' | 'idWithoutKind' | 'title' | 'type'>
+    onThreadUpdate: (thread: GQL.IDiscussionThread) => void
     threadSettings: ThreadSettings
 
     history: H.History
@@ -121,6 +72,7 @@ const LOADING: 'loading' = 'loading'
  */
 export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
     thread,
+    onThreadUpdate,
     threadSettings,
     query,
     onQueryChange,
@@ -136,11 +88,7 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
     // tslint:disable-next-line: no-floating-promises
     useMemo(async () => {
         try {
-            setItemsOrError(
-                thread.type === GQL.ThreadType.CHECK
-                    ? await queryMatches(threadSettings.queries || '', thread.id, { extensionsController })
-                    : await queryInboxItems(thread.id)
-            )
+            setItemsOrError(await queryInboxItems(thread.id))
         } catch (err) {
             setItemsOrError(asError(err))
         }
@@ -178,14 +126,17 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
                             {({ isStuck }) => (
                                 <ThreadInboxItemsNavbar
                                     thread={thread}
+                                    onThreadUpdate={onThreadUpdate}
+                                    threadSettings={threadSettings}
                                     items={itemsOrError}
                                     query={query}
                                     onQueryChange={onQueryChange}
                                     includeThreadInfo={isStuck}
                                     className={`sticky-top position-sticky row bg-body thread-inbox-items-list__navbar py-2 px-3 ${
-                                        isStuck ? 'border-top border-bottom shadow' : ''
+                                        isStuck ? 'border-bottom shadow' : ''
                                     }`}
                                     location={location}
+                                    extensionsController={extensionsController}
                                 />
                             )}
                         </WithStickyTop>
@@ -200,6 +151,12 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
                                 .filter(
                                     (item): item is GQL.IDiscussionThreadTargetRepo =>
                                         item.__typename === 'DiscussionThreadTargetRepo'
+                                )
+                                .filter(
+                                    item =>
+                                        (query.includes('is:open') && !item.isIgnored) ||
+                                        (query.includes('is:ignored') && item.isIgnored) ||
+                                        (!query.includes('is:open') && !query.includes('is:ignored'))
                                 )
                                 .map((item, i) => (
                                     <li key={i}>

@@ -13,7 +13,7 @@ import { PersonLink } from '../../../../user/PersonLink'
 
 interface Props extends ExtensionsControllerProps {
     thread: GQL.IDiscussionThread
-    onThreadUpdate: (thread: GQL.IDiscussionThread | ErrorLike) => void
+    onThreadUpdate: (thread: GQL.IDiscussionThread) => void
 
     className?: string
     location: H.Location

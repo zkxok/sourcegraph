@@ -25,6 +25,14 @@ const NotFoundPage = () => (
 
 interface Props extends ThreadsAreaContext, RouteComponentProps<{ threadID: string }> {}
 
+export interface ThreadAreaContext {
+    /** The thread. */
+    thread: GQL.IDiscussionThread
+
+    /** Called to update the thread. */
+    onThreadUpdate: (thread: GQL.IDiscussionThread) => void
+}
+
 const LOADING: 'loading' = 'loading'
 
 /**
@@ -49,12 +57,11 @@ export const ThreadArea: React.FunctionComponent<Props> = props => {
         return <HeroPage icon={AlertCircleIcon} title="Error" subtitle={threadOrError.message} />
     }
 
-    const context: ThreadsAreaContext & {
-        thread: GQL.IDiscussionThread
-        onThreadUpdate: (thread: GQL.IDiscussionThread | ErrorLike) => void
-        threadSettings: ThreadSettings
-        areaURL: string
-    } = {
+    const context: ThreadsAreaContext &
+        ThreadAreaContext & {
+            threadSettings: ThreadSettings
+            areaURL: string
+        } = {
         ...props,
         thread: threadOrError,
         onThreadUpdate: setThreadOrError,
