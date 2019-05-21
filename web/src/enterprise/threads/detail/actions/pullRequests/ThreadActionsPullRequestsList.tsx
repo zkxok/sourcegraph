@@ -5,96 +5,40 @@ import CloseCircleIcon from 'mdi-react/CloseCircleIcon'
 import DotsHorizontalCircleIcon from 'mdi-react/DotsHorizontalCircleIcon'
 import SourcePullIcon from 'mdi-react/SourcePullIcon'
 import React, { useMemo, useState } from 'react'
-import { of } from 'rxjs'
-import * as GQL from '../../../../../../shared/src/graphql/schema'
-import { asError, ErrorLike, isErrorLike } from '../../../../../../shared/src/util/errors'
-import { ListHeaderQueryLinksNav } from '../../components/ListHeaderQueryLinks'
-import { PullRequest, ThreadSettings } from '../../settings'
-import { PullRequestStatusItem } from './PullRequestStatusItem'
-import { ThreadStatusItemsListHeaderFilterButtonDropdown } from './ThreadStatusItemsListHeaderFilterButtonDropdown'
-import { ThreadStatusItemsProgressBar } from './ThreadStatusItemsProgressBar'
+import * as GQL from '../../../../../../../shared/src/graphql/schema'
+import { asError, ErrorLike, isErrorLike } from '../../../../../../../shared/src/util/errors'
+import { ListHeaderQueryLinksNav } from '../../../components/ListHeaderQueryLinks'
+import { QueryParameterProps } from '../../../components/withQueryParameter/WithQueryParameter'
+import { PullRequest, ThreadSettings } from '../../../settings'
+import { ThreadStatusItemsProgressBar } from '../ThreadStatusItemsProgressBar'
+import { ThreadActionsPullRequestListHeaderFilterButtonDropdown } from './ThreadActionsPullRequestListHeaderFilterButtonDropdown'
+import { ThreadActionsPullRequestsListItem } from './ThreadActionsPullRequestsListItem'
 
-export const STATUS_ITEMS: PullRequest[] = [
-    {
-        repo: 'github.com/sourcegraph/sourcegraph',
-        number: 2319,
-        status: 'pending',
-        commentsCount: 73,
-    },
-    {
-        repo: 'github.com/sourcegraph/go-diff',
-        number: 87,
-        status: 'open',
-        commentsCount: 1,
-    },
-    {
-        repo: 'github.com/sourcegraph/codeintellify',
-        label: 'client/chrome/',
-        number: 1841,
-        status: 'open',
-        commentsCount: 7,
-    },
-    {
-        repo: 'github.com/sourcegraph/codeintellify',
-        label: 'client/firefox/',
-        number: 1842,
-        status: 'open',
-        commentsCount: 2,
-    },
-    {
-        repo: 'github.com/sourcegraph/csp',
-        number: 9,
-        status: 'closed',
-        commentsCount: 5,
-    },
-    {
-        repo: 'github.com/sourcegraph/sitemap',
-        number: 48,
-        status: 'closed',
-        commentsCount: 0,
-    },
-    {
-        repo: 'github.com/sourcegraph/sourcegraph-lightstep',
-        number: 51,
-        status: 'merged',
-        commentsCount: 1,
-    },
-    {
-        repo: 'github.com/sourcegraph/docsite',
-        label: 'cmd/docsite/',
-        number: 149,
-        status: 'merged',
-        commentsCount: 5,
-    },
-    {
-        repo: 'github.com/sourcegraph/docsite',
-        label: 'pkg/markdown/',
-        number: 150,
-        status: 'merged',
-        commentsCount: 2,
-    },
-    {
-        repo: 'github.com/sourcegraph/thyme',
-        number: 147,
-        status: 'merged',
-        commentsCount: 21,
-    },
-    {
-        repo: 'github.com/sourcegraph/sourcegraph-git-extras',
-        number: 511,
-        status: 'merged',
-        commentsCount: 2,
-    },
-]
+interface PullRequestConnection {
+    nodes: PullRequest[]
+    matchingNodes: PullRequest[]
+    totalCount: number
+}
 
-const queryStatusItems = (_threadID: string, createPullRequests?: boolean) =>
-    of({
-        nodes: createPullRequests ? STATUS_ITEMS : STATUS_ITEMS.map(d => ({ ...d, status: 'pending' as const })),
-        totalCount: STATUS_ITEMS.length,
-    })
+const queryPullRequests = async (threadSettings: ThreadSettings, query: string): Promise<PullRequestConnection> => {
+    const pulls = threadSettings.pullRequests || []
+    return {
+        nodes: pulls,
+        matchingNodes: pulls.filter(
+            node =>
+                (query.includes('is:pending') && node.status === 'pending') ||
+                (query.includes('is:open') && node.status === 'open') ||
+                (query.includes('is:merged') && node.status === 'merged') ||
+                (query.includes('is:closed') && node.status === 'closed') ||
+                !query.includes('is:')
+        ),
+        totalCount: pulls.length,
+    }
+}
 
-interface Props {
-    thread: Pick<GQL.IDiscussionThread, 'id'>
+interface Props extends QueryParameterProps {
+    thread: Pick<GQL.IDiscussionThread, 'id' | 'url'>
+    onThreadUpdate: (thread: GQL.IDiscussionThread) => void
     threadSettings: ThreadSettings
 
     action?: React.ReactFragment
@@ -105,24 +49,30 @@ interface Props {
 const LOADING: 'loading' = 'loading'
 
 /**
- * The list of thread status items.
+ * The list of pull requests associated with a thread.
  */
-export const ThreadStatusItemsList: React.FunctionComponent<Props> = ({ thread, threadSettings, action, location }) => {
-    const [itemsOrError, setItemsOrError] = useState<
-        typeof LOADING | { nodes: typeof STATUS_ITEMS; totalCount: number } | ErrorLike
-    >(LOADING)
+export const ThreadActionsPullRequestsList: React.FunctionComponent<Props> = ({
+    thread,
+    onThreadUpdate,
+    threadSettings,
+    query,
+    onQueryChange,
+    action,
+    location,
+}) => {
+    const [itemsOrError, setItemsOrError] = useState<typeof LOADING | PullRequestConnection | ErrorLike>(LOADING)
 
-    // tslint:disable-next-line: no-floating-promises because queryStatusItems never throws
+    // tslint:disable-next-line: no-floating-promises because this never throws
     useMemo(async () => {
         try {
-            setItemsOrError(await queryStatusItems(thread.id, threadSettings.createPullRequests).toPromise())
+            setItemsOrError(await queryPullRequests(threadSettings, query))
         } catch (err) {
             setItemsOrError(asError(err))
         }
-    }, [thread.id])
+    }, [threadSettings, query])
 
     return (
-        <div className="thread-status-items-list">
+        <div className="thread-actions-pull-requests-list">
             {isErrorLike(itemsOrError) ? (
                 <div className="alert alert-danger mt-2">{itemsOrError.message}</div>
             ) : (
@@ -136,10 +86,10 @@ export const ThreadStatusItemsList: React.FunctionComponent<Props> = ({ thread, 
                             />
                         </div>
                         <div className="font-weight-normal flex-1 d-flex align-items-center">
-                            <span className="mr-2">{threadSettings.createPullRequests ? '50%' : '0%'} complete</span>
+                            {/* TODO!(sqs) <span className="mr-2">{threadSettings.createPullRequests ? '50%' : '0%'} complete</span>*/}
                             {itemsOrError !== LOADING && !isErrorLike(itemsOrError) && (
                                 <ListHeaderQueryLinksNav
-                                    query={'TODO!(sqs)'}
+                                    query={query}
                                     links={[
                                         {
                                             label: 'pending',
@@ -178,31 +128,39 @@ export const ThreadStatusItemsList: React.FunctionComponent<Props> = ({ thread, 
                                 />
                             )}
                         </div>
-                        <div className="d-flex">
-                            <ThreadStatusItemsListHeaderFilterButtonDropdown
+                        {/* TODO!(sqs) <div className="d-flex">
+                            <ThreadActionsPullRequestListHeaderFilterButtonDropdown
                                 header="Filter by who's assigned"
                                 items={['sqs (you)', 'ekonev', 'jleiner', 'ziyang', 'kting7', 'ffranksena']}
                             >
                                 Assignee
-                            </ThreadStatusItemsListHeaderFilterButtonDropdown>
-                            <ThreadStatusItemsListHeaderFilterButtonDropdown
+                            </ThreadActionsPullRequestListHeaderFilterButtonDropdown>
+                            <ThreadActionsPullRequestListHeaderFilterButtonDropdown
                                 header="Sort by"
                                 items={['Priority', 'Most recently updated', 'Least recently updated']}
                             >
                                 Sort
-                            </ThreadStatusItemsListHeaderFilterButtonDropdown>
+                            </ThreadActionsPullRequestListHeaderFilterButtonDropdown>
                             {action}
-                        </div>
+                                </div>*/}
+                        {action}
                     </div>
                     {threadSettings.createPullRequests && <ThreadStatusItemsProgressBar />}
                     {itemsOrError === LOADING ? (
                         <LoadingSpinner className="mt-2" />
-                    ) : itemsOrError.nodes.length === 0 ? (
-                        <p className="p-2 mb-0 text-muted">No status items found.</p>
+                    ) : itemsOrError.matchingNodes.length === 0 ? (
+                        <p className="p-2 mb-0 text-muted">No pull requests found.</p>
                     ) : (
                         <div className="list-group list-group-flush">
-                            {itemsOrError.nodes.map((data, i) => (
-                                <PullRequestStatusItem key={i} {...data} className="list-group-item p-2" />
+                            {itemsOrError.matchingNodes.map((pull, i) => (
+                                <ThreadActionsPullRequestsListItem
+                                    key={i}
+                                    thread={thread}
+                                    onThreadUpdate={onThreadUpdate}
+                                    threadSettings={threadSettings}
+                                    pull={pull}
+                                    className="list-group-item p-2"
+                                />
                             ))}
                         </div>
                     )}

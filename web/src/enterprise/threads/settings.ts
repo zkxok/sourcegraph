@@ -1,19 +1,26 @@
 import * as GQL from '../../../../shared/src/graphql/schema'
 
-export interface PullRequest {
+export type PullRequest = {
     repo: string
-    title?: string
     label?: string
-    number?: number
-    status: 'open' | 'merged' | 'closed' | 'pending'
-    commentsCount?: number
     items: GQL.ID[]
-}
+} & (
+    | {
+          status: 'pending'
+          number: undefined
+      }
+    | {
+          status: 'open' | 'merged' | 'closed'
+          title: string
+          number: number
+          commentsCount: number
+          updatedAt: string
+          updatedBy: string
+      })
 
 export interface ThreadSettings {
     providers?: string[]
     queries?: string[]
-    createPullRequests?: boolean
     pullRequests?: PullRequest[]
     pullRequestTemplate?: {
         title?: string

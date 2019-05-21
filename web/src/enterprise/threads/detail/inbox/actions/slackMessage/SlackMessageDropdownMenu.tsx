@@ -55,9 +55,9 @@ export const SlackMessageDropdownMenu: React.FunctionComponent<Props> = ({ ...pr
                         <DropdownItem
                             key={i}
                             // tslint:disable-next-line: jsx-no-lambda
-                            className="d-flex justify-content-between align-items-center"
+                            className="d-flex justify-content-between"
                         >
-                            {label} <small className="text-muted ml-3">{detail}</small>
+                            {label} <span className="text-muted ml-3">{detail}</span>
                         </DropdownItem>
                     ))}
                 </>

@@ -13,9 +13,9 @@ interface Props {
 }
 
 /**
- * A button dropdown with filter options shown in the list of a thread's status items.
+ * A button dropdown with filter options shown in the list of a thread's pull requests.
  */
-export const ThreadStatusItemsListHeaderFilterButtonDropdown: React.FunctionComponent<Props> = ({
+export const ThreadActionsPullRequestListHeaderFilterButtonDropdown: React.FunctionComponent<Props> = ({
     children,
     header,
     items,

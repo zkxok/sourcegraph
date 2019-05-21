@@ -51,6 +51,7 @@ export const ThreadInboxItemsNavbar: React.FunctionComponent<Props> = ({
             )}
             {showFilter && (
                 <div className="d-flex flex-wrap">
+                    {/*
                     <div className={`input-group align-items-start mt-2 ${showQuery ? '' : 'w-auto mr-2'}`}>
                         <label
                             htmlFor="thread-inbox-items-navbar__query"
@@ -75,8 +76,8 @@ export const ThreadInboxItemsNavbar: React.FunctionComponent<Props> = ({
                             >
                                 Show
                             </button>
-                        )}
-                    </div>
+                        )} TODO!(sqs)
+                    </div>*/}
                     <ThreadInboxItemsListFilter value={query} onChange={onQueryChange} className="flex-1 mt-2" />
                 </div>
             )}

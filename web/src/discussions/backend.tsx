@@ -301,17 +301,17 @@ export async function updateThreadSettings(
     edits: Edit[]
 ): Promise<GQL.IDiscussionThread>
 export async function updateThreadSettings(
-    thread: Pick<GQL.IDiscussionThread, 'id' | 'settings'>,
+    thread: Pick<GQL.IDiscussionThread, 'id'>,
     // tslint:disable-next-line: unified-signatures
     newSettings: string
 ): Promise<GQL.IDiscussionThread>
 export async function updateThreadSettings(
-    thread: Pick<GQL.IDiscussionThread, 'id' | 'settings'>,
+    thread: Pick<GQL.IDiscussionThread, 'id'>,
     // tslint:disable-next-line: unified-signatures
     newSettings: ThreadSettings
 ): Promise<GQL.IDiscussionThread>
 export async function updateThreadSettings(
-    thread: Pick<GQL.IDiscussionThread, 'id' | 'settings'>,
+    thread: Pick<GQL.IDiscussionThread, 'id'> & { settings?: any },
     arg: string | Edit[] | ThreadSettings
 ): Promise<GQL.IDiscussionThread> {
     return updateThread({

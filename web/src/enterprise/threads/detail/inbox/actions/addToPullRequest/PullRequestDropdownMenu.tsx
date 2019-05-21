@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import { DropdownItem, DropdownMenu, DropdownMenuProps } from 'reactstrap'
+import { displayRepoName } from '../../../../../../../../shared/src/components/RepoFileLink'
 import * as GQL from '../../../../../../../../shared/src/graphql/schema'
 import { asError, ErrorLike, isErrorLike } from '../../../../../../../../shared/src/util/errors'
 import { PullRequest, ThreadSettings } from '../../../../settings'
@@ -64,9 +65,12 @@ export const PullRequestDropdownMenu: React.FunctionComponent<Props> = ({
                                 key={i}
                                 // tslint:disable-next-line: jsx-no-lambda
                                 onClick={() => onAddToExistingClick(pull)}
-                                className="d-flex justify-content-between align-items-center"
+                                className="d-flex justify-content-between"
                             >
-                                {pull.repo} <small className="text-muted ml-3">#{pull.number}</small>
+                                {displayRepoName(pull.repo)}{' '}
+                                <span className="text-muted ml-3">
+                                    {pull.number !== undefined ? `#${pull.number}` : 'pending'}
+                                </span>
                             </DropdownItem>
                         ))}
                     </>

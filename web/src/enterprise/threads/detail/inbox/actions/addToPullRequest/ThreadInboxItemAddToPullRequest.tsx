@@ -51,7 +51,8 @@ export const ThreadInboxItemAddToPullRequest: React.FunctionComponent<Props> = (
                         ...(threadSettings.pullRequests || []),
                         {
                             repo: inboxItem.repository.name,
-                            status: 'pending',
+                            status: 'pending' as const,
+                            number: undefined,
                             items: [inboxItem.id],
                         },
                     ],

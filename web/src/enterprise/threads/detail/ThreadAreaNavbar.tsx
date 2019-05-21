@@ -52,12 +52,11 @@ export const ThreadAreaNavbar: React.FunctionComponent<Props> = ({
                 {sections.actions && (
                     <div className="nav-item">
                         <NavLink
-                            to={`${thread.url}/actions`}
+                            to={`${thread.url}/actions/pull-requests`}
                             className="thread-area-navbar__nav-link nav-link rounded-0"
                             activeClassName="thread-area-navbar__nav-link--active"
                         >
-                            <PlayCircleIcon className="icon-inline" /> Actions{' '}
-                            {threadSettings.createPullRequests && <span className="badge badge-secondary">50%</span>}
+                            <PlayCircleIcon className="icon-inline" /> Actions
                         </NavLink>
                     </div>
                 )}

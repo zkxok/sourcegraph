@@ -82,17 +82,44 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
     extensionsController,
 }) => {
     const [itemsOrError, setItemsOrError] = useState<
-        typeof LOADING | GQL.IDiscussionThreadTargetConnection | ErrorLike
+        | typeof LOADING
+        | (GQL.IDiscussionThreadTargetConnection & { matchingNodes: GQL.IDiscussionThreadTargetRepo[] })
+        | ErrorLike
     >(LOADING)
 
     // tslint:disable-next-line: no-floating-promises
     useMemo(async () => {
         try {
-            setItemsOrError(await queryInboxItems(thread.id))
+            const data = await queryInboxItems(thread.id)
+            setItemsOrError({
+                ...data,
+                matchingNodes: data.nodes
+                    .filter(
+                        (item): item is GQL.IDiscussionThreadTargetRepo =>
+                            item.__typename === 'DiscussionThreadTargetRepo'
+                    )
+                    .filter(
+                        item =>
+                            (query.includes('is:open') && !item.isIgnored) ||
+                            (query.includes('is:ignored') && item.isIgnored) ||
+                            (!query.includes('is:open') && !query.includes('is:ignored'))
+                    )
+                    .filter(item => {
+                        const m = query.match(/repo:([^\s]+)/)
+                        if (m && m[1]) {
+                            const repo = m[1]
+                            const ids = (threadSettings.pullRequests || [])
+                                .filter(pull => pull.repo === repo)
+                                .flatMap(pull => pull.items)
+                            return ids.includes(item.id)
+                        }
+                        return true
+                    }),
+            })
         } catch (err) {
             setItemsOrError(asError(err))
         }
-    }, [thread.id])
+    }, [thread.id, threadSettings])
 
     const onInboxItemUpdate = useCallback(
         (updatedItem: GQL.DiscussionThreadTarget) => {
@@ -143,38 +170,27 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
                     )}
                     {itemsOrError === LOADING ? (
                         <LoadingSpinner className="mt-2" />
-                    ) : itemsOrError.nodes.length === 0 ? (
+                    ) : itemsOrError.matchingNodes.length === 0 ? (
                         <p className="p-2 mb-0 text-muted">Inbox is empty.</p>
                     ) : (
                         <ul className="list-unstyled">
-                            {itemsOrError.nodes
-                                .filter(
-                                    (item): item is GQL.IDiscussionThreadTargetRepo =>
-                                        item.__typename === 'DiscussionThreadTargetRepo'
-                                )
-                                .filter(
-                                    item =>
-                                        (query.includes('is:open') && !item.isIgnored) ||
-                                        (query.includes('is:ignored') && item.isIgnored) ||
-                                        (!query.includes('is:open') && !query.includes('is:ignored'))
-                                )
-                                .map((item, i) => (
-                                    <li key={i}>
-                                        <TextDocumentLocationInboxItem
-                                            key={i}
-                                            thread={thread}
-                                            threadSettings={threadSettings}
-                                            onThreadUpdate={onThreadUpdate}
-                                            inboxItem={item}
-                                            onInboxItemUpdate={onInboxItemUpdate}
-                                            className="my-3"
-                                            isLightTheme={isLightTheme}
-                                            history={history}
-                                            location={location}
-                                            extensionsController={extensionsController}
-                                        />
-                                    </li>
-                                ))}
+                            {itemsOrError.matchingNodes.map((item, i) => (
+                                <li key={i}>
+                                    <TextDocumentLocationInboxItem
+                                        key={i}
+                                        thread={thread}
+                                        threadSettings={threadSettings}
+                                        onThreadUpdate={onThreadUpdate}
+                                        inboxItem={item}
+                                        onInboxItemUpdate={onInboxItemUpdate}
+                                        className="my-3"
+                                        isLightTheme={isLightTheme}
+                                        history={history}
+                                        location={location}
+                                        extensionsController={extensionsController}
+                                    />
+                                </li>
+                            ))}
                         </ul>
                     )}
                 </>
