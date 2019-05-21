@@ -38,7 +38,7 @@ function registerSearchContextBarActions({
                     const query = parseSearchURLQuery(history.location.search)
                     const thread = await createThread({
                         title,
-                        settings: JSON.stringify({ query }),
+                        settings: JSON.stringify({ queries: [query] }),
                         contents: '',
                         type: GQL.ThreadType.CHECK,
                     }).toPromise()
