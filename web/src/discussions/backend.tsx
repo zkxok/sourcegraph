@@ -14,6 +14,7 @@ const discussionCommentFieldsFragment = gql`
             ...UserFields
         }
         html
+        contents
         inlineURL
         createdAt
         updatedAt
@@ -21,6 +22,36 @@ const discussionCommentFieldsFragment = gql`
         canReport
         canDelete
         canClearReports
+    }
+`
+
+export const discussionThreadTargetFieldsFragment = gql`
+    fragment DiscussionThreadTargetFields on DiscussionThreadTarget {
+        __typename
+        ... on DiscussionThreadTargetRepo {
+            id
+            repository {
+                name
+            }
+            path
+            branch {
+                displayName
+            }
+            revision {
+                displayName
+            }
+            selection {
+                startLine
+                startCharacter
+                endLine
+                endCharacter
+                linesBefore
+                lines
+                linesAfter
+            }
+            isIgnored
+            url
+        }
     }
 `
 
@@ -35,29 +66,14 @@ const discussionThreadFieldsFragment = gql`
         targets(first: 1) {
             nodes {
                 __typename
-                ... on DiscussionThreadTargetRepo {
-                    repository {
-                        name
-                    }
-                    path
-                    branch {
-                        displayName
-                    }
-                    revision {
-                        displayName
-                    }
-                    selection {
-                        startLine
-                        startCharacter
-                        endLine
-                        endCharacter
-                        linesBefore
-                        lines
-                        linesAfter
-                    }
-                }
+                ...DiscussionThreadTargetFields
             }
+            totalCount
         }
+        settings
+        type
+        status
+        url
         inlineURL
         createdAt
         updatedAt
@@ -68,7 +84,9 @@ const discussionThreadFieldsFragment = gql`
         displayName
         username
         avatarURL
+        url
     }
+    ${discussionThreadTargetFieldsFragment}
 `
 
 /**
@@ -154,7 +172,7 @@ export function fetchDiscussionThreads(opts: {
         opts
     ).pipe(
         map(({ data, errors }) => {
-            if (!data || !data.discussionThreads) {
+            if (!data || !data.discussionThreads || !data.discussionThreads.nodes) {
                 throw createAggregateError(errors)
             }
             return data.discussionThreads
@@ -229,6 +247,49 @@ export function addCommentToThread(threadID: GQL.ID, contents: string): Observab
 }
 
 /**
+ * Updates an existing discussion thread.
+ *
+ * @return Observable that emits the updated discussion thread and its comments, or `null` if it was deleted.
+ */
+export async function updateThread(
+    input: GQL.IDiscussionThreadUpdateInput & { delete: true }
+): Promise<GQL.IDiscussionThread | null>
+export async function updateThread(
+    input: Pick<GQL.IDiscussionThreadUpdateInput, Exclude<keyof GQL.IDiscussionThreadUpdateInput, 'delete'>>
+): Promise<GQL.IDiscussionThread>
+export async function updateThread(input: GQL.IDiscussionThreadUpdateInput): Promise<GQL.IDiscussionThread | null> {
+    return mutateGraphQL(
+        gql`
+            mutation UpdateThread($input: DiscussionThreadUpdateInput!) {
+                discussions {
+                    updateThread(input: $input) {
+                        ...DiscussionThreadFields
+                        comments {
+                            totalCount
+                            nodes {
+                                ...DiscussionCommentFields
+                            }
+                        }
+                    }
+                }
+            }
+            ${discussionThreadFieldsFragment}
+            ${discussionCommentFieldsFragment}
+        `,
+        { input }
+    )
+        .pipe(
+            map(({ data, errors }) => {
+                if (!data || !data.discussions || (errors && errors.length > 0)) {
+                    throw createAggregateError(errors)
+                }
+                return data.discussions.updateThread
+            })
+        )
+        .toPromise()
+}
+
+/**
  * Updates an existing comment in a discussion thread.
  *
  * @return Observable that emits the updated discussion thread and its comments.
@@ -259,6 +320,72 @@ export function updateComment(input: GQL.IDiscussionCommentUpdateInput): Observa
                 throw createAggregateError(errors)
             }
             return data.discussions.updateComment
+        })
+    )
+}
+
+/**
+ * Add a target to an existing thread.
+ *
+ * @return Observable that emits the target upon success.
+ */
+export function addTargetToThread(
+    args: GQL.IAddTargetToThreadOnDiscussionsMutationArguments
+): Observable<GQL.DiscussionThreadTarget> {
+    return mutateGraphQL(
+        gql`
+            mutation AddTargetToThread($threadID: ID!, $target: DiscussionThreadTargetInput!) {
+                discussions {
+                    addTargetToThread(threadID: $threadID, target: $target) {
+                        __typename
+                        ...DiscussionThreadTargetFields
+                    }
+                }
+            }
+            ${discussionThreadTargetFieldsFragment}
+        `,
+        args
+    ).pipe(
+        map(({ data, errors }) => {
+            if (!data || !data.discussions || !data.discussions.addTargetToThread) {
+                throw createAggregateError(errors)
+            }
+            return data.discussions.addTargetToThread
+        })
+    )
+}
+
+/**
+ * Updates a target in an existing thread.
+ *
+ * @return Observable that emits the updated target upon success, or null if the target was removed.
+ */
+export function updateTargetInThread(
+    input: Pick<GQL.IDiscussionThreadTargetUpdateInput, Exclude<keyof GQL.IDiscussionThreadTargetUpdateInput, 'delete'>>
+): Observable<GQL.DiscussionThreadTarget>
+export function updateTargetInThread(input: GQL.IDiscussionThreadTargetUpdateInput & { delete: true }): Observable<null>
+export function updateTargetInThread(
+    input: GQL.IDiscussionThreadTargetUpdateInput
+): Observable<GQL.DiscussionThreadTarget | null> {
+    return mutateGraphQL(
+        gql`
+            mutation UpdateTargetInThread($input: DiscussionThreadTargetUpdateInput!) {
+                discussions {
+                    updateTargetInThread(input: $input) {
+                        __typename
+                        ...DiscussionThreadTargetFields
+                    }
+                }
+            }
+            ${discussionThreadTargetFieldsFragment}
+        `,
+        { input }
+    ).pipe(
+        map(({ data, errors }) => {
+            if (!data || !data.discussions || (errors && errors.length > 0)) {
+                throw createAggregateError(errors)
+            }
+            return data.discussions.updateTargetInThread
         })
     )
 }

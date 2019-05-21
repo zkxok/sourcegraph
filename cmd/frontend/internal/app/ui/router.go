@@ -42,6 +42,9 @@ const (
 	routeRepoCompare    = "repo-compare"
 	routeRepoStats      = "repo-stats"
 	routeRepoGraph      = "repo-graph"
+	routeChecks         = "checks"
+	routeCodemods       = "codemods"
+	routeChanges        = "changes"
 	routeThreads        = "threads"
 	routeTree           = "tree"
 	routeBlob           = "blob"
@@ -114,7 +117,6 @@ func newRouter() *mux.Router {
 
 	// Top-level routes.
 	r.Path("/").Methods("GET").Name(routeHome)
-	r.PathPrefix("/threads").Methods("GET").Name(routeThreads)
 	r.Path("/start").Methods("GET").Name(routeStart)
 	r.PathPrefix("/welcome").Methods("GET").Name(routeWelcome)
 	r.Path("/search").Methods("GET").Name(routeSearch)
@@ -142,6 +144,10 @@ func newRouter() *mux.Router {
 	r.PathPrefix("/explore").Methods("GET").Name(routeExplore)
 	r.PathPrefix("/snippets").Methods("GET").Name(routeSnippets)
 	r.PathPrefix("/subscriptions").Methods("GET").Name(routeSubscriptions)
+	r.PathPrefix("/threads").Methods("GET").Name(routeThreads)
+	r.PathPrefix("/checks").Methods("GET").Name(routeChecks)
+	r.PathPrefix("/codemods").Methods("GET").Name(routeCodemods)
+	r.PathPrefix("/change").Methods("GET").Name(routeChanges)
 
 	// Legacy redirects
 	r.Path("/login").Methods("GET").Name(routeLegacyLogin)
@@ -210,6 +216,10 @@ func initRouter() {
 	router.Get(routeRepoCompare).Handler(handler(serveBasicPageString("Compare - Sourcegraph")))
 	router.Get(routeRepoStats).Handler(handler(serveBasicPageString("Stats - Sourcegraph")))
 	router.Get(routeRepoGraph).Handler(handler(serveBasicPageString("Repository graph - Sourcegraph")))
+	router.Get(routeThreads).Handler(handler(serveBasicPageString("Threads - Sourcegraph")))
+	router.Get(routeChecks).Handler(handler(serveBasicPageString("Checks - Sourcegraph")))
+	router.Get(routeCodemods).Handler(handler(serveBasicPageString("Codemods - Sourcegraph")))
+	router.Get(routeChanges).Handler(handler(serveBasicPageString("Changes - Sourcegraph")))
 	router.Get(routeSearchScope).Handler(handler(serveBasicPageString("Search scope - Sourcegraph")))
 	router.Get(routeSurvey).Handler(handler(serveBasicPageString("Survey - Sourcegraph")))
 	router.Get(routeSurveyScore).Handler(handler(serveBasicPageString("Survey - Sourcegraph")))

@@ -408,6 +408,24 @@ input DiscussionThreadTargetRepoSelectionInput {
     linesAfter: [String!]
 }
 
+# The types of discussion threads.
+enum ThreadType {
+    # A normal discussion thread.
+    THREAD
+    # A check.
+    CHECK
+}
+
+# The statuses of discussion threads.
+enum ThreadStatus {
+    # Open (for threads) or active (for checks).
+    OPEN_ACTIVE
+    # Inactive (for checks only). In this state, checks do not perform any "write" operations.
+    INACTIVE
+    # Closed (for threads and checks).
+    CLOSED
+}
+
 # A discussion thread that is centered around:
 #
 # - A repository.
@@ -465,6 +483,19 @@ input DiscussionThreadCreateInput {
 
     # The first target of this discussion thread, if any.
     target: DiscussionThreadTargetInput
+
+    # The settings for the thread.
+    settings: String
+
+    # The type of thread to create.
+    type: ThreadType!
+
+    # The initial status of the thread upon creation.
+    #
+    # For threads (DiscussionThreadCreateInput#type == ThreadType.CHECK), the default status is
+    # ThreadStatus.OPEN_ACTIVE. For checks (DiscussionThreadCreateInput#type == ThreadType.CHECK),
+    # the default status is ThreadStatus.INACTIVE.
+    status: ThreadStatus
 }
 
 # Describes an update mutation to an existing thread.
@@ -475,8 +506,14 @@ input DiscussionThreadUpdateInput {
     # When non-null, indicates that the thread's title should be updated to the specified value.
     title: String
 
+    # When non-null, indicates that the thread's settings should be updated to the specified value.
+    settings: String
+
     # When non-null, indicates that the thread should be archived.
     archive: Boolean
+
+    # When non-null, indicates that the check should be activated (true) or deactivated (false).
+    active: Boolean
 
     # When non-null, indicates that the thread should be deleted. Only admins
     # can perform this action.
@@ -508,6 +545,18 @@ input DiscussionCommentUpdateInput {
     clearReports: Boolean
 }
 
+# Describes an update to target in a thread.
+input DiscussionThreadTargetUpdateInput {
+    # The ID of the target to update.
+    targetID: ID!
+
+    # When non-null, removes the target.
+    remove: Boolean
+
+    # When non-null, updates the ignored status of the target.
+    isIgnored: Boolean
+}
+
 # Mutations for discussions.
 type DiscussionsMutation {
     # Creates a new thread. Returns the new thread.
@@ -518,12 +567,13 @@ type DiscussionsMutation {
     # Returns null if the thread was deleted.
     updateThread(input: DiscussionThreadUpdateInput!): DiscussionThread
 
-    # Adds a target to an existing thread. Returns the new target.
+    # Adds a target to an existing thread. Returns the new target. If the target already exists in
+    # the thread, it is not added a 2nd time and the existing target is returned.
     addTargetToThread(threadID: ID!, target: DiscussionThreadTargetInput!): DiscussionThreadTarget!
 
     # Updates an existing target in a thread. Returns the updated target, or null if the target was
-    # removed (which is currently the only supported update operation).
-    updateTargetInThread(targetID: ID!, remove: Boolean): DiscussionThreadTarget
+    # removed.
+    updateTargetInThread(input: DiscussionThreadTargetUpdateInput!): DiscussionThreadTarget
 
     # Adds a new comment to a thread. Returns the updated thread.
     addCommentToThread(threadID: ID!, contents: String!): DiscussionThread!
@@ -876,7 +926,7 @@ type Search {
 }
 
 # A search result.
-union SearchResult = FileMatch | CommitSearchResult | Repository
+union SearchResult = FileMatch | CommitSearchResult | Repository | CodemodResult
 
 # An object representing a markdown string.
 type Markdown {
@@ -1064,6 +1114,20 @@ type CommitSearchResult implements GenericSearchResultInterface {
     messagePreview: HighlightedString
     # The matching portion of the diff, if any.
     diffPreview: HighlightedString
+}
+
+# The result of a code modification query.
+type CodemodResult implements GenericSearchResultInterface {
+    # URL to an icon that is displayed with every search result.
+    icon: String!
+    # A markdown string that is rendered prominently.
+    label: Markdown!
+    # The URL of the result.
+    url: String!
+    # A markdown string that is rendered less prominently.
+    detail: Markdown!
+    # A list of matches in this search result.
+    matches: [SearchResultMatch!]!
 }
 
 # A search result that is a diff between two diffable Git objects.
@@ -2543,6 +2607,12 @@ type DiscussionThreadTargetRepo {
     # failed) null is returned and it should be assumed the selection does not
     # exist in this revision.
     relativeSelection(rev: String!): DiscussionSelectionRange
+
+    # Whether this target was marked as ignored by the user.
+    isIgnored: Boolean!
+
+    # The URL to this target, or null if there is no URL.
+    url: String
 }
 
 # The target of a discussion thread. Today, the only possible target is a
@@ -2577,10 +2647,25 @@ type DiscussionThread implements Node {
     targets(
         # Returns the first n targets from the list.
         first: Int
+        # If false, only non-ignored targets are returned. If null (default), all targets are
+        # returned. If true, only ignored targets are returned.
+        isIgnored: Boolean
     ): DiscussionThreadTargetConnection!
 
     # The first target of this discussion thread.
     target: DiscussionThreadTarget @deprecated(reason: "use targets instead")
+
+    # The settings for this discussion thread.
+    settings: String!
+
+    # The status of this discussion thread.
+    status: ThreadStatus!
+
+    # The type of this discussion thread.
+    type: ThreadType!
+
+    # The URL where this thread can be viewed in isolation.
+    url: String!
 
     # The URL at which this thread can be viewed inline (i.e. in the file blob view).
     #

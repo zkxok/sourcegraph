@@ -1,5 +1,5 @@
 import * as H from 'history'
-import React, { useCallback } from 'react'
+import * as React from 'react'
 import { ActivationProps } from '../../../../shared/src/components/activation/Activation'
 import { Form } from '../../components/Form'
 import { submitSearch } from '../helpers'
@@ -12,7 +12,6 @@ interface Props extends ActivationProps {
     navbarSearchQuery: string
     onChange: (newValue: string) => void
 }
-
 /**
  * The search item in the navbar
  */
@@ -28,7 +27,7 @@ export const SearchNavbarItem: React.FunctionComponent<Props> = ({
     // in the page).
     const autoFocus = location.pathname === '/search'
 
-    const onSubmit = useCallback(
+    const onSubmit = React.useCallback(
         (e: React.FormEvent<HTMLFormElement>): void => {
             e.preventDefault()
             submitSearch(history, navbarSearchQuery, 'nav', activation)

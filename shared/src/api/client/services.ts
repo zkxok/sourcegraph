@@ -1,6 +1,7 @@
 import { PlatformContext } from '../../platform/context'
 import { ReferenceParams } from '../protocol'
 import { createContextService } from './context/contextService'
+import { CheckTemplateRegistry } from './services/checkTemplates'
 import { CommandRegistry } from './services/command'
 import { CompletionItemProviderRegistry } from './services/completion'
 import { ContributionRegistry } from './services/contribution'
@@ -51,4 +52,5 @@ export class Services {
     public readonly queryTransformer = new QueryTransformerRegistry()
     public readonly views = new ViewProviderRegistry()
     public readonly completionItems = new CompletionItemProviderRegistry()
+    public readonly checkTemplates = new CheckTemplateRegistry()
 }
