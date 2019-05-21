@@ -19,7 +19,7 @@ export const ThreadActionsPullRequests: React.FunctionComponent<Props> = ({
     threadSettings,
     ...props
 }) => (
-    <div className="thread-actions-pull-requests container">
+    <div className="thread-actions-pull-requests">
         {!threadSettings.pullRequestTemplate && (
             <div className="border rounded p-3 mb-3">
                 <h2>Create pull request template</h2>

@@ -9,6 +9,7 @@ import { CheckThreadActivationStatusButton } from '../../../checks/threads/form/
 import { ThreadStatusBadge } from '../../components/threadStatus/ThreadStatusBadge'
 import { ThreadStatusButton } from '../../form/ThreadStatusButton'
 import { ThreadSettings } from '../../settings'
+import { ThreadStatusItemsProgressBar } from '../actions/ThreadStatusItemsProgressBar'
 import { ThreadHeaderEditableTitle } from '../header/ThreadHeaderEditableTitle'
 import { ThreadBreadcrumbs } from './ThreadBreadcrumbs'
 import { ThreadDescription } from './ThreadDescription'
@@ -36,12 +37,17 @@ export const ThreadOverview: React.FunctionComponent<Props> = ({
         <hr className="my-0" />
         <div className="d-flex align-items-center py-3">
             <ThreadStatusBadge thread={thread} className="mr-3" />
-            <span>
-                Opened <Timestamp date={thread.createdAt} /> by{' '}
-                <strong>
-                    <PersonLink user={thread.author} />
-                </strong>
-            </span>
+            <div>
+                <div>
+                    Opened <Timestamp date={thread.createdAt} /> by{' '}
+                    <strong>
+                        <PersonLink user={thread.author} />
+                    </strong>
+                </div>
+                {thread.type === GQL.ThreadType.CHECK && (
+                    <ThreadStatusItemsProgressBar className="my-1" height="0.4rem" />
+                )}
+            </div>
             <div className="flex-1" />
             {thread.type === GQL.ThreadType.CHECK && thread.status !== GQL.ThreadStatus.CLOSED && (
                 <CheckThreadActivationStatusButton

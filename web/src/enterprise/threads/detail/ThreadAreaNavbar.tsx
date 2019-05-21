@@ -1,5 +1,9 @@
+import InboxIcon from 'mdi-react/InboxIcon'
+import PlayCircleIcon from 'mdi-react/PlayCircleIcon'
+import SettingsIcon from 'mdi-react/SettingsIcon'
 import React from 'react'
 import { NavLink } from 'react-router-dom'
+import { ChatIcon } from '../../../../../shared/src/components/icons'
 import * as GQL from '../../../../../shared/src/graphql/schema'
 import { ThreadSettings } from '../settings'
 
@@ -21,55 +25,55 @@ export const ThreadAreaNavbar: React.FunctionComponent<Props> = ({
 }) => (
     <div className={`thread-area-navbar border-top border-bottom ${className}`}>
         <div className="container px-0">
-            <ul className="nav nav-pills">
-                <li className="nav-item">
+            <div className="nav nav-pills flex-nowrap">
+                <div className="nav-item">
                     <NavLink
                         to={thread.url}
                         exact={true}
                         className="thread-area-navbar__nav-link nav-link rounded-0"
                         activeClassName="thread-area-navbar__nav-link--active"
                     >
-                        Discussion <span className="badge badge-secondary">{thread.comments.totalCount - 1}</span>
+                        <ChatIcon className="icon-inline" /> Discussion{' '}
+                        <span className="badge badge-secondary">{thread.comments.totalCount - 1}</span>
                     </NavLink>
-                </li>
+                </div>
                 {sections.review && (
-                    <li className="nav-item">
+                    <div className="nav-item">
                         <NavLink
                             to={`${thread.url}/inbox`}
-                            exact={true}
                             className="thread-area-navbar__nav-link nav-link rounded-0"
                             activeClassName="thread-area-navbar__nav-link--active"
                         >
-                            Inbox <span className="badge badge-secondary">{thread.targets.totalCount}</span>
+                            <InboxIcon className="icon-inline" /> Inbox{' '}
+                            <span className="badge badge-secondary">{thread.targets.totalCount}</span>
                         </NavLink>
-                    </li>
+                    </div>
                 )}
                 {sections.actions && (
-                    <li className="nav-item">
+                    <div className="nav-item">
                         <NavLink
                             to={`${thread.url}/actions`}
-                            exact={true}
                             className="thread-area-navbar__nav-link nav-link rounded-0"
                             activeClassName="thread-area-navbar__nav-link--active"
                         >
-                            Actions{' '}
+                            <PlayCircleIcon className="icon-inline" /> Actions{' '}
                             {threadSettings.createPullRequests && <span className="badge badge-secondary">50%</span>}
                         </NavLink>
-                    </li>
+                    </div>
                 )}
+                <div className="flex-1" />
                 {sections.settings && (
-                    <li className="nav-item">
+                    <div className="nav-item">
                         <NavLink
                             to={`${thread.url}/settings`}
-                            exact={true}
                             className="thread-area-navbar__nav-link nav-link rounded-0"
                             activeClassName="thread-area-navbar__nav-link--active"
                         >
-                            Settings
+                            <SettingsIcon className="icon-inline" />
                         </NavLink>
-                    </li>
+                    </div>
                 )}
-            </ul>
+            </div>
         </div>
     </div>
 )

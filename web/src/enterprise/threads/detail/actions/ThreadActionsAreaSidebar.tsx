@@ -1,6 +1,7 @@
 import EmailOpenOutlineIcon from 'mdi-react/EmailOpenOutlineIcon'
 import PlusBoxIcon from 'mdi-react/PlusBoxIcon'
 import SlackIcon from 'mdi-react/SlackIcon'
+import SourceCommitIcon from 'mdi-react/SourceCommitIcon'
 import SourcePullIcon from 'mdi-react/SourcePullIcon'
 import WebhookIcon from 'mdi-react/WebhookIcon'
 import React from 'react'
@@ -31,6 +32,13 @@ export const ThreadActionsAreaSidebar: React.FunctionComponent<Props> = ({ areaU
                     activeClassName="active"
                 >
                     <SourcePullIcon className="icon-inline" /> Pull requests
+                </NavLink>
+                <NavLink
+                    to={`${areaURL}/commit-status`}
+                    className="list-group-item list-group-item-action p-2"
+                    activeClassName="active"
+                >
+                    <SourceCommitIcon className="icon-inline" /> Commit status
                 </NavLink>
                 <NavLink
                     to={`${areaURL}/slack`}
