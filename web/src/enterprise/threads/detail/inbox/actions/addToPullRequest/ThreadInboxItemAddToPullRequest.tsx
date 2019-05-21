@@ -3,7 +3,7 @@ import React, { useCallback, useState } from 'react'
 import { ButtonDropdown, DropdownToggle } from 'reactstrap'
 import { NotificationType } from '../../../../../../../../shared/src/api/client/services/notifications'
 import { ExtensionsControllerProps } from '../../../../../../../../shared/src/extensions/controller'
-import { PullRequest } from '../../../activity/ThreadStatusItemsList'
+import { PullRequest } from '../../../actions/ThreadStatusItemsList'
 import { PullRequestDropdownMenu } from './PullRequestDropdownMenu'
 
 interface Props {

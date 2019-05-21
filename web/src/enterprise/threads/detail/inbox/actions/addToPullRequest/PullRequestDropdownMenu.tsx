@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { DropdownItem, DropdownMenu, DropdownMenuProps } from 'reactstrap'
 import * as GQL from '../../../../../../../../shared/src/graphql/schema'
 import { asError, ErrorLike, isErrorLike } from '../../../../../../../../shared/src/util/errors'
-import { PullRequest, STATUS_ITEMS } from '../../../activity/ThreadStatusItemsList'
+import { PullRequest, STATUS_ITEMS } from '../../../actions/ThreadStatusItemsList'
 
 interface Props extends Pick<DropdownMenuProps, 'right'> {
     /** Called when the user clicks on an existing pull request to add to. */

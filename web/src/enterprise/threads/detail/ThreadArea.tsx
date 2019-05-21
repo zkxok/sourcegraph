@@ -11,7 +11,7 @@ import { fetchDiscussionThreadAndComments } from '../../../discussions/backend'
 import { parseJSON } from '../../../settings/configuration'
 import { ThreadsAreaContext } from '../global/ThreadsArea'
 import { ThreadSettings } from '../settings'
-import { ThreadActivityPage } from './activity/ThreadActivityPage'
+import { ThreadActionsArea } from './actions/ThreadActionsArea'
 import { ThreadDiscussionPage } from './discussion/ThreadDiscussionPage'
 import { ThreadInboxPage } from './inbox/ThreadInboxPage'
 import { ThreadOverview } from './overview/ThreadOverview'
@@ -20,7 +20,7 @@ import { ThreadAreaSidebar } from './sidebar/ThreadAreaSidebar'
 import { ThreadAreaNavbar } from './ThreadAreaNavbar'
 
 const NotFoundPage = () => (
-    <HeroPage icon={MapSearchIcon} title="404: Not Found" subtitle="Sorry, the requested  page was not found." />
+    <HeroPage icon={MapSearchIcon} title="404: Not Found" subtitle="Sorry, the requested page was not found." />
 )
 
 interface Props extends ThreadsAreaContext, RouteComponentProps<{ threadID: string }> {}
@@ -31,6 +31,9 @@ export interface ThreadAreaContext {
 
     /** Called to update the thread. */
     onThreadUpdate: (thread: GQL.IDiscussionThread) => void
+
+    /** The thread's parsed JSON settings. */
+    threadSettings: ThreadSettings
 }
 
 const LOADING: 'loading' = 'loading'
@@ -106,7 +109,7 @@ export const ThreadArea: React.FunctionComponent<Props> = props => {
                             exact={true}
                             // tslint:disable-next-line:jsx-no-lambda
                             render={routeComponentProps => (
-                                <ThreadDiscussionPage {...routeComponentProps} {...context} />
+                                <ThreadDiscussionPage {...context} {...routeComponentProps} />
                             )}
                         />
                         {sections.review && (
@@ -116,7 +119,7 @@ export const ThreadArea: React.FunctionComponent<Props> = props => {
                                 exact={true}
                                 // tslint:disable-next-line:jsx-no-lambda
                                 render={routeComponentProps => (
-                                    <ThreadInboxPage {...routeComponentProps} {...context} />
+                                    <ThreadInboxPage {...context} {...routeComponentProps} />
                                 )}
                             />
                         )}
@@ -127,7 +130,7 @@ export const ThreadArea: React.FunctionComponent<Props> = props => {
                                 exact={true}
                                 // tslint:disable-next-line:jsx-no-lambda
                                 render={routeComponentProps => (
-                                    <ThreadActivityPage {...routeComponentProps} {...context} />
+                                    <ThreadActionsArea {...context} {...routeComponentProps} />
                                 )}
                             />
                         )}
@@ -138,7 +141,7 @@ export const ThreadArea: React.FunctionComponent<Props> = props => {
                                 exact={true}
                                 // tslint:disable-next-line:jsx-no-lambda
                                 render={routeComponentProps => (
-                                    <ThreadSettingsPage {...routeComponentProps} {...context} />
+                                    <ThreadSettingsPage {...context} {...routeComponentProps} />
                                 )}
                             />
                         )}

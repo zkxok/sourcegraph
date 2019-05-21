@@ -1,31 +1,25 @@
 import H from 'history'
 import React from 'react'
-import * as GQL from '../../../../../../shared/src/graphql/schema'
-import { ErrorLike } from '../../../../../../shared/src/util/errors'
-import { ThreadCreatePullRequestsButton } from '../../form/ThreadCreatePullRequestsButton'
-import { ThreadSettings } from '../../settings'
-import { ThreadPullRequestTemplateEditForm } from '../settings/ThreadPullRequestTemplateEditForm'
-import { ThreadStatusItemsList } from './ThreadStatusItemsList'
+import { ThreadCreatePullRequestsButton } from '../../../form/ThreadCreatePullRequestsButton'
+import { ThreadPullRequestTemplateEditForm } from '../../settings/ThreadPullRequestTemplateEditForm'
+import { ThreadAreaContext } from '../../ThreadArea'
+import { ThreadStatusItemsList } from '../ThreadStatusItemsList'
 
-interface Props {
-    thread: GQL.IDiscussionThread
-    onThreadUpdate: (thread: GQL.IDiscussionThread) => void
-    threadSettings: ThreadSettings
-
+interface Props extends ThreadAreaContext {
     history: H.History
     location: H.Location
 }
 
 /**
- * The activity page for a single thread.
+ * The pull request actions for a single thread.
  */
-export const ThreadActivityPage: React.FunctionComponent<Props> = ({
+export const ThreadActionsPullRequests: React.FunctionComponent<Props> = ({
     thread,
     onThreadUpdate,
     threadSettings,
     ...props
 }) => (
-    <div className="thread-activity-page container">
+    <div className="thread-actions-pull-requests container">
         {!threadSettings.pullRequestTemplate && (
             <div className="border rounded p-3 mb-3">
                 <h2>Create pull request template</h2>
@@ -52,7 +46,5 @@ export const ThreadActivityPage: React.FunctionComponent<Props> = ({
                 )
             }
         />
-        <br />
-        <br />
     </div>
 )
