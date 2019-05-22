@@ -22,7 +22,7 @@ func TestGraphQL_CreateLabel(t *testing.T) {
 		OwnerOrgID:  wantOrgID,
 		Name:        "n",
 		Description: strptr("d"),
-		ColorHex:    "h",
+		Color:    "h",
 	}
 	mocks.labels.Create = func(label *dbLabel) (*dbLabel, error) {
 		if !reflect.DeepEqual(label, wantLabel) {
@@ -40,7 +40,7 @@ func TestGraphQL_CreateLabel(t *testing.T) {
 			Query: `
 				mutation {
 					labels {
-						createLabel(input: { owner: "T3JnOjE=", name: "n", description: "d", colorHex: "h" }) {
+						createLabel(input: { owner: "T3JnOjE=", name: "n", description: "d", color: "h" }) {
 							id
 							name
 						}
@@ -71,7 +71,7 @@ func TestGraphQL_UpdateLabel(t *testing.T) {
 		return &dbLabel{ID: wantID}, nil
 	}
 	mocks.labels.Update = func(id int64, update dbLabelUpdate) (*dbLabel, error) {
-		if want := (dbLabelUpdate{Name: strptr("n1"), Description: strptr("d1"), ColorHex: strptr("h1")}); !reflect.DeepEqual(update, want) {
+		if want := (dbLabelUpdate{Name: strptr("n1"), Description: strptr("d1"), Color: strptr("h1")}); !reflect.DeepEqual(update, want) {
 			t.Errorf("got update %+v, want %+v", update, want)
 		}
 		return &dbLabel{
@@ -79,7 +79,7 @@ func TestGraphQL_UpdateLabel(t *testing.T) {
 			OwnerOrgID:  1,
 			Name:        "n1",
 			Description: strptr("d1"),
-			ColorHex:    "h1",
+			Color:    "h1",
 		}, nil
 	}
 
@@ -90,11 +90,11 @@ func TestGraphQL_UpdateLabel(t *testing.T) {
 			Query: `
 				mutation {
 					labels {
-						updateLabel(input: { id: "TGFiZWw6Mg==", name: "n1", description: "d1", colorHex: "h1" }) {
+						updateLabel(input: { id: "TGFiZWw6Mg==", name: "n1", description: "d1", color: "h1" }) {
 							id
 							name
 							description
-							colorHex
+							color
 						}
 					}
 				}
@@ -106,7 +106,7 @@ func TestGraphQL_UpdateLabel(t *testing.T) {
 							"id": "TGFiZWw6Mg==",
 							"name": "n1",
 							"description": "d1",
-							"colorHex": "h1"
+							"color": "h1"
 						}
 					}
 				}

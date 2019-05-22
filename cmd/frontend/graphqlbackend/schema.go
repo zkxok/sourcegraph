@@ -371,7 +371,7 @@ input CreateLabelInput {
     # The (optional) description of the label.
     description: String
     # The hex color code for the label, without the '#' prefix. For example, "cdf6ee".
-    colorHex: String!
+    color: String!
 }
 
 # Input arguments for updating a label.
@@ -383,7 +383,7 @@ input UpdateLabelInput {
     # The new description of the label. If it is the non-null empty string, the description is set to null.
     description: String
     # The new hex color code for the label (if non-null).
-    colorHex: String
+    color: String
 }
 
 # A new external service.
@@ -2519,6 +2519,12 @@ type Org implements Node & SettingsSubject {
     url: String!
     # The URL to the organization's settings.
     settingsURL: String
+    # The labels owned by this organization. This is the set of labels that may be applied to the
+    # organization's labelable resources.
+    ownedLabels(
+        # Return the first n labels from the list.
+        first: Int
+    ): LabelConnection!
 }
 
 # The result of Mutation.inviteUserToOrganization.
@@ -3865,7 +3871,7 @@ type Label implements Node {
     # The (optional) description of this label.
     description: String
     # The hex color code for the label, without the '#' prefix. For example, "cdf6ee".
-    colorHex: String!
+    color: String!
     # This owner of this label.
     owner: Node
 }

@@ -59,7 +59,7 @@ func (v *gqlLabel) Name() string { return v.db.Name }
 
 func (v *gqlLabel) Description() *string { return v.db.Description }
 
-func (v *gqlLabel) ColorHex() string { return v.db.ColorHex }
+func (v *gqlLabel) Color() string { return v.db.Color }
 
 func (v *gqlLabel) Owner(ctx context.Context) (*graphqlbackend.NodeResolver, error) {
 	org, err := graphqlbackend.OrgByIDInt32(ctx, v.db.OwnerOrgID)

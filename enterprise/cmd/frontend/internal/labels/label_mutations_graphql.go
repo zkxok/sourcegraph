@@ -23,7 +23,7 @@ func (GraphQLResolver) CreateLabel(ctx context.Context, arg *graphqlbackend.Crea
 		OwnerOrgID:  ownerOrg.OrgID(),
 		Name:        arg.Input.Name,
 		Description: arg.Input.Description,
-		ColorHex:    arg.Input.ColorHex,
+		Color:    arg.Input.Color,
 	})
 	if err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func (GraphQLResolver) UpdateLabel(ctx context.Context, arg *graphqlbackend.Upda
 	label, err := dbLabels{}.Update(ctx, l.db.ID, dbLabelUpdate{
 		Name:        arg.Input.Name,
 		Description: arg.Input.Description,
-		ColorHex:    arg.Input.ColorHex,
+		Color:    arg.Input.Color,
 	})
 	if err != nil {
 		return nil, err

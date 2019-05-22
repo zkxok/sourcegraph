@@ -24,12 +24,12 @@ func TestDB_Labels(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	wantLabel0 := &dbLabel{OwnerOrgID: owner1.ID, Name: "n0", Description: strptr("d0"), ColorHex: "h0"}
+	wantLabel0 := &dbLabel{OwnerOrgID: owner1.ID, Name: "n0", Description: strptr("d0"), Color: "h0"}
 	label0, err := dbLabels{}.Create(ctx, wantLabel0)
 	if err != nil {
 		t.Fatal(err)
 	}
-	label1, err := dbLabels{}.Create(ctx, &dbLabel{OwnerOrgID: owner1.ID, Name: "n1", Description: strptr("d1"), ColorHex: "h1"})
+	label1, err := dbLabels{}.Create(ctx, &dbLabel{OwnerOrgID: owner1.ID, Name: "n1", Description: strptr("d1"), Color: "h1"})
 	if err != nil {
 		t.Fatal(err)
 	}

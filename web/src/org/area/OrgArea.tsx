@@ -6,6 +6,7 @@ import * as React from 'react'
 import { Redirect, Route, RouteComponentProps, Switch } from 'react-router'
 import { combineLatest, merge, Observable, of, Subject, Subscription } from 'rxjs'
 import { catchError, distinctUntilChanged, map, mapTo, startWith, switchMap } from 'rxjs/operators'
+import { ExtensionsControllerProps } from '../../../../shared/src/extensions/controller'
 import { gql } from '../../../../shared/src/graphql/graphql'
 import * as GQL from '../../../../shared/src/graphql/schema'
 import { PlatformContextProps } from '../../../../shared/src/platform/context'
@@ -15,6 +16,7 @@ import { queryGraphQL } from '../../backend/graphql'
 import { ErrorBoundary } from '../../components/ErrorBoundary'
 import { HeroPage } from '../../components/HeroPage'
 import { ThemeProps } from '../../theme'
+import { OrgLabelsPage } from '../labels/OrgLabelsPage'
 import { OrgSavedSearchesCreateForm } from '../saved-searches/OrgSavedSearchesCreateForm'
 import { OrgSavedSearchesUpdateForm } from '../saved-searches/OrgSavedSearchesUpdateForm'
 import { OrgSavedSearchListPage } from '../saved-searches/OrgSavedSearchListPage'
@@ -66,7 +68,12 @@ const NotFoundPage = () => (
     <HeroPage icon={MapSearchIcon} title="404: Not Found" subtitle="Sorry, the requested organization was not found." />
 )
 
-interface Props extends RouteComponentProps<{ name: string }>, PlatformContextProps, SettingsCascadeProps, ThemeProps {
+interface Props
+    extends RouteComponentProps<{ name: string }>,
+        PlatformContextProps,
+        SettingsCascadeProps,
+        ThemeProps,
+        ExtensionsControllerProps {
     /**
      * The currently authenticated user.
      */
@@ -83,7 +90,7 @@ interface State {
 /**
  * Properties passed to all page components in the org area.
  */
-export interface OrgAreaPageProps extends PlatformContextProps, SettingsCascadeProps {
+export interface OrgAreaPageProps extends PlatformContextProps, SettingsCascadeProps, ExtensionsControllerProps {
     /** The org that is the subject of the page. */
     org: GQL.IOrg
 
@@ -159,6 +166,7 @@ export class OrgArea extends React.Component<Props> {
             onOrganizationUpdate: this.onDidUpdateOrganization,
             platformContext: this.props.platformContext,
             settingsCascade: this.props.settingsCascade,
+            extensionsController: this.props.extensionsController,
         }
 
         if (this.props.location.pathname === `${this.props.match.url}/invitation`) {
@@ -217,6 +225,15 @@ export class OrgArea extends React.Component<Props> {
                                         // tslint:disable-next-line:jsx-no-lambda
                                         render={routeComponentProps => (
                                             <OrgSavedSearchesUpdateForm {...routeComponentProps} {...transferProps} />
+                                        )}
+                                    />
+                                    <Route
+                                        path={`${this.props.match.url}/labels`}
+                                        key="hardcoded-key" // see https://github.com/ReactTraining/react-router/issues/4578#issuecomment-334489490
+                                        exact={true}
+                                        // tslint:disable-next-line:jsx-no-lambda
+                                        render={routeComponentProps => (
+                                            <OrgLabelsPage {...routeComponentProps} {...transferProps} />
                                         )}
                                     />
                                     <Route

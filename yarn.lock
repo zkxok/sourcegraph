@@ -2485,6 +2485,11 @@
   resolved "https://registry.npmjs.org/@types/q/-/q-1.5.1.tgz#48fd98c1561fe718b61733daed46ff115b496e18"
   integrity sha512-eqz8c/0kwNi/OEHQfvIuJVLTst3in0e7uTKeuY+WL/zfKn0xVujOTp42bS/vUUokhK5P2BppLd9JXMOMHcgbjA==
 
+"@types/randomcolor@^0.5.2":
+  version "0.5.2"
+  resolved "https://registry.npmjs.org/@types/randomcolor/-/randomcolor-0.5.2.tgz#857a648e72b9de98cfb0fdbc720acb5dae4a67b5"
+  integrity sha512-S7gerHMLULrBqTL0RdMHqsAg1HJ+bphA8FSnDL72eIYf+DyVB4nhOOnoyaNdLX7xsQd3Psye784LEpb0muCjmg==
+
 "@types/range-parser@*":
   version "1.2.2"
   resolved "https://registry.npmjs.org/@types/range-parser/-/range-parser-1.2.2.tgz#fa8e1ad1d474688a757140c91de6dace6f4abc8d"
@@ -2783,6 +2788,11 @@
   integrity sha512-2iYpNuOl98SrLPBZfEN9Mh2JCJ2EI9HU35SfgBEb51DcmaHkhp8cKMblYeBqMQiwXMgAD3W60DbQ4i/UdLiXhw==
   dependencies:
     "@types/node" "*"
+
+"@types/wcag-contrast@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.npmjs.org/@types/wcag-contrast/-/wcag-contrast-2.1.0.tgz#7e419448f6ff4b0dd290a04581088aaee84c7d72"
+  integrity sha512-WjjVovgwhip0JUJB4jha2gSl0UTm4bP+xWVS+wG/X4v6EHXOo1oPcmofB1uoEDoEiZTEkA4eAK5VwrR5hUEidw==
 
 "@types/webpack-dev-server@3.1.5":
   version "3.1.5"
@@ -12154,6 +12164,11 @@ randombytes@^2.0.0, randombytes@^2.0.1, randombytes@^2.0.5:
   dependencies:
     safe-buffer "^5.1.0"
 
+randomcolor@^0.5.4:
+  version "0.5.4"
+  resolved "https://registry.npmjs.org/randomcolor/-/randomcolor-0.5.4.tgz#df615b13f25b89ea58c5f8f72647f0a6f07adcc3"
+  integrity sha512-nYd4nmTuuwMFzHL6W+UWR5fNERGZeVauho8mrJDUSXdNDbao4rbrUwhuLgKC/j8VCS5+34Ria8CsTDuBjrIrQA==
+
 randomfill@^1.0.3:
   version "1.0.4"
   resolved "https://registry.npmjs.org/randomfill/-/randomfill-1.0.4.tgz#c92196fc86ab42be983f1bf31778224931d61458"
@@ -15404,6 +15419,11 @@ wbuf@^1.1.0, wbuf@^1.7.3:
   integrity sha512-O84QOnr0icsbFGLS0O3bI5FswxzRr8/gHwWkDlQFskhSPryQXvrTMxjxGP4+iWYoauLoBvfDpkrOauZ+0iZpDA==
   dependencies:
     minimalistic-assert "^1.0.0"
+
+wcag-contrast@^2.1.1:
+  version "2.1.1"
+  resolved "https://registry.npmjs.org/wcag-contrast/-/wcag-contrast-2.1.1.tgz#d1c730d8ee8e475a1f77b408324e704ddb86c16d"
+  integrity sha512-GQ7pbF/5YKjB+51ObyEepv/asgmuzyb9wLTqB5iMtmLLVzv/myj3BYwiAPIlDekutQFnI60RnmE3zH6EwDB7ow==
 
 wcwidth@^1.0.0:
   version "1.0.1"

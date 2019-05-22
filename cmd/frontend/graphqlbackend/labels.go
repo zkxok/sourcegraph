@@ -25,6 +25,15 @@ func LabelsFor(ctx context.Context, labelable graphql.ID, arg *graphqlutil.Conne
 	return Labels.LabelsFor(ctx, labelable, arg)
 }
 
+// LabelsOwnedBy returns an instance of the GraphQL LabelConnection type with the list of labels
+// owned by an organization.
+func LabelsOwnedBy(ctx context.Context, ownerOrgID int32, arg *graphqlutil.ConnectionArgs) (LabelConnection, error) {
+	if Labels == nil {
+		return nil, errors.New("labels is not implemented")
+	}
+	return Labels.LabelsOwnedBy(ctx, ownerOrgID, arg)
+}
+
 func (schemaResolver) Labels() (LabelsResolver, error) {
 	if Labels == nil {
 		return nil, errors.New("labels is not implemented")
@@ -42,6 +51,9 @@ type LabelsResolver interface {
 
 	// LabelsFor is called by the LabelsFor func but is not in the GraphQL API.
 	LabelsFor(ctx context.Context, labelable graphql.ID, arg *graphqlutil.ConnectionArgs) (LabelConnection, error)
+
+	// LabelsOwnedBy is called by the LabelsOwnedBy func but is not in the GraphQL API.
+	LabelsOwnedBy(ctx context.Context, ownerOrgID int32, arg *graphqlutil.ConnectionArgs) (LabelConnection, error)
 }
 
 type CreateLabelArgs struct {
@@ -49,7 +61,7 @@ type CreateLabelArgs struct {
 		Owner       graphql.ID
 		Name        string
 		Description *string
-		ColorHex    string
+		Color    string
 	}
 }
 
@@ -58,7 +70,7 @@ type UpdateLabelArgs struct {
 		ID          graphql.ID
 		Name        *string
 		Description *string
-		ColorHex    *string
+		Color    *string
 	}
 }
 
@@ -81,7 +93,7 @@ type Label interface {
 	ID() graphql.ID
 	Name() string
 	Description() *string
-	ColorHex() string
+	Color() string
 	Owner(context.Context) (*NodeResolver, error)
 }
 

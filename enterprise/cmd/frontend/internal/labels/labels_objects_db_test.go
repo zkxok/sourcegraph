@@ -33,11 +33,11 @@ func TestDB_LabelsObjects(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	label0, err := dbLabels{}.Create(ctx, &dbLabel{OwnerOrgID: owner.ID, Name: "n0", ColorHex: "h0"})
+	label0, err := dbLabels{}.Create(ctx, &dbLabel{OwnerOrgID: owner.ID, Name: "n0", Color: "h0"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	label1, err := dbLabels{}.Create(ctx, &dbLabel{OwnerOrgID: owner.ID, Name: "n1", ColorHex: "h1"})
+	label1, err := dbLabels{}.Create(ctx, &dbLabel{OwnerOrgID: owner.ID, Name: "n1", Color: "h1"})
 	if err != nil {
 		t.Fatal(err)
 	}

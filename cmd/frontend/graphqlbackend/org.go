@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sourcegraph/sourcegraph/cmd/frontend/backend"
 	"github.com/sourcegraph/sourcegraph/cmd/frontend/db"
+	"github.com/sourcegraph/sourcegraph/cmd/frontend/graphqlbackend/graphqlutil"
 	"github.com/sourcegraph/sourcegraph/cmd/frontend/internal/pkg/suspiciousnames"
 	"github.com/sourcegraph/sourcegraph/cmd/frontend/types"
 	"github.com/sourcegraph/sourcegraph/pkg/actor"
@@ -168,6 +169,10 @@ func (o *OrgResolver) ViewerIsMember(ctx context.Context) (bool, error) {
 		return false, err
 	}
 	return true, nil
+}
+
+func (o *OrgResolver) OwnedLabels(ctx context.Context, args *graphqlutil.ConnectionArgs) (LabelConnection, error) {
+	return LabelsOwnedBy(ctx, o.org.ID, args)
 }
 
 func (*schemaResolver) CreateOrganization(ctx context.Context, args *struct {

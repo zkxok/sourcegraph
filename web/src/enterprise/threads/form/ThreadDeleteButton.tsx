@@ -51,21 +51,21 @@ export const ThreadDeleteButton: React.FunctionComponent<Props> = ({
             setIsLoading(true)
             try {
                 await updateThread({ threadID, delete: true })
+                setIsLoading(false)
                 history.push(type === GQL.ThreadType.CHECK ? '/checks' : '/threads')
             } catch (err) {
+                setIsLoading(false)
                 extensionsController.services.notifications.showMessages.next({
                     message: `Error deleting thread: ${err.message}`,
                     type: NotificationType.Error,
                 })
-            } finally {
-                setIsLoading(false)
             }
         },
         [isLoading]
     )
     return (
         <button
-            type="submit"
+            type="button"
             disabled={isLoading}
             className={`btn ${buttonClassName} ${className}`}
             onClick={onClick}

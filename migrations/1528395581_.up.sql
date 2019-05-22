@@ -11,7 +11,7 @@ CREATE TABLE labels (
        owner_org_id integer REFERENCES orgs(id) ON DELETE CASCADE,
        name citext NOT NULL,
        description text,
-       color_hex text NOT NULL
+       color text NOT NULL
 );
 CREATE INDEX labels_name ON labels(name);
 CREATE INDEX labels_owner_org_id ON labels(owner_org_id);

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/graph-gophers/graphql-go"
+	"github.com/sourcegraph/sourcegraph/cmd/frontend/backend"
 	"github.com/sourcegraph/sourcegraph/cmd/frontend/graphqlbackend"
 	"github.com/sourcegraph/sourcegraph/cmd/frontend/graphqlbackend/graphqlutil"
 )
@@ -33,6 +34,29 @@ func (GraphQLResolver) LabelsFor(ctx context.Context, labelable graphql.ID, arg 
 			return nil, err
 		}
 		labels[i] = label
+	}
+	return &labelConnection{arg: arg, labels: labels}, nil
+}
+
+func (GraphQLResolver) LabelsOwnedBy(ctx context.Context, ownerOrgID int32, arg *graphqlutil.ConnectionArgs) (graphqlbackend.LabelConnection, error) {
+	// 🚨 SECURITY: Only organization members and site admins may view labels in an
+	// organization.
+	if err := backend.CheckOrgAccess(ctx, ownerOrgID); err != nil {
+		return nil, err
+	}
+
+	// Check existence.
+	if _, err := graphqlbackend.OrgByIDInt32(ctx, ownerOrgID); err != nil {
+		return nil, err
+	}
+
+	list, err := dbLabels{}.List(ctx, dbLabelsListOptions{OwnerOrgID: ownerOrgID})
+	if err != nil {
+		return nil, err
+	}
+	labels := make([]*gqlLabel, len(list))
+	for i, a := range list {
+		labels[i] = &gqlLabel{db: a}
 	}
 	return &labelConnection{arg: arg, labels: labels}, nil
 }

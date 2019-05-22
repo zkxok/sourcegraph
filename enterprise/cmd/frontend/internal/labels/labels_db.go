@@ -15,7 +15,7 @@ type dbLabel struct {
 	OwnerOrgID  int32  // the organization that owns the label
 	Name        string // the name (case-preserving)
 	Description *string
-	ColorHex    string // the hex color code (omitting the '#' prefix)
+	Color    string // the hex color code (omitting the '#' prefix)
 }
 
 // errLabelNotFound occurs when a database operation expects a specific label to exist but it does
@@ -43,12 +43,12 @@ WITH owner_org AS (
   SELECT id FROM orgs WHERE id=$1 AND deleted_at IS NULL FOR UPDATE
 ),
 insert_values AS (
-  SELECT owner_org.id AS owner_org_id, $2::citext AS name, $3::text AS description, $4::text AS color_hex
+  SELECT owner_org.id AS owner_org_id, $2::citext AS name, $3::text AS description, $4::text AS color
   FROM owner_org
 )
-INSERT INTO labels(owner_org_id, name, description, color_hex) SELECT * FROM insert_values RETURNING id
+INSERT INTO labels(owner_org_id, name, description, color) SELECT * FROM insert_values RETURNING id
 `,
-		label.OwnerOrgID, label.Name, label.Description, label.ColorHex,
+		label.OwnerOrgID, label.Name, label.Description, label.Color,
 	).Scan(&createdLabel.ID); err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ INSERT INTO labels(owner_org_id, name, description, color_hex) SELECT * FROM ins
 type dbLabelUpdate struct {
 	Name        *string
 	Description *string
-	ColorHex    *string
+	Color    *string
 }
 
 // Update updates a label given its ID.
@@ -82,15 +82,15 @@ func (s dbLabels) Update(ctx context.Context, id int64, update dbLabelUpdate) (*
 		}
 		setFields = append(setFields, sqlf.Sprintf("description=%s", value))
 	}
-	if update.ColorHex != nil {
-		setFields = append(setFields, sqlf.Sprintf("color_hex=%s", *update.ColorHex))
+	if update.Color != nil {
+		setFields = append(setFields, sqlf.Sprintf("color=%s", *update.Color))
 	}
 
 	if len(setFields) == 0 {
 		return nil, nil
 	}
 
-	results, err := s.query(ctx, sqlf.Sprintf(`UPDATE labels SET %v WHERE id=%s RETURNING id, owner_org_id, name, description, color_hex`, sqlf.Join(setFields, ", "), id))
+	results, err := s.query(ctx, sqlf.Sprintf(`UPDATE labels SET %v WHERE id=%s RETURNING id, owner_org_id, name, description, color`, sqlf.Join(setFields, ", "), id))
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +146,7 @@ func (s dbLabels) List(ctx context.Context, opt dbLabelsListOptions) ([]*dbLabel
 
 func (s dbLabels) list(ctx context.Context, conds []*sqlf.Query, limitOffset *db.LimitOffset) ([]*dbLabel, error) {
 	q := sqlf.Sprintf(`
-SELECT id, owner_org_id, name, description, color_hex FROM labels
+SELECT id, owner_org_id, name, description, color FROM labels
 WHERE (%s)
 ORDER BY name ASC
 %s`,
@@ -166,7 +166,7 @@ func (dbLabels) query(ctx context.Context, query *sqlf.Query) ([]*dbLabel, error
 	var results []*dbLabel
 	for rows.Next() {
 		var t dbLabel
-		if err := rows.Scan(&t.ID, &t.OwnerOrgID, &t.Name, &t.Description, &t.ColorHex); err != nil {
+		if err := rows.Scan(&t.ID, &t.OwnerOrgID, &t.Name, &t.Description, &t.Color); err != nil {
 			return nil, err
 		}
 		results = append(results, &t)
