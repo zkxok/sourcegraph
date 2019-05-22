@@ -341,6 +341,49 @@ type Mutation {
     ): SavedSearch!
     # Deletes a saved search
     deleteSavedSearch(id: ID!): EmptyResponse
+    # Mutations related to labels.
+    labels: LabelsMutation!
+}
+
+# Mutations related to labels.
+type LabelsMutation {
+    # Create a label associated with an owner organization. Returns the newly created label.
+    #
+    # Only the organization's members and site admins may perform this mutation.
+    createLabel(input: CreateLabelInput!): Label!
+    # Update a label. Returns the updated label.
+    updateLabel(input: UpdateLabelInput!): Label!
+    # Delete a label. All objects that were labeled with this label remain (and are not deleted when
+    # the label is deleted).
+    deleteLabel(label: ID!): EmptyResponse
+    # Add labels to a labelable object. Returns the object.
+    addLabelsToLabelable(labelable: ID!, labels: [ID!]!): Labelable!
+    # Remove labels from a labelable object. Returns the object.
+    removeLabelsFromLabelable(labelable: ID!, labels: [ID!]!): Labelable!
+}
+
+# Input arguments for creating a label.
+input CreateLabelInput {
+    # The ID of the organization to own the label.
+    owner: ID!
+    # The name of the label.
+    name: String!
+    # The (optional) description of the label.
+    description: String
+    # The hex color code for the label, without the '#' prefix. For example, "cdf6ee".
+    colorHex: String!
+}
+
+# Input arguments for updating a label.
+input UpdateLabelInput {
+    # The ID of the label to update.
+    id: ID!
+    # The new name of the label (if non-null).
+    name: String
+    # The new description of the label. If it is the non-null empty string, the description is set to null.
+    description: String
+    # The new hex color code for the label (if non-null).
+    colorHex: String
 }
 
 # A new external service.
@@ -888,6 +931,15 @@ type Query {
     #
     # FOR INTERNAL USE ONLY.
     dotcom: DotcomQuery!
+}
+
+# An object that can be labeled.
+interface Labelable {
+    # A list of labels associated with this object.
+    labels(
+        # Returns the first n labels from the list.
+        first: Int
+    ): LabelConnection!
 }
 
 # A query and an associated number of times it occurred.
@@ -2625,7 +2677,7 @@ type DiscussionThreadTargetRepo {
 union DiscussionThreadTarget = DiscussionThreadTargetRepo | EmptyResponse
 
 # A discussion thread around some target (e.g. a file in a repo).
-type DiscussionThread implements Node {
+type DiscussionThread implements Node & Labelable {
     # The discussion thread ID (globally unique).
     id: ID!
 
@@ -2687,6 +2739,12 @@ type DiscussionThread implements Node {
         # Returns the first n comments from the list.
         first: Int
     ): DiscussionCommentConnection!
+
+    # A list of labels associated with this thread.
+    labels(
+        # Returns the first n labels from the list.
+        first: Int
+    ): LabelConnection!
 }
 
 # A comment made within a discussion thread.
@@ -3796,5 +3854,29 @@ type ProductSubscriptionEvent {
     description: String
     # A URL where the user can see more information about the event.
     url: String
+}
+
+# A label that can be applied to other objects.
+type Label implements Node {
+    # The globally unique ID of this label.
+    id: ID!
+    # The name of this label.
+    name: String!
+    # The (optional) description of this label.
+    description: String
+    # The hex color code for the label, without the '#' prefix. For example, "cdf6ee".
+    colorHex: String!
+    # This owner of this label.
+    owner: Node
+}
+
+# A list of labels.
+type LabelConnection {
+    # A list of labels.
+    nodes: [Label!]!
+    # The total number of labels in the connection.
+    totalCount: Int!
+    # Pagination information.
+    pageInfo: PageInfo!
 }
 `

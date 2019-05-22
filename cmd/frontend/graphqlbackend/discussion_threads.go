@@ -412,7 +412,7 @@ func (schemaResolver) DiscussionThread(ctx context.Context, args *struct {
 	if err != nil {
 		return nil, err
 	}
-	return discussionThreadByID(ctx, marshalDiscussionThreadID(dbID))
+	return DiscussionThreadByID(ctx, marshalDiscussionThreadID(dbID))
 }
 
 type discussionThreadTargetRepoSelectionResolver struct {
@@ -682,8 +682,8 @@ func unmarshalDiscussionThreadID(id graphql.ID) (dbID int64, err error) {
 	return
 }
 
-// discussionThreadByID looks up a DiscussionThread by its GraphQL ID.
-func discussionThreadByID(ctx context.Context, id graphql.ID) (*discussionThreadResolver, error) {
+// DiscussionThreadByID looks up a DiscussionThread by its GraphQL ID.
+func DiscussionThreadByID(ctx context.Context, id graphql.ID) (*discussionThreadResolver, error) {
 	dbID, err := unmarshalDiscussionThreadID(id)
 	if err != nil {
 		return nil, err
@@ -706,6 +706,8 @@ type discussionThreadResolver struct {
 func (d *discussionThreadResolver) ID() graphql.ID {
 	return marshalDiscussionThreadID(d.t.ID)
 }
+
+func (d *discussionThreadResolver) DBID() int64 { return d.t.ID }
 
 func (d *discussionThreadResolver) IDWithoutKind() string {
 	return strconv.FormatInt(d.t.ID, 10)
@@ -799,6 +801,14 @@ func (d *discussionThreadResolver) Comments(ctx context.Context, args *struct {
 	opt := &db.DiscussionCommentsListOptions{ThreadID: &d.t.ID}
 	args.ConnectionArgs.Set(&opt.LimitOffset)
 	return &discussionCommentsConnectionResolver{opt: opt}
+}
+
+func (d *discussionThreadResolver) ToDiscussionThread() (*discussionThreadResolver, bool) {
+	return d, true
+}
+
+func (d *discussionThreadResolver) Labels(ctx context.Context, arg *graphqlutil.ConnectionArgs) (LabelConnection, error) {
+	return LabelsFor(ctx, d.ID(), arg)
 }
 
 // discussionThreadsConnectionResolver resolves a list of discussion comments.
