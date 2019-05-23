@@ -1,9 +1,9 @@
 import FeatureSearchOutlineIcon from 'mdi-react/FeatureSearchOutlineIcon'
 import SettingsIcon from 'mdi-react/SettingsIcon'
-import TagOutlineIcon from 'mdi-react/TagOutlineIcon'
 import UserIcon from 'mdi-react/UserIcon'
 import * as React from 'react'
 import { Link, NavLink, RouteComponentProps } from 'react-router-dom'
+import { NamespaceAreaHeaderLinks } from '../../namespaces/NamespaceAreaHeaderLinks'
 import { OrgAvatar } from '../OrgAvatar'
 import { OrgAreaPageProps } from './OrgArea'
 
@@ -49,14 +49,7 @@ export const OrgHeader: React.FunctionComponent<Props> = (props: Props) => (
                             >
                                 <FeatureSearchOutlineIcon className="icon-inline" /> Saved searches
                             </NavLink>
-                            <NavLink
-                                to={`${props.match.url}/labels`}
-                                exact={false}
-                                className="btn area-header__nav-link"
-                                activeClassName="area-header__nav-link--active"
-                            >
-                                <TagOutlineIcon className="icon-inline" /> Labels
-                            </NavLink>
+                            <NamespaceAreaHeaderLinks url={props.match.url} />
                             {props.org.viewerCanAdminister && (
                                 <NavLink
                                     to={`${props.match.url}/settings`}

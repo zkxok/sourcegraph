@@ -41,7 +41,7 @@ export const LabelForm: React.FunctionComponent<Props> = ({
         e => setName(e.currentTarget.value),
         []
     )
-    useEffect(() => setName(initialValue.name), [initialValue.color])
+    useEffect(() => setName(initialValue.name), [initialValue.name])
 
     const [description, setDescription] = useState(initialValue.description)
     const onDescriptionChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>(

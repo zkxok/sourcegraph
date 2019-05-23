@@ -15,6 +15,7 @@ import { createAggregateError, ErrorLike, isErrorLike } from '../../../../shared
 import { queryGraphQL } from '../../backend/graphql'
 import { ErrorBoundary } from '../../components/ErrorBoundary'
 import { HeroPage } from '../../components/HeroPage'
+import { NamespaceProps } from '../../namespaces'
 import { NamespaceArea } from '../../namespaces/NamespaceArea'
 import { OrgLabelsPage } from '../../projects/labels/OrgLabelsPage'
 import { ThemeProps } from '../../theme'
@@ -91,7 +92,11 @@ interface State {
 /**
  * Properties passed to all page components in the org area.
  */
-export interface OrgAreaPageProps extends PlatformContextProps, SettingsCascadeProps, ExtensionsControllerProps {
+export interface OrgAreaPageProps
+    extends PlatformContextProps,
+        SettingsCascadeProps,
+        ExtensionsControllerProps,
+        NamespaceProps {
     /** The org that is the subject of the page. */
     org: GQL.IOrg
 
@@ -168,6 +173,7 @@ export class OrgArea extends React.Component<Props> {
             platformContext: this.props.platformContext,
             settingsCascade: this.props.settingsCascade,
             extensionsController: this.props.extensionsController,
+            namespace: this.state.orgOrError,
         }
 
         if (this.props.location.pathname === `${this.props.match.url}/invitation`) {
@@ -229,15 +235,6 @@ export class OrgArea extends React.Component<Props> {
                                         )}
                                     />
                                     <Route
-                                        path={`${this.props.match.url}/labels`}
-                                        key="hardcoded-key" // see https://github.com/ReactTraining/react-router/issues/4578#issuecomment-334489490
-                                        exact={true}
-                                        // tslint:disable-next-line:jsx-no-lambda
-                                        render={routeComponentProps => (
-                                            <OrgLabelsPage {...routeComponentProps} {...transferProps} />
-                                        )}
-                                    />
-                                    <Route
                                         path={`${this.props.match.url}/settings`}
                                         key="hardcoded-key" // see https://github.com/ReactTraining/react-router/issues/4578#issuecomment-334489490
                                         // tslint:disable-next-line:jsx-no-lambda
@@ -257,7 +254,6 @@ export class OrgArea extends React.Component<Props> {
                                             <NamespaceArea
                                                 {...routeComponentProps}
                                                 {...transferProps}
-                                                namespace={transferProps.org}
                                                 isLightTheme={this.props.isLightTheme}
                                             />
                                         )}

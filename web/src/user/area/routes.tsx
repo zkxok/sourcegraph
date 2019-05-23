@@ -44,7 +44,7 @@ export const userAreaRoutes: ReadonlyArray<UserAreaRoute> = [
     },
     {
         path: '/namespace',
-        render: props => lazyComponent(() => import('../../namespaces/NamespaceArea'), 'NamespaceArea'),
+        render: lazyComponent(() => import('../../namespaces/NamespaceArea'), 'NamespaceArea'),
     },
 
     // Redirect from previous /users/:username/account -> /users/:username/settings/profile.

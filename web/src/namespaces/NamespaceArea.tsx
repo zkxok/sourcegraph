@@ -4,6 +4,7 @@ import { Route, RouteComponentProps, Switch } from 'react-router'
 import { ExtensionsControllerProps } from '../../../shared/src/extensions/controller'
 import * as GQL from '../../../shared/src/graphql/schema'
 import { HeroPage } from '../components/HeroPage'
+import { NamespaceProjectsPage } from './projects/NamespaceProjectsPage'
 
 const NotFoundPage: React.FunctionComponent = () => (
     <HeroPage icon={MapSearchIcon} title="404: Not Found" subtitle={`Sorry, the requested page was not found.`} />
@@ -18,7 +19,7 @@ export interface NamespaceAreaContext extends ExtensionsControllerProps {
     isLightTheme: boolean
 }
 
-export interface NamespaceAreaProps extends NamespaceAreaContext, RouteComponentProps<{}> {}
+interface NamespaceAreaProps extends NamespaceAreaContext, RouteComponentProps<{}> {}
 
 /**
  * The namespace area.
@@ -29,7 +30,7 @@ export const NamespaceArea: React.FunctionComponent<NamespaceAreaProps> = ({ mat
         <div className="namespace-area area--vertical pt-0">
             <Switch>
                 <Route
-                    path={match.url}
+                    path={`${match.url}/projects`}
                     key="hardcoded-key" // see https://github.com/ReactTraining/react-router/issues/4578#issuecomment-334489490
                     exact={true}
                     // tslint:disable-next-line:jsx-no-lambda

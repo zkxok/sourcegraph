@@ -4,14 +4,15 @@ import { gql } from '../../../../shared/src/graphql/graphql'
 import * as GQL from '../../../../shared/src/graphql/schema'
 import { createAggregateError } from '../../../../shared/src/util/errors'
 import { mutateGraphQL } from '../../backend/graphql'
+import { NamespaceAreaContext } from '../NamespaceArea'
 import { ProjectForm, ProjectFormData } from './ProjectForm'
 
-const updateProject = (input: GQL.IUpdateProjectInput): Promise<void> =>
+const createProject = (input: GQL.ICreateProjectInput): Promise<void> =>
     mutateGraphQL(
         gql`
-            mutation UpdateProject($input: UpdateProjectInput!) {
+            mutation CreateProject($input: CreateProjectInput!) {
                 projects {
-                    updateProject(input: $input) {
+                    createProject(input: $input) {
                         id
                     }
                 }
@@ -21,57 +22,54 @@ const updateProject = (input: GQL.IUpdateProjectInput): Promise<void> =>
     )
         .pipe(
             map(({ data, errors }) => {
-                if (!data || !data.projects || !data.projects.updateProject || (errors && errors.length > 0)) {
+                if (!data || !data.projects || !data.projects.createProject || (errors && errors.length > 0)) {
                     throw createAggregateError(errors)
                 }
             })
         )
         .toPromise()
 
-interface Props {
-    project: Pick<GQL.IProject, 'id'> & ProjectFormData
-
+interface Props extends Pick<NamespaceAreaContext, 'namespace'> {
     /** Called when the form is dismissed. */
     onDismiss: () => void
 
-    /** Called after the project is updated successfully. */
-    onProjectUpdate: () => void
+    /** Called after the project is created successfully. */
+    onProjectCreate: () => void
 
     className?: string
 }
 
 /**
- * A form to update a project.
+ * A form to create a new project.
  */
-export const UpdateProjectForm: React.FunctionComponent<Props> = ({
-    project,
+export const NewProjectForm: React.FunctionComponent<Props> = ({
+    namespace,
     onDismiss,
-    onProjectUpdate,
+    onProjectCreate,
     className = '',
 }) => {
     const [isLoading, setIsLoading] = useState(false)
     const onSubmit = useCallback(
-        async ({ name, color, description }: ProjectFormData) => {
+        async ({ name }: ProjectFormData) => {
             setIsLoading(true)
             try {
-                await updateProject({ id: project.id, name, color, description })
+                await createProject({ name, namespace: namespace.id })
                 setIsLoading(false)
                 onDismiss()
-                onProjectUpdate()
+                onProjectCreate()
             } catch (err) {
                 setIsLoading(false)
                 alert(err.message) // TODO!(sqs)
             }
         },
-        [project]
+        [namespace]
     )
 
     return (
         <ProjectForm
-            initialValue={project}
             onDismiss={onDismiss}
             onSubmit={onSubmit}
-            buttonText="Save changes"
+            buttonText="Create project"
             isLoading={isLoading}
             className={className}
         />

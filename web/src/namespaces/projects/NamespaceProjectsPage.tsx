@@ -9,6 +9,7 @@ import { queryGraphQL } from '../../backend/graphql'
 import { ProjectRow } from './ProjectRow'
 import { NewProjectForm } from './NewProjectForm'
 import { ExtensionsControllerProps } from '../../../../shared/src/extensions/controller'
+import { NamespaceAreaContext } from '../NamespaceArea'
 
 const queryNamespaceProjects = (namespace: GQL.ID): Promise<GQL.IProjectConnection> =>
     queryGraphQL(
@@ -39,23 +40,23 @@ const queryNamespaceProjects = (namespace: GQL.ID): Promise<GQL.IProjectConnecti
 
 const LOADING: 'loading' = 'loading'
 
-interface Props extends Pick<OrgAreaPageProps, 'org'>, ExtensionsControllerProps {}
+interface Props extends Pick<NamespaceAreaContext, 'namespace'>, ExtensionsControllerProps {}
 
 /**
  * Lists a namespace's projects.
  */
-export const NamespaceProjectsPage: React.FunctionComponent<Props> = ({ org, ...props }) => {
+export const NamespaceProjectsPage: React.FunctionComponent<Props> = ({ namespace, ...props }) => {
     const [projectsOrError, setProjectsOrError] = useState<typeof LOADING | GQL.IProjectConnection | ErrorLike>(LOADING)
     const loadProjects = useCallback(async () => {
         setProjectsOrError(LOADING)
         try {
-            setProjectsOrError(await queryNamespaceProjects(org.id))
+            setProjectsOrError(await queryNamespaceProjects(namespace.id))
         } catch (err) {
             setProjectsOrError(asError(err))
         }
-    }, [org])
+    }, [namespace])
     // tslint:disable-next-line: no-floating-promises
-    useMemo(loadProjects, [org])
+    useMemo(loadProjects, [namespace])
 
     const [isShowingNewProjectForm, setIsShowingNewProjectForm] = useState(false)
     const toggleIsShowingNewProjectForm = useCallback(() => setIsShowingNewProjectForm(!isShowingNewProjectForm), [
@@ -63,7 +64,7 @@ export const NamespaceProjectsPage: React.FunctionComponent<Props> = ({ org, ...
     ])
 
     return (
-        <div className="org-projects-page">
+        <div className="namespace-projects-page">
             <div className="d-flex align-items-center justify-content-between mb-3">
                 <h2 className="mb-0">Projects</h2>
                 <button type="button" className="btn btn-success" onClick={toggleIsShowingNewProjectForm}>
@@ -72,7 +73,7 @@ export const NamespaceProjectsPage: React.FunctionComponent<Props> = ({ org, ...
             </div>
             {isShowingNewProjectForm && (
                 <NewProjectForm
-                    org={org}
+                    namespace={namespace}
                     onDismiss={toggleIsShowingNewProjectForm}
                     onProjectCreate={loadProjects}
                     className="my-3 p-2 border rounded"

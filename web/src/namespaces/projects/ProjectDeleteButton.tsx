@@ -64,7 +64,7 @@ export const ProjectDeleteButton: React.FunctionComponent<Props> = ({
     const onClick = useCallback<React.FormEventHandler>(
         async e => {
             e.preventDefault()
-            if (!confirm('Are you sure? Deleting will remove it from all threads.')) {
+            if (!confirm('Are you sure? Deleting will remove all data associated with the project.')) {
                 return
             }
             setIsLoading(true)

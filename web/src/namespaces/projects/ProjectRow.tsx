@@ -2,7 +2,7 @@ import PencilIcon from 'mdi-react/PencilIcon'
 import React, { useCallback, useState } from 'react'
 import { ExtensionsControllerProps } from '../../../../shared/src/extensions/controller'
 import * as GQL from '../../../../shared/src/graphql/schema'
-import { Project } from '../../components/Project'
+import { ProjectIcon } from '../../projects/icons'
 import { UpdateProjectForm } from './EditProjectForm'
 import { ProjectDeleteButton } from './ProjectDeleteButton'
 
@@ -23,12 +23,11 @@ export const ProjectRow: React.FunctionComponent<Props> = ({ project, onProjectU
     return isEditing ? (
         <UpdateProjectForm project={project} onProjectUpdate={onProjectUpdate} onDismiss={toggleIsEditing} />
     ) : (
-        <div className="row">
-            <div className="col-md-4">
-                <Project project={project} className="h5 mb-0" />
+        <div className="d-flex justify-content-between">
+            <div>
+                <ProjectIcon className="icon-inline" /> {project.name}
             </div>
-            <div className="col-md-5">{project.description}</div>
-            <div className="col-md-3 text-right">
+            <div className="text-right">
                 <button type="button" className="btn btn-link text-decoration-none" onClick={toggleIsEditing}>
                     <PencilIcon className="icon-inline" /> Edit
                 </button>
