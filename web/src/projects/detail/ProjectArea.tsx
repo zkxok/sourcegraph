@@ -86,19 +86,7 @@ export const ProjectArea: React.FunctionComponent<Props> = props => {
 
     return (
         <div className="project-area border-top flex-1 d-flex overflow-hidden">
-            <Resizable
-                className="project-area__sidebar-resizable border-right"
-                handlePosition="right"
-                storageKey="project-area__sidebar-resizable"
-                defaultSize={216 /* px */}
-                element={
-                    <ProjectAreaSidebar
-                        {...context}
-                        className="project-area__sidebar flex-1 overflow-auto"
-                        history={props.history}
-                    />
-                }
-            />
+            <ProjectAreaSidebar {...context} className="project-area__sidebar flex-0" />
             <div className="flex-1 overflow-auto">
                 <ErrorBoundary location={props.location}>
                     <Switch>

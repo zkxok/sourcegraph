@@ -5,6 +5,6 @@
     "sourceRoot": "src",
     "typeRoots": ["src/types", "../node_modules/@types"],
   },
-  "include": ["**/*"],
+  "include": ["**/*", "../web/src/components/collapsibleSidebar"],
   "exclude": ["../node_modules"],
 }
