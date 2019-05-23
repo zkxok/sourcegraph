@@ -17,7 +17,7 @@ import { ProjectAreaSidebar } from './sidebar/ProjectAreaSidebar'
 const getProject = (idWithoutKind: GQL.IProjectOnQueryArguments['idWithoutKind']): Promise<GQL.IProject> =>
     queryGraphQL(
         gql`
-            query Project($idWithoutKind: ID!) {
+            query Project($idWithoutKind: String!) {
                 project(idWithoutKind: $idWithoutKind) {
                     id
                     name
@@ -85,7 +85,7 @@ export const ProjectArea: React.FunctionComponent<Props> = props => {
     }
 
     return (
-        <div className="project-area border-top flex-1 d-flex flex-row-reverse overflow-hidden">
+        <div className="project-area border-top flex-1 d-flex overflow-hidden">
             <Resizable
                 className="project-area__sidebar-resizable border-right"
                 handlePosition="right"

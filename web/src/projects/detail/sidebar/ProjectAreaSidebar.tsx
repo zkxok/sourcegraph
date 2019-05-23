@@ -18,13 +18,15 @@ interface Props extends ExtensionsControllerProps {
 export const ProjectAreaSidebar: React.FunctionComponent<Props> = ({ project, className = '', ...props }) => (
     <div className={`project-area-sidebar d-flex flex-column ${className}`}>
         <h3>
-            <Link to={project.url}>{project.name}</Link>
+            <Link to={project.url} className="p-2 mt-2">
+                {project.name}
+            </Link>
         </h3>
         <div className="list-group list-group-flush">
-            <Link to={project.url} className="list-group-item-action">
+            <Link to={project.url} className="list-group-item list-group-item-action">
                 Project
             </Link>
-            <Link to={`${project.url}/labels`} className="list-group-item-action">
+            <Link to={`${project.url}/labels`} className="list-group-item list-group-item-action">
                 Labels
             </Link>
         </div>

@@ -50,7 +50,7 @@ export const LabelForm: React.FunctionComponent<Props> = ({
     )
     useEffect(() => setDescription(initialValue.description), [initialValue.description])
 
-    const [color, setColor] = useState(initialValue.color || getRandomColor())
+    const [color, setColor] = useState(initialValue.color)
     const onColorChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>(
         e => setColor(e.currentTarget.value),
         []

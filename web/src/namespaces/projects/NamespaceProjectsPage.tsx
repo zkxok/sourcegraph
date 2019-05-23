@@ -1,12 +1,14 @@
 import { LoadingSpinner } from '@sourcegraph/react-loading-spinner'
 import React, { useCallback, useMemo, useState } from 'react'
 import { map } from 'rxjs/operators'
+import { ExtensionsControllerProps } from '../../../../shared/src/extensions/controller'
 import { gql } from '../../../../shared/src/graphql/graphql'
 import * as GQL from '../../../../shared/src/graphql/schema'
 import { asError, createAggregateError, ErrorLike, isErrorLike } from '../../../../shared/src/util/errors'
 import { pluralize } from '../../../../shared/src/util/strings'
 import { queryGraphQL } from '../../backend/graphql'
 import { NamespaceAreaContext } from '../NamespaceArea'
+import { NewProjectForm } from './NewProjectForm'
 import { ProjectRow } from './ProjectRow'
 
 const queryNamespaceProjects = (namespace: GQL.ID): Promise<GQL.IProjectConnection> =>

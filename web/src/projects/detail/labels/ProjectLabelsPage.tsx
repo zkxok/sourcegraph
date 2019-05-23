@@ -15,7 +15,7 @@ const queryProjectLabels = (project: GQL.ID): Promise<GQL.ILabelConnection> =>
     queryGraphQL(
         gql`
             query ProjectLabels($project: ID!) {
-                node(id: $organization) {
+                node(id: $project) {
                     __typename
                     ... on Project {
                         labels {
@@ -75,7 +75,7 @@ export const ProjectLabelsPage: React.FunctionComponent<Props> = ({ project, ...
     ])
 
     return (
-        <div className="project-labels-page">
+        <div className="project-labels-page container mt-2">
             <div className="d-flex align-items-center justify-content-between mb-3">
                 <h2 className="mb-0">Labels</h2>
                 <button type="button" className="btn btn-success" onClick={toggleIsShowingNewLabelForm}>
