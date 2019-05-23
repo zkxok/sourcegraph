@@ -15,8 +15,9 @@ import { createAggregateError, ErrorLike, isErrorLike } from '../../../../shared
 import { queryGraphQL } from '../../backend/graphql'
 import { ErrorBoundary } from '../../components/ErrorBoundary'
 import { HeroPage } from '../../components/HeroPage'
+import { NamespaceArea } from '../../namespaces/NamespaceArea'
+import { OrgLabelsPage } from '../../projects/labels/OrgLabelsPage'
 import { ThemeProps } from '../../theme'
-import { OrgLabelsPage } from '../labels/OrgLabelsPage'
 import { OrgSavedSearchesCreateForm } from '../saved-searches/OrgSavedSearchesCreateForm'
 import { OrgSavedSearchesUpdateForm } from '../saved-searches/OrgSavedSearchesUpdateForm'
 import { OrgSavedSearchListPage } from '../saved-searches/OrgSavedSearchListPage'
@@ -244,6 +245,19 @@ export class OrgArea extends React.Component<Props> {
                                             <OrgSettingsArea
                                                 {...routeComponentProps}
                                                 {...transferProps}
+                                                isLightTheme={this.props.isLightTheme}
+                                            />
+                                        )}
+                                    />
+                                    <Route
+                                        path={`${this.props.match.url}/namespace`}
+                                        key="hardcoded-key" // see https://github.com/ReactTraining/react-router/issues/4578#issuecomment-334489490
+                                        // tslint:disable-next-line:jsx-no-lambda
+                                        render={routeComponentProps => (
+                                            <NamespaceArea
+                                                {...routeComponentProps}
+                                                {...transferProps}
+                                                namespace={transferProps.org}
                                                 isLightTheme={this.props.isLightTheme}
                                             />
                                         )}

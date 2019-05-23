@@ -1,15 +1,15 @@
 import { LoadingSpinner } from '@sourcegraph/react-loading-spinner'
 import React, { useCallback, useMemo, useState } from 'react'
 import { map } from 'rxjs/operators'
+import { ExtensionsControllerProps } from '../../../../shared/src/extensions/controller'
 import { gql } from '../../../../shared/src/graphql/graphql'
 import * as GQL from '../../../../shared/src/graphql/schema'
 import { asError, createAggregateError, ErrorLike, isErrorLike } from '../../../../shared/src/util/errors'
 import { pluralize } from '../../../../shared/src/util/strings'
 import { queryGraphQL } from '../../backend/graphql'
-import { OrgAreaPageProps } from '../area/OrgArea'
+import { OrgAreaPageProps } from '../../org/area/OrgArea'
 import { LabelRow } from './LabelRow'
 import { NewLabelForm } from './NewLabelForm'
-import { ExtensionsControllerProps } from '../../../../shared/src/extensions/controller'
 
 const queryOrganizationOwnedLabels = (organization: GQL.ID): Promise<GQL.ILabelConnection> =>
     queryGraphQL(

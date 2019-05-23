@@ -960,6 +960,8 @@ type Query {
     #
     # FOR INTERNAL USE ONLY.
     dotcom: DotcomQuery!
+    # Looks up a namespace by ID.
+    namespace(id: ID!): Namespace
 }
 
 # An object that can be labeled.

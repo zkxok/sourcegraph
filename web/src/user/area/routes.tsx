@@ -42,6 +42,10 @@ export const userAreaRoutes: ReadonlyArray<UserAreaRoute> = [
         render: props =>
             lazyComponent(() => import('../saved-searches/UserSavedSearchesUpdateForm'), 'UserSavedSearchesUpdateForm'),
     },
+    {
+        path: '/namespace',
+        render: props => lazyComponent(() => import('../../namespaces/NamespaceArea'), 'NamespaceArea'),
+    },
 
     // Redirect from previous /users/:username/account -> /users/:username/settings/profile.
     {
