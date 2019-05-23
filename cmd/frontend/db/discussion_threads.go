@@ -51,6 +51,9 @@ func (t *discussionThreads) Create(ctx context.Context, newThread *types.Discuss
 	if newThread.ID != 0 {
 		return nil, errors.New("newThread.ID must be zero")
 	}
+	if newThread.ProjectID == 0 {
+		return nil, errors.New("newThread.ProjectID must be set")
+	}
 	if strings.TrimSpace(newThread.Title) == "" {
 		return nil, errors.New("newThread.Title must be present (and not whitespace)")
 	}
@@ -76,6 +79,7 @@ func (t *discussionThreads) Create(ctx context.Context, newThread *types.Discuss
 	newThread.CreatedAt = time.Now()
 	newThread.UpdatedAt = newThread.CreatedAt
 	err := dbconn.Global.QueryRowContext(ctx, `INSERT INTO discussion_threads(
+		project_id,
 		author_user_id,
 		title,
 		settings,
@@ -83,7 +87,8 @@ func (t *discussionThreads) Create(ctx context.Context, newThread *types.Discuss
 		is_active,
 		created_at,
 		updated_at
-	) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+	) VALUES ($1, $2, $3, $4, $5, $6, $7,   $8) RETURNING id`,
+		newThread.ProjectID,
 		newThread.AuthorUserID,
 		newThread.Title,
 		newThread.Settings,

@@ -10,6 +10,7 @@ import (
 // It intentionally does not try to e.g. alleviate null fields.
 type DiscussionThread struct {
 	ID           int64
+	ProjectID    int64
 	AuthorUserID int32
 	Title        string
 	Settings     *string

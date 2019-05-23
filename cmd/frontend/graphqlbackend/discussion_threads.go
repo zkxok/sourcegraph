@@ -191,6 +191,7 @@ func (d *discussionThreadTargetRepoInput) populateLinesFromRepository(ctx contex
 
 func (r *discussionsMutationResolver) CreateThread(ctx context.Context, args *struct {
 	Input *struct {
+		Project  graphql.ID
 		Title    *string
 		Contents string
 		Target   *discussionThreadTargetInput
@@ -244,9 +245,17 @@ func (r *discussionsMutationResolver) CreateThread(ctx context.Context, args *st
 		return nil, fmt.Errorf("unexpected thread type %q", args.Input.Type)
 	}
 
+	// 🚨 SECURITY: Ensure the viewer can view the project (which is a requirement for creating a
+	// thread in it).
+	project, err := ProjectByID(ctx, args.Input.Project)
+	if err != nil {
+		return nil, err
+	}
+
 	// Create the thread.
 	newThread := &types.DiscussionThread{
 		AuthorUserID: currentUser.user.ID,
+		ProjectID:    project.DBID(),
 		Title:        *args.Input.Title,
 		Settings:     args.Input.Settings,
 		IsCheck:      args.Input.Type == threadTypeCheck,
@@ -711,6 +720,10 @@ func (d *discussionThreadResolver) DBID() int64 { return d.t.ID }
 
 func (d *discussionThreadResolver) IDWithoutKind() string {
 	return strconv.FormatInt(d.t.ID, 10)
+}
+
+func (d *discussionThreadResolver) Project(ctx context.Context) (Project, error) {
+	return ProjectByDBID(ctx, d.t.ProjectID)
 }
 
 func (d *discussionThreadResolver) Author(ctx context.Context) (*UserResolver, error) {

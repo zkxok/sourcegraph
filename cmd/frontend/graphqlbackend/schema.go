@@ -543,6 +543,9 @@ input DiscussionThreadTargetInput {
 
 # Describes the creation of a new thread around some target (e.g. a file in a repo).
 input DiscussionThreadCreateInput {
+    # The ID of the project in which to create this discussion thread.
+    project: ID!
+
     # An explicitly chosen title for the discussion thread. Otherwise, the title
     # will be chosen based on the 'contents' (e.g. the first line).
     title: String
@@ -2732,6 +2735,9 @@ type DiscussionThread implements Node & Labelable {
     # among all GraphQL nodes. For example, this is a string like "123" (and DiscussionThread#id is
     # a string like "RGlzY3Vzc2l...").
     idWithoutKind: String!
+
+    # The project that this discussion thread is associated with.
+    project: Project!
 
     # The user who authored this discussion thread.
     author: User!

@@ -17,8 +17,8 @@ CREATE INDEX projects_namespace_user_id ON projects(namespace_user_id);
 CREATE INDEX projects_namespace_org_id ON projects(namespace_org_id);
 CREATE UNIQUE INDEX projects_name ON projects(name);
 
--- TODO!(sqs): what to do with threads that are not in a project?
-ALTER TABLE discussion_threads ADD COLUMN project_id integer REFERENCES projects(id) ON DELETE CASCADE;
+-- TODO!(sqs): what to do with threads that are not in a project? NEEDS MIGRATION
+ALTER TABLE discussion_threads ADD COLUMN project_id integer NOT NULL REFERENCES projects(id) ON DELETE CASCADE;
 CREATE INDEX discussion_threads_project_id ON discussion_threads(project_id);
 
 CREATE TABLE labels (
