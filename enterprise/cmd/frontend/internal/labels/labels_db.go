@@ -125,6 +125,10 @@ func (o dbLabelsListOptions) sqlConditions() []*sqlf.Query {
 // 🚨 SECURITY: The caller must ensure that the actor is permitted to list with the specified
 // options.
 func (s dbLabels) List(ctx context.Context, opt dbLabelsListOptions) ([]*dbLabel, error) {
+	if mocks.labels.List != nil {
+		return mocks.labels.List(opt)
+	}
+
 	return s.list(ctx, opt.sqlConditions(), opt.LimitOffset)
 }
 
@@ -162,6 +166,10 @@ func (dbLabels) query(ctx context.Context, query *sqlf.Query) ([]*dbLabel, error
 //
 // 🚨 SECURITY: The caller must ensure that the actor is permitted to count the labels.
 func (dbLabels) Count(ctx context.Context, opt dbLabelsListOptions) (int, error) {
+	if mocks.labels.Count != nil {
+		return mocks.labels.Count(opt)
+	}
+
 	q := sqlf.Sprintf("SELECT COUNT(*) FROM labels WHERE (%s)", sqlf.Join(opt.sqlConditions(), ") AND ("))
 	var count int
 	if err := dbconn.Global.QueryRowContext(ctx, q.Query(sqlf.PostgresBindVar), q.Args()...).Scan(&count); err != nil {

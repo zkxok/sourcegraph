@@ -49,7 +49,7 @@ func TestGraphQL_CreateProject(t *testing.T) {
 				{
 					"projects": {
 						"createProject": {
-							"id": "TGFiZWw6Mg==",
+							"id": "UHJvamVjdDoy",
 							"name": "n"
 						}
 					}
@@ -97,7 +97,7 @@ func TestGraphQL_UpdateProject(t *testing.T) {
 				{
 					"projects": {
 						"updateProject": {
-							"id": "TGFiZWw6Mg==",
+							"id": "UHJvamVjdDoy",
 							"name": "n1"
 						}
 					}
@@ -130,7 +130,7 @@ func TestGraphQL_DeleteProject(t *testing.T) {
 			Query: `
 				mutation {
 					projects {
-						deleteProject(project: "TGFiZWw6Mg==") {
+						deleteProject(project: "UHJvamVjdDoy") {
 							alwaysNil
 						}
 					}

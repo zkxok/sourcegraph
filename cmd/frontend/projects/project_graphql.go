@@ -28,6 +28,9 @@ func (r GraphQLResolver) ProjectByID(ctx context.Context, id graphql.ID) (graphq
 // ProjectByDBID looks up and returns the Project with the given database ID. If no such Project
 // exists, it returns a non-nil error.
 func (GraphQLResolver) ProjectByDBID(ctx context.Context, id int64) (graphqlbackend.Project, error) {
+	if MockProjectByDBID != nil {
+		return MockProjectByDBID(id)
+	}
 	v, err := dbProjects{}.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -73,4 +76,19 @@ func (v *gqlProject) Namespace(ctx context.Context) (*graphqlbackend.NamespaceRe
 
 func (v *gqlProject) Labels(ctx context.Context, args *graphqlutil.ConnectionArgs) (graphqlbackend.LabelConnection, error) {
 	return graphqlbackend.LabelsDefinedIn(ctx, v.ID(), args)
+}
+
+// MockProjectByDBID mocks (GraphQLResolver).ProjectByDBID, for use in tests only.
+var MockProjectByDBID func(int64) (graphqlbackend.Project, error)
+
+// TestNewProject creates a graphqlbackend.Project value, for use in tests only.
+func TestNewProject(id int64, name string, namespaceUserID, namespaceOrgID int32) graphqlbackend.Project {
+	return &gqlProject{
+		db: &dbProject{
+			ID:              id,
+			Name:            name,
+			NamespaceUserID: namespaceUserID,
+			NamespaceOrgID:  namespaceOrgID,
+		},
+	}
 }

@@ -52,7 +52,7 @@ func TestGraphQL_ProjectConnection(t *testing.T) {
 						"projects": {
 							"nodes": [
 								{
-									"id": "n",
+									"id": "UHJvamVjdDoy",
 									"name": "n"
 								}
 							],

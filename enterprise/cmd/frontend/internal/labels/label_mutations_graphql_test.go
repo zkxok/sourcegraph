@@ -9,17 +9,18 @@ import (
 	"github.com/sourcegraph/sourcegraph/cmd/frontend/backend"
 	"github.com/sourcegraph/sourcegraph/cmd/frontend/db"
 	"github.com/sourcegraph/sourcegraph/cmd/frontend/graphqlbackend"
+	"github.com/sourcegraph/sourcegraph/cmd/frontend/projects"
 	"github.com/sourcegraph/sourcegraph/cmd/frontend/types"
 )
 
 func TestGraphQL_CreateLabel(t *testing.T) {
 	resetMocks()
-	const wantOrgID = 1
-	db.Mocks.Orgs.GetByID = func(context.Context, int32) (*types.Org, error) {
-		return &types.Org{ID: wantOrgID}, nil
+	const wantProjectID = 1
+	projects.MockProjectByDBID = func(id int64) (graphqlbackend.Project, error) {
+		return projects.TestNewProject(wantProjectID, "", 0, 0), nil
 	}
 	wantLabel := &dbLabel{
-		ProjectID:   wantOrgID,
+		ProjectID:   wantProjectID,
 		Name:        "n",
 		Description: strptr("d"),
 		Color:       "h",

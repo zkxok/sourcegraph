@@ -8,10 +8,11 @@ import (
 	"github.com/sourcegraph/sourcegraph/cmd/frontend/backend"
 	"github.com/sourcegraph/sourcegraph/cmd/frontend/db"
 	"github.com/sourcegraph/sourcegraph/cmd/frontend/graphqlbackend"
+	"github.com/sourcegraph/sourcegraph/cmd/frontend/projects"
 	"github.com/sourcegraph/sourcegraph/cmd/frontend/types"
 )
 
-func TestGraphQL_LabelConnection(t *testing.T) {
+func TestGraphQL_Labelable_LabelConnection(t *testing.T) {
 	resetMocks()
 	const (
 		wantThreadID = 3
@@ -38,6 +39,61 @@ func TestGraphQL_LabelConnection(t *testing.T) {
 				{
 					node(id: "RGlzY3Vzc2lvblRocmVhZDoiMyI=") {
 						... on DiscussionThread {
+							labels {
+								nodes {
+									name
+								}
+								totalCount
+								pageInfo {
+									hasNextPage
+								}
+							}
+						}
+					}
+				}
+			`,
+			ExpectedResult: `
+				{
+					"node": {
+						"labels": {
+							"nodes": [
+								{
+									"name": "n"
+								}
+							],
+							"totalCount": 1,
+							"pageInfo": {
+								"hasNextPage": false
+							}
+						}
+					}
+				}
+			`,
+		},
+	})
+}
+
+func TestGraphQL_Project_LabelConnection(t *testing.T) {
+	resetMocks()
+	const (
+		wantProjectID = 3
+		wantLabelID   = 2
+	)
+	projects.MockProjectByDBID = func(id int64) (graphqlbackend.Project, error) {
+		return projects.TestNewProject(wantProjectID, "", 0, 0), nil
+	}
+	mocks.labels.List = func(dbLabelsListOptions) ([]*dbLabel, error) {
+		return []*dbLabel{{ID: wantLabelID, Name: "n"}}, nil
+	}
+
+	gqltesting.RunTests(t, []*gqltesting.Test{
+		{
+			Context: backend.WithAuthzBypass(context.Background()),
+			Schema:  graphqlbackend.GraphQLSchema,
+			Query: `
+				{
+					node(id: "UHJvamVjdDoz") {
+						... on Project {
 							labels {
 								nodes {
 									name

@@ -114,6 +114,10 @@ func (o dbProjectsListOptions) sqlConditions() []*sqlf.Query {
 // 🚨 SECURITY: The caller must ensure that the actor is permitted to list with the specified
 // options.
 func (s dbProjects) List(ctx context.Context, opt dbProjectsListOptions) ([]*dbProject, error) {
+	if mocks.projects.List != nil {
+		return mocks.projects.List(opt)
+	}
+
 	return s.list(ctx, opt.sqlConditions(), opt.LimitOffset)
 }
 
@@ -151,6 +155,10 @@ func (dbProjects) query(ctx context.Context, query *sqlf.Query) ([]*dbProject, e
 //
 // 🚨 SECURITY: The caller must ensure that the actor is permitted to count the projects.
 func (dbProjects) Count(ctx context.Context, opt dbProjectsListOptions) (int, error) {
+	if mocks.projects.Count != nil {
+		return mocks.projects.Count(opt)
+	}
+
 	q := sqlf.Sprintf("SELECT COUNT(*) FROM projects WHERE (%s)", sqlf.Join(opt.sqlConditions(), ") AND ("))
 	var count int
 	if err := dbconn.Global.QueryRowContext(ctx, q.Query(sqlf.PostgresBindVar), q.Args()...).Scan(&count); err != nil {
