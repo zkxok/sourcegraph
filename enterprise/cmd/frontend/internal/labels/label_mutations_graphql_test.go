@@ -19,10 +19,10 @@ func TestGraphQL_CreateLabel(t *testing.T) {
 		return &types.Org{ID: wantOrgID}, nil
 	}
 	wantLabel := &dbLabel{
-		ProjectID:  wantOrgID,
+		ProjectID:   wantOrgID,
 		Name:        "n",
 		Description: strptr("d"),
-		Color:    "h",
+		Color:       "h",
 	}
 	mocks.labels.Create = func(label *dbLabel) (*dbLabel, error) {
 		if !reflect.DeepEqual(label, wantLabel) {
@@ -40,7 +40,7 @@ func TestGraphQL_CreateLabel(t *testing.T) {
 			Query: `
 				mutation {
 					labels {
-						createLabel(input: { owner: "T3JnOjE=", name: "n", description: "d", color: "h" }) {
+						createLabel(input: { project: "T3JnOjE=", name: "n", description: "d", color: "h" }) {
 							id
 							name
 						}
@@ -76,10 +76,10 @@ func TestGraphQL_UpdateLabel(t *testing.T) {
 		}
 		return &dbLabel{
 			ID:          2,
-			ProjectID:  1,
+			ProjectID:   1,
 			Name:        "n1",
 			Description: strptr("d1"),
-			Color:    "h1",
+			Color:       "h1",
 		}, nil
 	}
 

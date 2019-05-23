@@ -1,4 +1,4 @@
-package labels
+package projects
 
 import (
 	"context"
@@ -11,23 +11,17 @@ import (
 	"github.com/sourcegraph/sourcegraph/cmd/frontend/types"
 )
 
-func TestGraphQL_LabelConnection(t *testing.T) {
+func TestGraphQL_ProjectConnection(t *testing.T) {
 	resetMocks()
 	const (
-		wantThreadID = 3
-		wantLabelID  = 2
+		wantOrgID     = 3
+		wantProjectID = 2
 	)
-	db.Mocks.DiscussionThreads.Get = func(int64) (*types.DiscussionThread, error) {
-		return &types.DiscussionThread{ID: wantThreadID}, nil
+	db.Mocks.Orgs.GetByID = func(context.Context, int32) (*types.Org, error) {
+		return &types.Org{ID: wantOrgID}, nil
 	}
-	mocks.labelsObjects.List = func(dbLabelsObjectsListOptions) ([]*dbObjectLabel, error) {
-		return []*dbObjectLabel{{Thread: wantThreadID, Label: wantLabelID}}, nil
-	}
-	mocks.labels.GetByID = func(id int64) (*dbLabel, error) {
-		if id != wantLabelID {
-			t.Errorf("got %d, want %d", id, wantLabelID)
-		}
-		return &dbLabel{Name: "n"}, nil
+	mocks.projects.List = func(dbProjectsListOptions) ([]*dbProject, error) {
+		return []*dbProject{{ID: wantProjectID, NamespaceOrgID: wantOrgID, Name: "n"}}, nil
 	}
 
 	gqltesting.RunTests(t, []*gqltesting.Test{
@@ -36,10 +30,11 @@ func TestGraphQL_LabelConnection(t *testing.T) {
 			Schema:  graphqlbackend.GraphQLSchema,
 			Query: `
 				{
-					node(id: "RGlzY3Vzc2lvblRocmVhZDoiMyI=") {
-						... on DiscussionThread {
-							labels {
+					node(id: "T3JnOjM=") {
+						... on Org {
+							projects {
 								nodes {
+									id
 									name
 								}
 								totalCount
@@ -54,9 +49,10 @@ func TestGraphQL_LabelConnection(t *testing.T) {
 			ExpectedResult: `
 				{
 					"node": {
-						"labels": {
+						"projects": {
 							"nodes": [
 								{
+									"id": "n",
 									"name": "n"
 								}
 							],

@@ -31,13 +31,14 @@ func (GraphQLResolver) LabelsFor(ctx context.Context, labelable graphql.ID, arg 
 	return &labelConnection{arg: arg, labels: labels}, nil
 }
 
-func (GraphQLResolver) LabelsDefinedIn(ctx context.Context, projectID int32, arg *graphqlutil.ConnectionArgs) (graphqlbackend.LabelConnection, error) {
+func (GraphQLResolver) LabelsDefinedIn(ctx context.Context, projectID graphql.ID, arg *graphqlutil.ConnectionArgs) (graphqlbackend.LabelConnection, error) {
 	// Check existence.
-	if _, err := graphqlbackend.OrgByIDInt32(ctx, projectID); err != nil {
+	project, err := graphqlbackend.ProjectByID(ctx, projectID)
+	if err != nil {
 		return nil, err
 	}
 
-	list, err := dbLabels{}.List(ctx, dbLabelsListOptions{ProjectID: projectID})
+	list, err := dbLabels{}.List(ctx, dbLabelsListOptions{ProjectID: project.DBID()})
 	if err != nil {
 		return nil, err
 	}

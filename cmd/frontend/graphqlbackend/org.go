@@ -171,8 +171,8 @@ func (o *OrgResolver) ViewerIsMember(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-func (o *OrgResolver) OwnedLabels(ctx context.Context, args *graphqlutil.ConnectionArgs) (LabelConnection, error) {
-	return LabelsDefinedIn(ctx, o.org.ID, args)
+func (o *OrgResolver) Projects(ctx context.Context, args *graphqlutil.ConnectionArgs) (ProjectConnection, error) {
+	return ProjectsInNamespace(ctx, o.ID(), args)
 }
 
 func (*schemaResolver) CreateOrganization(ctx context.Context, args *struct {

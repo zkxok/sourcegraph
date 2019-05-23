@@ -341,8 +341,36 @@ type Mutation {
     ): SavedSearch!
     # Deletes a saved search
     deleteSavedSearch(id: ID!): EmptyResponse
+    # Mutations related to projects.
+    projects: ProjectsMutation!
     # Mutations related to labels.
     labels: LabelsMutation!
+}
+
+# Mutations related to projects.
+type ProjectsMutation {
+    # Create a project associated with a project. Returns the newly created project.
+    createProject(input: CreateProjectInput!): Project!
+    # Update a project. Returns the updated project.
+    updateProject(input: UpdateProjectInput!): Project!
+    # Delete a project and all of its resources.
+    deleteProject(project: ID!): EmptyResponse
+}
+
+# Input arguments for creating a project.
+input CreateProjectInput {
+    # The ID of the namespace where this project is defined.
+    namespace: ID!
+    # The name of the project.
+    name: String!
+}
+
+# Input arguments for updating a project.
+input UpdateProjectInput {
+    # The ID of the project to update.
+    id: ID!
+    # The new name of the project (if non-null).
+    name: String
 }
 
 # Mutations related to labels.
@@ -2223,6 +2251,17 @@ type Hunk {
     commit: GitCommit!
 }
 
+# A namespace contains projects.
+interface Namespace {
+    # The globally unique ID of this namespace.
+    id: ID!
+    # The projects in this namespace.
+    projects(
+        # Return the first n projects from the list.
+        first: Int
+    ): ProjectConnection!
+}
+
 # A list of users.
 type UserConnection {
     # A list of users.
@@ -2235,7 +2274,7 @@ type UserConnection {
 }
 
 # A user.
-type User implements Node & SettingsSubject {
+type User implements Node & SettingsSubject & Namespace {
     # The unique ID for the user.
     id: ID!
     # The user's username.
@@ -2328,6 +2367,11 @@ type User implements Node & SettingsSubject {
     #
     # FOR INTERNAL USE ONLY.
     databaseID: Int!
+    # The projects owned by this user.
+    projects(
+        # Return the first n projects from the list.
+        first: Int
+    ): ProjectConnection!
 }
 
 # An access token that grants to the holder the privileges of the user who created it.
@@ -2481,7 +2525,7 @@ type OrgConnection {
 }
 
 # An organization, which is a group of users.
-type Org implements Node & SettingsSubject {
+type Org implements Node & SettingsSubject & Namespace {
     # The unique ID for the organization.
     id: ID!
     # The organization's name. This is unique among all organizations on this Sourcegraph site.
@@ -2517,6 +2561,11 @@ type Org implements Node & SettingsSubject {
     url: String!
     # The URL to the organization's settings.
     settingsURL: String
+    # The projects owned by this organization.
+    projects(
+        # Return the first n projects from the list.
+        first: Int
+    ): ProjectConnection!
 }
 
 # The result of Mutation.inviteUserToOrganization.
@@ -3860,12 +3909,24 @@ type Project implements Node {
     id: ID!
     # The name of this project.
     name: String!
+    # The namespace where this project is defined.
+    namespace: Namespace!
     # The labels defined by this project. This is the set of labels that may be applied to the
     # project's labelable resources.
     labels(
         # Return the first n labels from the list.
         first: Int
     ): LabelConnection!
+}
+
+# A list of projects.
+type ProjectConnection {
+    # A list of projects.
+    nodes: [Project!]!
+    # The total number of projects in the connection.
+    totalCount: Int!
+    # Pagination information.
+    pageInfo: PageInfo!
 }
 
 # A label that can be applied to other objects.
@@ -3879,7 +3940,7 @@ type Label implements Node {
     # The hex color code for the label, without the '#' prefix. For example, "cdf6ee".
     color: String!
     # The project where this label is defined.
-    project: Project
+    project: Project!
 }
 
 # A list of labels.

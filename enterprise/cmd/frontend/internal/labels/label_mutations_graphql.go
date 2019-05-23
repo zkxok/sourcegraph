@@ -4,26 +4,20 @@ import (
 	"context"
 
 	"github.com/graph-gophers/graphql-go"
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/backend"
 	"github.com/sourcegraph/sourcegraph/cmd/frontend/graphqlbackend"
 )
 
 func (GraphQLResolver) CreateLabel(ctx context.Context, arg *graphqlbackend.CreateLabelArgs) (graphqlbackend.Label, error) {
-	project, err := graphqlbackend.OrgByID(ctx, arg.Input.Owner)
+	project, err := graphqlbackend.ProjectByID(ctx, arg.Input.Project)
 	if err != nil {
 		return nil, err
 	}
 
-	// 🚨 SECURITY: Only organization members and site admins may create labels in an organization.
-	if err := backend.CheckOrgAccess(ctx, project.OrgID()); err != nil {
-		return nil, err
-	}
-
 	label, err := dbLabels{}.Create(ctx, &dbLabel{
-		ProjectID:  project.OrgID(),
+		ProjectID:   project.DBID(),
 		Name:        arg.Input.Name,
 		Description: arg.Input.Description,
-		Color:    arg.Input.Color,
+		Color:       arg.Input.Color,
 	})
 	if err != nil {
 		return nil, err
@@ -39,7 +33,7 @@ func (GraphQLResolver) UpdateLabel(ctx context.Context, arg *graphqlbackend.Upda
 	label, err := dbLabels{}.Update(ctx, l.db.ID, dbLabelUpdate{
 		Name:        arg.Input.Name,
 		Description: arg.Input.Description,
-		Color:    arg.Input.Color,
+		Color:       arg.Input.Color,
 	})
 	if err != nil {
 		return nil, err

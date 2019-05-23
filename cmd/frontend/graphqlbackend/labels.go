@@ -14,6 +14,14 @@ import (
 // This is contributed by enterprise.
 var Labels LabelsResolver
 
+// LabelByID is called to look up a Label given its GraphQL ID.
+func LabelByID(ctx context.Context, id graphql.ID) (Label, error) {
+	if Labels == nil {
+		return nil, errors.New("labels is not implemented")
+	}
+	return Labels.LabelByID(ctx, id)
+}
+
 // LabelsFor returns an instance of the GraphQL LabelConnection type with the list of labels for a
 // Labelable.
 //
@@ -26,12 +34,12 @@ func LabelsFor(ctx context.Context, labelable graphql.ID, arg *graphqlutil.Conne
 }
 
 // LabelsDefinedIn returns an instance of the GraphQL LabelConnection type with the list of labels
-// owned by an organization.
-func LabelsDefinedIn(ctx context.Context, ownerOrgID int32, arg *graphqlutil.ConnectionArgs) (LabelConnection, error) {
+// defined in a project.
+func LabelsDefinedIn(ctx context.Context, project graphql.ID, arg *graphqlutil.ConnectionArgs) (LabelConnection, error) {
 	if Labels == nil {
 		return nil, errors.New("labels is not implemented")
 	}
-	return Labels.LabelsDefinedIn(ctx, ownerOrgID, arg)
+	return Labels.LabelsDefinedIn(ctx, project, arg)
 }
 
 func (schemaResolver) Labels() (LabelsResolver, error) {
@@ -49,16 +57,19 @@ type LabelsResolver interface {
 	AddLabelsToLabelable(context.Context, *AddRemoveLabelsToFromLabelableArgs) (Labelable, error)
 	RemoveLabelsFromLabelable(context.Context, *AddRemoveLabelsToFromLabelableArgs) (Labelable, error)
 
+	// LabelByID is called by the LabelByID func but is not in the GraphQL API.
+	LabelByID(context.Context, graphql.ID) (Label, error)
+
 	// LabelsFor is called by the LabelsFor func but is not in the GraphQL API.
 	LabelsFor(ctx context.Context, labelable graphql.ID, arg *graphqlutil.ConnectionArgs) (LabelConnection, error)
 
 	// LabelsDefinedIn is called by the LabelsDefinedIn func but is not in the GraphQL API.
-	LabelsDefinedIn(ctx context.Context, ownerOrgID int32, arg *graphqlutil.ConnectionArgs) (LabelConnection, error)
+	LabelsDefinedIn(ctx context.Context, project graphql.ID, arg *graphqlutil.ConnectionArgs) (LabelConnection, error)
 }
 
 type CreateLabelArgs struct {
 	Input struct {
-		Owner       graphql.ID
+		Project     graphql.ID
 		Name        string
 		Description *string
 		Color       string
@@ -83,21 +94,16 @@ type AddRemoveLabelsToFromLabelableArgs struct {
 	Labels    []graphql.ID
 }
 
-// LabelByID is called to look up a Label given its GraphQL ID.
-//
-// This is contributed by enterprise.
-var LabelByID func(context.Context, graphql.ID) (Label, error)
-
 // Label is the interface for the GraphQL type Label.
 type Label interface {
 	ID() graphql.ID
 	Name() string
 	Description() *string
 	Color() string
-	Owner(context.Context) (*NodeResolver, error)
+	Project(context.Context) (Project, error)
 }
 
-// Labelable is the interface for the GraphQL type Labelable.
+// Labelable is the interface for the GraphQL interface Labelable.
 type Labelable interface {
 	Labels(context.Context, *graphqlutil.ConnectionArgs) (LabelConnection, error)
 	ToDiscussionThread() (*discussionThreadResolver, bool)

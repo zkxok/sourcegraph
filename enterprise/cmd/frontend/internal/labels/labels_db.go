@@ -12,7 +12,7 @@ import (
 // dbLabel describes a label for a discussion thread.
 type dbLabel struct {
 	ID          int64
-	ProjectID   int32  // the project that defines the label
+	ProjectID   int64  // the project that defines the label
 	Name        string // the name (case-preserving)
 	Description *string
 	Color       string // the hex color code (omitting the '#' prefix)
@@ -105,7 +105,7 @@ func (s dbLabels) GetByID(ctx context.Context, id int64) (*dbLabel, error) {
 // dbLabelsListOptions contains options for listing labels.
 type dbLabelsListOptions struct {
 	Query     string // only list labels matching this query (case-insensitively)
-	ProjectID int32  // only list labels defined in this project
+	ProjectID int64  // only list labels defined in this project
 	*db.LimitOffset
 }
 

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/sourcegraph/sourcegraph/cmd/frontend/db"
+	"github.com/sourcegraph/sourcegraph/cmd/frontend/projects"
 	"github.com/sourcegraph/sourcegraph/cmd/frontend/types"
 	"github.com/sourcegraph/sourcegraph/pkg/db/dbtesting"
 )
@@ -15,6 +16,15 @@ func TestDB_LabelsObjects(t *testing.T) {
 	}
 	resetMocks()
 	ctx := dbtesting.TestContext(t)
+
+	org1, err := db.Orgs.Create(ctx, "org1", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	proj1, err := projects.TestCreateProject(ctx, "p1", 0, org1.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	// Create the thread.
 	user, err := db.Users.Create(ctx, db.NewUser{Username: "u"})
@@ -29,15 +39,11 @@ func TestDB_LabelsObjects(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	owner, err := db.Orgs.Create(ctx, "o1", nil)
+	label0, err := dbLabels{}.Create(ctx, &dbLabel{ProjectID: proj1, Name: "n0", Color: "h0"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	label0, err := dbLabels{}.Create(ctx, &dbLabel{ProjectID: owner.ID, Name: "n0", Color: "h0"})
-	if err != nil {
-		t.Fatal(err)
-	}
-	label1, err := dbLabels{}.Create(ctx, &dbLabel{ProjectID: owner.ID, Name: "n1", Color: "h1"})
+	label1, err := dbLabels{}.Create(ctx, &dbLabel{ProjectID: proj1, Name: "n1", Color: "h1"})
 	if err != nil {
 		t.Fatal(err)
 	}

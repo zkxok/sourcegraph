@@ -122,6 +122,11 @@ func (r *NodeResolver) ToLabel() (Label, bool) {
 	return n, ok
 }
 
+func (r *NodeResolver) ToProject() (Project, bool) {
+	n, ok := r.Node.(Project)
+	return n, ok
+}
+
 func (r *NodeResolver) ToRepository() (*repositoryResolver, bool) {
 	n, ok := r.Node.(*repositoryResolver)
 	return n, ok
@@ -221,10 +226,9 @@ func NodeByID(ctx context.Context, id graphql.ID) (Node, error) {
 	case "GitRef":
 		return gitRefByID(ctx, id)
 	case "Label":
-		if f := LabelByID; f != nil {
-			return f(ctx, id)
-		}
-		return nil, errors.New("not implemented")
+		return LabelByID(ctx, id)
+	case "Project":
+		return ProjectByID(ctx, id)
 	case "Repository":
 		return repositoryByID(ctx, id)
 	case "User":
