@@ -31,14 +31,16 @@ func (dbLabels) Create(ctx context.Context, label *dbLabel) (*dbLabel, error) {
 		return mocks.labels.Create(label)
 	}
 
-	createdLabel := *label
+	var id int64
 	if err := dbconn.Global.QueryRowContext(ctx,
 		`INSERT INTO labels(project_id, name, description, color) VALUES($1, $2, $3, $4) RETURNING id`,
 		label.ProjectID, label.Name, label.Description, label.Color,
-	).Scan(&createdLabel.ID); err != nil {
+	).Scan(&id); err != nil {
 		return nil, err
 	}
-	return &createdLabel, nil
+	created := *label
+	created.ID = id
+	return &created, nil
 }
 
 type dbLabelUpdate struct {

@@ -30,14 +30,23 @@ func (dbProjects) Create(ctx context.Context, project *dbProject) (*dbProject, e
 		return mocks.projects.Create(project)
 	}
 
-	createdProject := *project
+	nilIfZero := func(v int32) *int32 {
+		if v == 0 {
+			return nil
+		}
+		return &v
+	}
+
+	var id int64
 	if err := dbconn.Global.QueryRowContext(ctx,
 		`INSERT INTO projects(namespace_user_id, namespace_org_id, name) VALUES($1, $2, $3) RETURNING id`,
-		project.NamespaceUserID, project.NamespaceOrgID, project.Name,
-	).Scan(&createdProject.ID); err != nil {
+		nilIfZero(project.NamespaceUserID), nilIfZero(project.NamespaceOrgID), project.Name,
+	).Scan(&id); err != nil {
 		return nil, err
 	}
-	return &createdProject, nil
+	created := *project
+	created.ID = id
+	return &created, nil
 }
 
 type dbProjectUpdate struct {
@@ -143,8 +152,15 @@ func (dbProjects) query(ctx context.Context, query *sqlf.Query) ([]*dbProject, e
 	var results []*dbProject
 	for rows.Next() {
 		var t dbProject
-		if err := rows.Scan(&t.ID, &t.NamespaceUserID, &t.NamespaceOrgID, &t.Name); err != nil {
+		var namespaceUserID, namespaceOrgID *int32
+		if err := rows.Scan(&t.ID, &namespaceUserID, &namespaceOrgID, &t.Name); err != nil {
 			return nil, err
+		}
+		if namespaceUserID != nil {
+			t.NamespaceUserID = *namespaceUserID
+		}
+		if namespaceOrgID != nil {
+			t.NamespaceOrgID = *namespaceOrgID
 		}
 		results = append(results, &t)
 	}
