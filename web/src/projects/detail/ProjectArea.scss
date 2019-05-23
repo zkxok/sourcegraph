@@ -1,7 +1,9 @@
+@import './sidebar/ProjectAreaSidebar';
+
 .project-area {
     &__sidebar {
         &-resizable {
-            min-width: 4rem;
+            min-width: 8rem;
             max-width: 16rem;
         }
         background-color: $color-bg-2;

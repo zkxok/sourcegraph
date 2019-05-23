@@ -1,6 +1,6 @@
-import BookmarkOutlineIcon from 'mdi-react/BookmarkOutlineIcon'
 import React from 'react'
 import { NavLink } from 'react-router-dom'
+import { ProjectIcon } from '../projects/icons'
 import { NavItemWithIconDescriptor } from '../util/contributions'
 
 interface Props {
@@ -17,7 +17,7 @@ export const NAMESPACE_AREA_HEADER_LINKS: readonly Pick<
     {
         to: '/namespace/projects',
         label: 'Projects',
-        icon: BookmarkOutlineIcon,
+        icon: ProjectIcon,
     },
 ]
 
