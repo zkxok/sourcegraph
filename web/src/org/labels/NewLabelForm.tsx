@@ -29,7 +29,7 @@ const createLabel = (input: GQL.ICreateLabelInput): Promise<void> =>
         .toPromise()
 
 interface Props {
-    org: Pick<GQL.IOrg, 'id'>
+    project: Pick<GQL.IProject, 'id'>
 
     /** Called when the form is dismissed. */
     onDismiss: () => void
@@ -43,13 +43,13 @@ interface Props {
 /**
  * A form to create a new label.
  */
-export const NewLabelForm: React.FunctionComponent<Props> = ({ org, onDismiss, onLabelCreate, className = '' }) => {
+export const NewLabelForm: React.FunctionComponent<Props> = ({ project, onDismiss, onLabelCreate, className = '' }) => {
     const [isLoading, setIsLoading] = useState(false)
     const onSubmit = useCallback(
         async ({ name, color, description }: LabelFormData) => {
             setIsLoading(true)
             try {
-                await createLabel({ name, color, description, owner: org.id })
+                await createLabel({ name, color, description, project: project.id })
                 setIsLoading(false)
                 onDismiss()
                 onLabelCreate()

@@ -36,7 +36,7 @@ func labelByDBID(ctx context.Context, dbID int64) (*gqlLabel, error) {
 		return nil, err
 	}
 	// 🚨 SECURITY: Only the organization's members and site admins may view or modify a label.
-	if err := backend.CheckOrgAccess(ctx, v.OwnerOrgID); err != nil {
+	if err := backend.CheckOrgAccess(ctx, v.ProjectID); err != nil {
 		return nil, err
 	}
 	return &gqlLabel{db: v}, nil
@@ -62,7 +62,7 @@ func (v *gqlLabel) Description() *string { return v.db.Description }
 func (v *gqlLabel) Color() string { return v.db.Color }
 
 func (v *gqlLabel) Owner(ctx context.Context) (*graphqlbackend.NodeResolver, error) {
-	org, err := graphqlbackend.OrgByIDInt32(ctx, v.db.OwnerOrgID)
+	org, err := graphqlbackend.OrgByIDInt32(ctx, v.db.ProjectID)
 	if err != nil {
 		return nil, err
 	}

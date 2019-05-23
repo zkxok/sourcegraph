@@ -15,21 +15,21 @@ func TestDB_Labels(t *testing.T) {
 	resetMocks()
 	ctx := dbtesting.TestContext(t)
 
-	owner1, err := db.Orgs.Create(ctx, "o1", nil)
+	proj1, err := db.Projects.Create(ctx, "o1")
 	if err != nil {
 		t.Fatal(err)
 	}
-	owner2, err := db.Orgs.Create(ctx, "o2", nil)
+	proj2, err := db.Projects.Create(ctx, "o2")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	wantLabel0 := &dbLabel{OwnerOrgID: owner1.ID, Name: "n0", Description: strptr("d0"), Color: "h0"}
+	wantLabel0 := &dbLabel{ProjectID: proj1.ID, Name: "n0", Description: strptr("d0"), Color: "h0"}
 	label0, err := dbLabels{}.Create(ctx, wantLabel0)
 	if err != nil {
 		t.Fatal(err)
 	}
-	label1, err := dbLabels{}.Create(ctx, &dbLabel{OwnerOrgID: owner1.ID, Name: "n1", Description: strptr("d1"), Color: "h1"})
+	label1, err := dbLabels{}.Create(ctx, &dbLabel{ProjectID: proj1.ID, Name: "n1", Description: strptr("d1"), Color: "h1"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -81,8 +81,8 @@ func TestDB_Labels(t *testing.T) {
 	}
 
 	{
-		// List owner1's labels.
-		ts, err := dbLabels{}.List(ctx, dbLabelsListOptions{OwnerOrgID: owner1.ID})
+		// List proj1's labels.
+		ts, err := dbLabels{}.List(ctx, dbLabelsListOptions{ProjectID: proj1.ID})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -93,8 +93,8 @@ func TestDB_Labels(t *testing.T) {
 	}
 
 	{
-		// List owner2's labels.
-		ts, err := dbLabels{}.List(ctx, dbLabelsListOptions{OwnerOrgID: owner2.ID})
+		// List proj2's labels.
+		ts, err := dbLabels{}.List(ctx, dbLabelsListOptions{ProjectID: proj2.ID})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -120,7 +120,7 @@ func TestDB_Labels(t *testing.T) {
 		if err := (dbLabels{}).DeleteByID(ctx, label0.ID); err != nil {
 			t.Fatal(err)
 		}
-		ts, err := dbLabels{}.List(ctx, dbLabelsListOptions{OwnerOrgID: owner1.ID})
+		ts, err := dbLabels{}.List(ctx, dbLabelsListOptions{ProjectID: proj1.ID})
 		if err != nil {
 			t.Fatal(err)
 		}

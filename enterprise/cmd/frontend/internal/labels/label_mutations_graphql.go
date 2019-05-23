@@ -9,18 +9,18 @@ import (
 )
 
 func (GraphQLResolver) CreateLabel(ctx context.Context, arg *graphqlbackend.CreateLabelArgs) (graphqlbackend.Label, error) {
-	ownerOrg, err := graphqlbackend.OrgByID(ctx, arg.Input.Owner)
+	project, err := graphqlbackend.OrgByID(ctx, arg.Input.Owner)
 	if err != nil {
 		return nil, err
 	}
 
 	// 🚨 SECURITY: Only organization members and site admins may create labels in an organization.
-	if err := backend.CheckOrgAccess(ctx, ownerOrg.OrgID()); err != nil {
+	if err := backend.CheckOrgAccess(ctx, project.OrgID()); err != nil {
 		return nil, err
 	}
 
 	label, err := dbLabels{}.Create(ctx, &dbLabel{
-		OwnerOrgID:  ownerOrg.OrgID(),
+		ProjectID:  project.OrgID(),
 		Name:        arg.Input.Name,
 		Description: arg.Input.Description,
 		Color:    arg.Input.Color,

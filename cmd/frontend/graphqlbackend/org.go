@@ -172,7 +172,7 @@ func (o *OrgResolver) ViewerIsMember(ctx context.Context) (bool, error) {
 }
 
 func (o *OrgResolver) OwnedLabels(ctx context.Context, args *graphqlutil.ConnectionArgs) (LabelConnection, error) {
-	return LabelsOwnedBy(ctx, o.org.ID, args)
+	return LabelsDefinedIn(ctx, o.org.ID, args)
 }
 
 func (*schemaResolver) CreateOrganization(ctx context.Context, args *struct {

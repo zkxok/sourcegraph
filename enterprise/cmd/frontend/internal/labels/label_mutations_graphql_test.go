@@ -19,7 +19,7 @@ func TestGraphQL_CreateLabel(t *testing.T) {
 		return &types.Org{ID: wantOrgID}, nil
 	}
 	wantLabel := &dbLabel{
-		OwnerOrgID:  wantOrgID,
+		ProjectID:  wantOrgID,
 		Name:        "n",
 		Description: strptr("d"),
 		Color:    "h",
@@ -76,7 +76,7 @@ func TestGraphQL_UpdateLabel(t *testing.T) {
 		}
 		return &dbLabel{
 			ID:          2,
-			OwnerOrgID:  1,
+			ProjectID:  1,
 			Name:        "n1",
 			Description: strptr("d1"),
 			Color:    "h1",

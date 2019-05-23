@@ -12,10 +12,10 @@ import (
 // dbLabel describes a label for a discussion thread.
 type dbLabel struct {
 	ID          int64
-	OwnerOrgID  int32  // the organization that owns the label
+	ProjectID   int32  // the project that defines the label
 	Name        string // the name (case-preserving)
 	Description *string
-	Color    string // the hex color code (omitting the '#' prefix)
+	Color       string // the hex color code (omitting the '#' prefix)
 }
 
 // errLabelNotFound occurs when a database operation expects a specific label to exist but it does
@@ -24,11 +24,8 @@ var errLabelNotFound = errors.New("label not found")
 
 type dbLabels struct{}
 
-// Create creates a label for the specified organization. The label argument's (Label).ID field is
-// ignored. The database ID of the new label is returned.
-//
-// 🚨 SECURITY: The caller must ensure that the actor is permitted to create labels for the
-// organization.
+// Create creates a label. The label argument's (Label).ID field is ignored. The database ID of the
+// new label is returned.
 func (dbLabels) Create(ctx context.Context, label *dbLabel) (*dbLabel, error) {
 	if mocks.labels.Create != nil {
 		return mocks.labels.Create(label)
@@ -36,19 +33,8 @@ func (dbLabels) Create(ctx context.Context, label *dbLabel) (*dbLabel, error) {
 
 	createdLabel := *label
 	if err := dbconn.Global.QueryRowContext(ctx,
-		// Include orgs table query (with "FOR UPDATE") to ensure that the owner org has not been
-		// deleted. If it was deleted, the query will return an error.
-		`
-WITH owner_org AS (
-  SELECT id FROM orgs WHERE id=$1 AND deleted_at IS NULL FOR UPDATE
-),
-insert_values AS (
-  SELECT owner_org.id AS owner_org_id, $2::citext AS name, $3::text AS description, $4::text AS color
-  FROM owner_org
-)
-INSERT INTO labels(owner_org_id, name, description, color) SELECT * FROM insert_values RETURNING id
-`,
-		label.OwnerOrgID, label.Name, label.Description, label.Color,
+		`INSERT INTO labels(project_id, name, description, color) VALUES($1, $2, $3, $4) RETURNING id`,
+		label.ProjectID, label.Name, label.Description, label.Color,
 	).Scan(&createdLabel.ID); err != nil {
 		return nil, err
 	}
@@ -58,12 +44,10 @@ INSERT INTO labels(owner_org_id, name, description, color) SELECT * FROM insert_
 type dbLabelUpdate struct {
 	Name        *string
 	Description *string
-	Color    *string
+	Color       *string
 }
 
 // Update updates a label given its ID.
-//
-// 🚨 SECURITY: The caller must ensure that the actor is permitted to modify this label.
 func (s dbLabels) Update(ctx context.Context, id int64, update dbLabelUpdate) (*dbLabel, error) {
 	if mocks.labels.Update != nil {
 		return mocks.labels.Update(id, update)
@@ -90,7 +74,7 @@ func (s dbLabels) Update(ctx context.Context, id int64, update dbLabelUpdate) (*
 		return nil, nil
 	}
 
-	results, err := s.query(ctx, sqlf.Sprintf(`UPDATE labels SET %v WHERE id=%s RETURNING id, owner_org_id, name, description, color`, sqlf.Join(setFields, ", "), id))
+	results, err := s.query(ctx, sqlf.Sprintf(`UPDATE labels SET %v WHERE id=%s RETURNING id, project_id, name, description, color`, sqlf.Join(setFields, ", "), id))
 	if err != nil {
 		return nil, err
 	}
@@ -120,8 +104,8 @@ func (s dbLabels) GetByID(ctx context.Context, id int64) (*dbLabel, error) {
 
 // dbLabelsListOptions contains options for listing labels.
 type dbLabelsListOptions struct {
-	Query      string // only list labels matching this query (case-insensitively)
-	OwnerOrgID int32  // only list labels with this org as the owner
+	Query     string // only list labels matching this query (case-insensitively)
+	ProjectID int32  // only list labels defined in this project
 	*db.LimitOffset
 }
 
@@ -130,8 +114,8 @@ func (o dbLabelsListOptions) sqlConditions() []*sqlf.Query {
 	if o.Query != "" {
 		conds = append(conds, sqlf.Sprintf("name LIKE %s", "%"+o.Query+"%"))
 	}
-	if o.OwnerOrgID != 0 {
-		conds = append(conds, sqlf.Sprintf("owner_org_id=%d", o.OwnerOrgID))
+	if o.ProjectID != 0 {
+		conds = append(conds, sqlf.Sprintf("project_id=%d", o.ProjectID))
 	}
 	return conds
 }
@@ -146,7 +130,7 @@ func (s dbLabels) List(ctx context.Context, opt dbLabelsListOptions) ([]*dbLabel
 
 func (s dbLabels) list(ctx context.Context, conds []*sqlf.Query, limitOffset *db.LimitOffset) ([]*dbLabel, error) {
 	q := sqlf.Sprintf(`
-SELECT id, owner_org_id, name, description, color FROM labels
+SELECT id, project_id, name, description, color FROM labels
 WHERE (%s)
 ORDER BY name ASC
 %s`,
@@ -166,7 +150,7 @@ func (dbLabels) query(ctx context.Context, query *sqlf.Query) ([]*dbLabel, error
 	var results []*dbLabel
 	for rows.Next() {
 		var t dbLabel
-		if err := rows.Scan(&t.ID, &t.OwnerOrgID, &t.Name, &t.Description, &t.Color); err != nil {
+		if err := rows.Scan(&t.ID, &t.ProjectID, &t.Name, &t.Description, &t.Color); err != nil {
 			return nil, err
 		}
 		results = append(results, &t)

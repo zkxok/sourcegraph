@@ -347,9 +347,7 @@ type Mutation {
 
 # Mutations related to labels.
 type LabelsMutation {
-    # Create a label associated with an owner organization. Returns the newly created label.
-    #
-    # Only the organization's members and site admins may perform this mutation.
+    # Create a label associated with a project. Returns the newly created label.
     createLabel(input: CreateLabelInput!): Label!
     # Update a label. Returns the updated label.
     updateLabel(input: UpdateLabelInput!): Label!
@@ -364,8 +362,8 @@ type LabelsMutation {
 
 # Input arguments for creating a label.
 input CreateLabelInput {
-    # The ID of the organization to own the label.
-    owner: ID!
+    # The ID of the project where this label is defined.
+    project: ID!
     # The name of the label.
     name: String!
     # The (optional) description of the label.
@@ -2519,12 +2517,6 @@ type Org implements Node & SettingsSubject {
     url: String!
     # The URL to the organization's settings.
     settingsURL: String
-    # The labels owned by this organization. This is the set of labels that may be applied to the
-    # organization's labelable resources.
-    ownedLabels(
-        # Return the first n labels from the list.
-        first: Int
-    ): LabelConnection!
 }
 
 # The result of Mutation.inviteUserToOrganization.
@@ -3862,6 +3854,20 @@ type ProductSubscriptionEvent {
     url: String
 }
 
+# A project is a container of labels.
+type Project implements Node {
+    # The globally unique ID of this project.
+    id: ID!
+    # The name of this project.
+    name: String!
+    # The labels defined by this project. This is the set of labels that may be applied to the
+    # project's labelable resources.
+    labels(
+        # Return the first n labels from the list.
+        first: Int
+    ): LabelConnection!
+}
+
 # A label that can be applied to other objects.
 type Label implements Node {
     # The globally unique ID of this label.
@@ -3872,8 +3878,8 @@ type Label implements Node {
     description: String
     # The hex color code for the label, without the '#' prefix. For example, "cdf6ee".
     color: String!
-    # This owner of this label.
-    owner: Node
+    # The project where this label is defined.
+    project: Project
 }
 
 # A list of labels.
