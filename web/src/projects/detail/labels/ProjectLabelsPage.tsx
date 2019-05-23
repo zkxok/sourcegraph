@@ -1,24 +1,24 @@
 import { LoadingSpinner } from '@sourcegraph/react-loading-spinner'
 import React, { useCallback, useMemo, useState } from 'react'
 import { map } from 'rxjs/operators'
-import { ExtensionsControllerProps } from '../../../../shared/src/extensions/controller'
-import { gql } from '../../../../shared/src/graphql/graphql'
-import * as GQL from '../../../../shared/src/graphql/schema'
-import { asError, createAggregateError, ErrorLike, isErrorLike } from '../../../../shared/src/util/errors'
-import { pluralize } from '../../../../shared/src/util/strings'
-import { queryGraphQL } from '../../backend/graphql'
-import { OrgAreaPageProps } from '../../org/area/OrgArea'
+import { ExtensionsControllerProps } from '../../../../../shared/src/extensions/controller'
+import { gql } from '../../../../../shared/src/graphql/graphql'
+import * as GQL from '../../../../../shared/src/graphql/schema'
+import { asError, createAggregateError, ErrorLike, isErrorLike } from '../../../../../shared/src/util/errors'
+import { pluralize } from '../../../../../shared/src/util/strings'
+import { queryGraphQL } from '../../../backend/graphql'
+import { ProjectAreaContext } from '../ProjectArea'
 import { LabelRow } from './LabelRow'
 import { NewLabelForm } from './NewLabelForm'
 
-const queryOrganizationOwnedLabels = (organization: GQL.ID): Promise<GQL.ILabelConnection> =>
+const queryProjectLabels = (project: GQL.ID): Promise<GQL.ILabelConnection> =>
     queryGraphQL(
         gql`
-            query OrganizationOwnedLabels($organization: ID!) {
+            query ProjectLabels($project: ID!) {
                 node(id: $organization) {
                     __typename
-                    ... on Org {
-                        ownedLabels {
+                    ... on Project {
+                        labels {
                             nodes {
                                 id
                                 name
@@ -31,43 +31,43 @@ const queryOrganizationOwnedLabels = (organization: GQL.ID): Promise<GQL.ILabelC
                 }
             }
         `,
-        { organization }
+        { project }
     )
         .pipe(
             map(({ data, errors }) => {
                 if (
                     !data ||
                     !data.node ||
-                    data.node.__typename !== 'Org' ||
-                    !data.node.ownedLabels ||
+                    data.node.__typename !== 'Project' ||
+                    !data.node.labels ||
                     (errors && errors.length > 0)
                 ) {
                     throw createAggregateError(errors)
                 }
-                return data.node.ownedLabels
+                return data.node.labels
             })
         )
         .toPromise()
 
 const LOADING: 'loading' = 'loading'
 
-interface Props extends Pick<OrgAreaPageProps, 'org'>, ExtensionsControllerProps {}
+interface Props extends Pick<ProjectAreaContext, 'project'>, ExtensionsControllerProps {}
 
 /**
- * Lists an organization's labels.
+ * Lists a project's labels.
  */
-export const OrgLabelsPage: React.FunctionComponent<Props> = ({ org, ...props }) => {
+export const ProjectLabelsPage: React.FunctionComponent<Props> = ({ project, ...props }) => {
     const [labelsOrError, setLabelsOrError] = useState<typeof LOADING | GQL.ILabelConnection | ErrorLike>(LOADING)
     const loadLabels = useCallback(async () => {
         setLabelsOrError(LOADING)
         try {
-            setLabelsOrError(await queryOrganizationOwnedLabels(org.id))
+            setLabelsOrError(await queryProjectLabels(project.id))
         } catch (err) {
             setLabelsOrError(asError(err))
         }
-    }, [org])
+    }, [project])
     // tslint:disable-next-line: no-floating-promises
-    useMemo(loadLabels, [org])
+    useMemo(loadLabels, [project])
 
     const [isShowingNewLabelForm, setIsShowingNewLabelForm] = useState(false)
     const toggleIsShowingNewLabelForm = useCallback(() => setIsShowingNewLabelForm(!isShowingNewLabelForm), [
@@ -75,7 +75,7 @@ export const OrgLabelsPage: React.FunctionComponent<Props> = ({ org, ...props })
     ])
 
     return (
-        <div className="org-labels-page">
+        <div className="project-labels-page">
             <div className="d-flex align-items-center justify-content-between mb-3">
                 <h2 className="mb-0">Labels</h2>
                 <button type="button" className="btn btn-success" onClick={toggleIsShowingNewLabelForm}>
@@ -84,7 +84,7 @@ export const OrgLabelsPage: React.FunctionComponent<Props> = ({ org, ...props })
             </div>
             {isShowingNewLabelForm && (
                 <NewLabelForm
-                    org={org}
+                    project={project}
                     onDismiss={toggleIsShowingNewLabelForm}
                     onLabelCreate={loadLabels}
                     className="my-3 p-2 border rounded"

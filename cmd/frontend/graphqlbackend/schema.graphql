@@ -967,8 +967,10 @@ type Query {
     #
     # FOR INTERNAL USE ONLY.
     dotcom: DotcomQuery!
-    # Looks up a namespace by ID.
+    # Look up a namespace by ID.
     namespace(id: ID!): Namespace
+    # Look up a project.
+    project(idWithoutKind: String!): Project
 }
 
 # An object that can be labeled.
@@ -3922,6 +3924,9 @@ type ProductSubscriptionEvent {
 type Project implements Node {
     # The globally unique ID of this project.
     id: ID!
+    # The ID of this project that is unique among all other projects but not among all GraphQL
+    # nodes.
+    idWithoutKind: String!
     # The name of this project.
     name: String!
     # The namespace where this project is defined.
@@ -3932,6 +3937,8 @@ type Project implements Node {
         # Return the first n labels from the list.
         first: Int
     ): LabelConnection!
+    # The URL to this project.
+    url: String!
 }
 
 # A list of projects.

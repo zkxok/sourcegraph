@@ -3,6 +3,7 @@ package projects
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/graph-gophers/graphql-go"
 	"github.com/graph-gophers/graphql-go/relay"
@@ -25,6 +26,16 @@ func (r GraphQLResolver) ProjectByID(ctx context.Context, id graphql.ID) (graphq
 	return r.ProjectByDBID(ctx, dbID)
 }
 
+// ProjectByIDWithoutKind looks up and returns the Project with the given GraphQL
+// Project.idWithoutKind value. If no such Project exists, it returns a non-nil error.
+func (r GraphQLResolver) ProjectByIDWithoutKind(ctx context.Context, idWithoutKind string) (graphqlbackend.Project, error) {
+	dbID, err := strconv.ParseInt(idWithoutKind, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	return r.ProjectByDBID(ctx, dbID)
+}
+
 // ProjectByDBID looks up and returns the Project with the given database ID. If no such Project
 // exists, it returns a non-nil error.
 func (GraphQLResolver) ProjectByDBID(ctx context.Context, id int64) (graphqlbackend.Project, error) {
@@ -41,6 +52,8 @@ func (GraphQLResolver) ProjectByDBID(ctx context.Context, id int64) (graphqlback
 func (v *gqlProject) ID() graphql.ID {
 	return marshalProjectID(v.db.ID)
 }
+
+func (v *gqlProject) IDWithoutKind() string { return strconv.FormatInt(v.db.ID, 10) }
 
 func (v *gqlProject) DBID() int64 { return v.db.ID }
 
@@ -77,6 +90,8 @@ func (v *gqlProject) Namespace(ctx context.Context) (*graphqlbackend.NamespaceRe
 func (v *gqlProject) Labels(ctx context.Context, args *graphqlutil.ConnectionArgs) (graphqlbackend.LabelConnection, error) {
 	return graphqlbackend.LabelsDefinedIn(ctx, v.ID(), args)
 }
+
+func (v *gqlProject) URL() string { return fmt.Sprintf("/p/%d", v.db.ID) }
 
 // MockProjectByDBID mocks (GraphQLResolver).ProjectByDBID, for use in tests only.
 var MockProjectByDBID func(int64) (graphqlbackend.Project, error)

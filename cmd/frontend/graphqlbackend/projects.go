@@ -20,12 +20,19 @@ func ProjectByID(ctx context.Context, id graphql.ID) (Project, error) {
 	return Projects.ProjectByID(ctx, id)
 }
 
-// ProjectByID is called to look up a Project given its database ID.
+// ProjectByDBID is called to look up a Project given its database ID.
 func ProjectByDBID(ctx context.Context, id int64) (Project, error) {
 	if Projects == nil {
 		return nil, errors.New("projects is not implemented")
 	}
 	return Projects.ProjectByDBID(ctx, id)
+}
+
+func (schemaResolver) Project(ctx context.Context, args *struct{ IDWithoutKind string }) (Project, error) {
+	if Projects == nil {
+		return nil, errors.New("projects is not implemented")
+	}
+	return Projects.ProjectByIDWithoutKind(ctx, args.IDWithoutKind)
 }
 
 // ProjectsInNamespace returns an instance of the GraphQL ProjectConnection type with the list of
@@ -52,6 +59,9 @@ type ProjectsResolver interface {
 
 	// ProjectByID is called by the ProjectByID func but is not in the GraphQL API.
 	ProjectByID(context.Context, graphql.ID) (Project, error)
+
+	// ProjectByIDWithoutKind is called by (schemaResolver).Project but is not in the GraphQL API.
+	ProjectByIDWithoutKind(context.Context, string) (Project, error)
 
 	// ProjectByDBID is called by the ProjectByDBID func but is not in the GraphQL API.
 	ProjectByDBID(context.Context, int64) (Project, error)
@@ -81,9 +91,11 @@ type DeleteProjectArgs struct {
 // Project is the interface for the GraphQL type Project.
 type Project interface {
 	ID() graphql.ID
+	IDWithoutKind() string
 	Name() string
 	Namespace(context.Context) (*NamespaceResolver, error)
 	Labels(context.Context, *graphqlutil.ConnectionArgs) (LabelConnection, error)
+	URL() string
 
 	// DBID is exposed for internal use but is not in the GraphQL API.
 	DBID() int64

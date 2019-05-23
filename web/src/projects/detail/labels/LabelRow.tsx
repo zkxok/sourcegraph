@@ -1,8 +1,8 @@
 import PencilIcon from 'mdi-react/PencilIcon'
 import React, { useCallback, useState } from 'react'
-import { ExtensionsControllerProps } from '../../../../shared/src/extensions/controller'
-import * as GQL from '../../../../shared/src/graphql/schema'
-import { Label } from '../../components/Label'
+import { ExtensionsControllerProps } from '../../../../../shared/src/extensions/controller'
+import * as GQL from '../../../../../shared/src/graphql/schema'
+import { Label } from '../../../components/Label'
 import { UpdateLabelForm } from './EditLabelForm'
 import { LabelDeleteButton } from './LabelDeleteButton'
 

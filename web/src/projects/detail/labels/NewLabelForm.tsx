@@ -1,9 +1,9 @@
 import React, { useCallback, useState } from 'react'
 import { map } from 'rxjs/operators'
-import { gql } from '../../../../shared/src/graphql/graphql'
-import * as GQL from '../../../../shared/src/graphql/schema'
-import { createAggregateError } from '../../../../shared/src/util/errors'
-import { mutateGraphQL } from '../../backend/graphql'
+import { gql } from '../../../../../shared/src/graphql/graphql'
+import * as GQL from '../../../../../shared/src/graphql/schema'
+import { createAggregateError } from '../../../../../shared/src/util/errors'
+import { mutateGraphQL } from '../../../backend/graphql'
 import { LabelForm, LabelFormData } from './LabelForm'
 
 const createLabel = (input: GQL.ICreateLabelInput): Promise<void> =>
@@ -58,7 +58,7 @@ export const NewLabelForm: React.FunctionComponent<Props> = ({ project, onDismis
                 alert(err.message) // TODO!(sqs)
             }
         },
-        [org]
+        [project]
     )
 
     return (

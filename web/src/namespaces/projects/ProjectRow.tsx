@@ -1,5 +1,6 @@
 import PencilIcon from 'mdi-react/PencilIcon'
 import React, { useCallback, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { ExtensionsControllerProps } from '../../../../shared/src/extensions/controller'
 import * as GQL from '../../../../shared/src/graphql/schema'
 import { ProjectIcon } from '../../projects/icons'
@@ -23,10 +24,12 @@ export const ProjectRow: React.FunctionComponent<Props> = ({ project, onProjectU
     return isEditing ? (
         <UpdateProjectForm project={project} onProjectUpdate={onProjectUpdate} onDismiss={toggleIsEditing} />
     ) : (
-        <div className="d-flex justify-content-between">
-            <div>
-                <ProjectIcon className="icon-inline" /> {project.name}
-            </div>
+        <div className="d-flex align-items-center justify-content-between">
+            <h3 className="mb-0">
+                <Link to={project.url} className="text-decoration-none">
+                    <ProjectIcon className="icon-inline" /> {project.name}
+                </Link>
+            </h3>
             <div className="text-right">
                 <button type="button" className="btn btn-link text-decoration-none" onClick={toggleIsEditing}>
                     <PencilIcon className="icon-inline" /> Edit

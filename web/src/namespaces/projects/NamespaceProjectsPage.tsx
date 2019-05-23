@@ -6,10 +6,8 @@ import * as GQL from '../../../../shared/src/graphql/schema'
 import { asError, createAggregateError, ErrorLike, isErrorLike } from '../../../../shared/src/util/errors'
 import { pluralize } from '../../../../shared/src/util/strings'
 import { queryGraphQL } from '../../backend/graphql'
-import { ProjectRow } from './ProjectRow'
-import { NewProjectForm } from './NewProjectForm'
-import { ExtensionsControllerProps } from '../../../../shared/src/extensions/controller'
 import { NamespaceAreaContext } from '../NamespaceArea'
+import { ProjectRow } from './ProjectRow'
 
 const queryNamespaceProjects = (namespace: GQL.ID): Promise<GQL.IProjectConnection> =>
     queryGraphQL(
@@ -20,6 +18,7 @@ const queryNamespaceProjects = (namespace: GQL.ID): Promise<GQL.IProjectConnecti
                         nodes {
                             id
                             name
+                            url
                         }
                         totalCount
                     }
