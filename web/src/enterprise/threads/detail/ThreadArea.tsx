@@ -2,7 +2,6 @@ import AlertCircleIcon from 'mdi-react/AlertCircleIcon'
 import MapSearchIcon from 'mdi-react/MapSearchIcon'
 import React, { useMemo, useState } from 'react'
 import { Route, RouteComponentProps, Switch } from 'react-router'
-import { Resizable } from '../../../../../shared/src/components/Resizable'
 import * as GQL from '../../../../../shared/src/graphql/schema'
 import { asError, ErrorLike, isErrorLike } from '../../../../../shared/src/util/errors'
 import { ErrorBoundary } from '../../../components/ErrorBoundary'
@@ -80,20 +79,7 @@ export const ThreadArea: React.FunctionComponent<Props> = props => {
     }
 
     return (
-        <div className="thread-area border-top flex-1 d-flex flex-row-reverse overflow-hidden">
-            <Resizable
-                className="thread-area__sidebar-resizable border-left"
-                handlePosition="left"
-                storageKey="thread-area__sidebar-resizable"
-                defaultSize={216 /* px */}
-                element={
-                    <ThreadAreaSidebar
-                        {...context}
-                        className="thread-area__sidebar flex-1 overflow-auto"
-                        history={props.history}
-                    />
-                }
-            />
+        <div className="thread-area border-top flex-1 d-flex overflow-hidden">
             <div className="flex-1 overflow-auto">
                 <ErrorBoundary location={props.location}>
                     <ThreadOverview {...context} location={props.location} history={props.history} />
@@ -148,6 +134,7 @@ export const ThreadArea: React.FunctionComponent<Props> = props => {
                     </Switch>
                 </ErrorBoundary>
             </div>
+            <ThreadAreaSidebar {...context} className="thread-area__sidebar flex-0" history={props.history} />
         </div>
     )
 }

@@ -1,27 +1,32 @@
 import H from 'history'
-import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import React, { useCallback, useEffect, useState } from 'react'
+import { Link, RouteComponentProps } from 'react-router-dom'
 import { CheckTemplate } from '../../../../../../shared/src/api/client/services/checkTemplates'
 import { ExtensionsControllerProps } from '../../../../../../shared/src/extensions/controller'
 import { PageTitle } from '../../../../components/PageTitle'
 import { CheckTemplateItem } from '../../components/CheckTemplateItem'
+import { ChecksAreaContext } from '../../global/ChecksArea'
 import { CheckThreadTemplateSelectFormControl } from './CheckThreadTemplateSelectFormControl'
 import { NewCheckThreadForm } from './NewCheckThreadForm'
 
-interface Props extends ExtensionsControllerProps<'services'> {
+interface Props
+    extends Pick<ChecksAreaContext, 'project'>,
+        ExtensionsControllerProps<'services'>,
+        RouteComponentProps<{}> {
     history: H.History
     location: H.Location
-}
-
-const urlForCheckTemplate = (checkTemplateId: string | null): H.LocationDescriptor => {
-    const params = checkTemplateId !== null ? new URLSearchParams({ template: checkTemplateId }) : ''
-    return `/checks/new?${params}`
 }
 
 /**
  * A page for adding a new check based on one of the registered check templates.
  */
-export const NewCheckThreadPage: React.FunctionComponent<Props> = ({ history, location, extensionsController }) => {
+export const NewCheckThreadPage: React.FunctionComponent<Props> = ({
+    project,
+    history,
+    location,
+    match: { url: baseUrl },
+    extensionsController,
+}) => {
     const checkTemplateId = new URLSearchParams(location.search).get('template')
     const [checkTemplate, setCheckTemplate] = useState<CheckTemplate>()
     useEffect(() => {
@@ -34,6 +39,12 @@ export const NewCheckThreadPage: React.FunctionComponent<Props> = ({ history, lo
             .subscribe(checkTemplate => setCheckTemplate(checkTemplate || undefined))
         return () => subscription.unsubscribe()
     }, [checkTemplateId])
+
+    const urlForCheckTemplate = useCallback(
+        (checkTemplateId: string | null): H.LocationDescriptor =>
+            checkTemplateId !== null ? `${baseUrl}?${new URLSearchParams({ template: checkTemplateId })}` : baseUrl,
+        [baseUrl]
+    )
 
     return (
         <div className="new-check-thread-page container mt-4">
@@ -62,7 +73,12 @@ export const NewCheckThreadPage: React.FunctionComponent<Props> = ({ history, lo
                                     </Link>
                                 }
                             />
-                            <NewCheckThreadForm checkTemplate={checkTemplate} className="mt-3" history={history} />
+                            <NewCheckThreadForm
+                                project={project}
+                                checkTemplate={checkTemplate}
+                                className="mt-3"
+                                history={history}
+                            />
                         </>
                     )}
                 </div>

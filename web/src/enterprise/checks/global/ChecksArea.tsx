@@ -17,15 +17,18 @@ const NotFoundPage: React.FunctionComponent = () => (
  */
 export interface ChecksAreaContext extends ThreadsAreaContext {}
 
-export interface ThreadsAreaProps
-    extends Pick<ChecksAreaContext, 'authenticatedUser' | 'isLightTheme'>,
+interface ChecksAreaProps
+    extends Pick<ChecksAreaContext, Exclude<keyof ChecksAreaContext, 'type'>>,
         RouteComponentProps<{}>,
-        ExtensionsControllerProps {}
+        ExtensionsControllerProps {
+    /** The base URL of this area. */
+    areaURL?: string
+}
 
 /**
  * The global checks area.
  */
-export const ChecksArea: React.FunctionComponent<ThreadsAreaProps> = ({ match, ...props }) => {
+export const ChecksArea: React.FunctionComponent<ChecksAreaProps> = ({ match, ...props }) => {
     const context: ChecksAreaContext = {
         ...props,
         type: GQL.ThreadType.CHECK,

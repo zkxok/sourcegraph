@@ -9,8 +9,9 @@ import { asError, ErrorLike, isErrorLike } from '../../../../../../shared/src/ut
 import { Form } from '../../../../components/Form'
 import { createThread } from '../../../../discussions/backend'
 import { ThreadTitleFormGroup } from '../../../threads/form/ThreadTitleFormGroup'
+import { ChecksAreaContext } from '../../global/ChecksArea'
 
-interface Props {
+interface Props extends Pick<ChecksAreaContext, 'project'> {
     checkTemplate: CheckTemplate
     className?: string
     history: H.History
@@ -21,7 +22,12 @@ const LOADING: 'loading' = 'loading'
 /**
  * A form to create a new check thread.
  */
-export const NewCheckThreadForm: React.FunctionComponent<Props> = ({ checkTemplate, className = '', history }) => {
+export const NewCheckThreadForm: React.FunctionComponent<Props> = ({
+    project,
+    checkTemplate,
+    className = '',
+    history,
+}) => {
     const [title, setTitle] = useState(checkTemplate.title)
     const onTitleChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>(
         e => setTitle(e.currentTarget.value),
@@ -43,6 +49,7 @@ export const NewCheckThreadForm: React.FunctionComponent<Props> = ({ checkTempla
             setCreationOrError(LOADING)
             try {
                 const thread = await createThread({
+                    project: project.id,
                     title,
                     contents: body,
                     type: GQL.ThreadType.CHECK,
