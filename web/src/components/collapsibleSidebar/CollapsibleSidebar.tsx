@@ -13,6 +13,9 @@ interface Props {
      */
     localStorageKey?: string
 
+    /** The side of the screen where the sidebar is anchored. */
+    side: 'left' | 'right'
+
     className?: string
     collapsedClassName?: string
     expandedClassName?: string
@@ -23,6 +26,7 @@ interface Props {
  */
 export const CollapsibleSidebar: React.FunctionComponent<Props> = ({
     localStorageKey,
+    side,
     className,
     collapsedClassName,
     expandedClassName,
@@ -44,6 +48,11 @@ export const CollapsibleSidebar: React.FunctionComponent<Props> = ({
         }
     }, [isExpanded, localStorageKey])
 
+    const Icon =
+        (isExpanded && side === 'left') || (!isExpanded && side === 'right')
+            ? ChevronDoubleLeftIcon
+            : ChevronDoubleRightIcon
+
     return (
         <div
             className={`collapsible-sidebar d-flex flex-column justify-content-between ${className} ${
@@ -58,13 +67,8 @@ export const CollapsibleSidebar: React.FunctionComponent<Props> = ({
                 title="Toggle sidebar"
                 onClick={toggleIsExpanded}
             >
-                {isExpanded ? (
-                    <>
-                        <ChevronDoubleLeftIcon className="icon-inline mr-1" /> Collapse sidebar
-                    </>
-                ) : (
-                    <ChevronDoubleRightIcon className="icon-inline" />
-                )}
+                <Icon className="icon-inline mr-1" />
+                {isExpanded && <>&nbsp;Collapse sidebar</>}
             </button>
         </div>
     )

@@ -30,6 +30,7 @@ const LINKS: NavItemWithIconDescriptor[] = [
 export const ProjectAreaSidebar: React.FunctionComponent<Props> = ({ project, areaURL, className = '', ...props }) => (
     <CollapsibleSidebar
         localStorageKey="project-area__sidebar"
+        side="left"
         className={`project-area-sidebar d-flex flex-column ${className}`}
         collapsedClassName="project-area-sidebar--collapsed"
         expandedClassName="project-area-sidebar--expanded"

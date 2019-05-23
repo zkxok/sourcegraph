@@ -1,13 +1,10 @@
 @import './overview/ThreadOverview';
 @import './inbox/ThreadInboxItemsList';
 @import './ThreadAreaNavbar';
+@import './sidebar/ThreadAreaSidebar';
 
 .thread-area {
     &__sidebar {
-        &-resizable {
-            min-width: 12rem;
-            max-width: 20rem;
-        }
         background-color: $color-bg-2;
     }
 }
