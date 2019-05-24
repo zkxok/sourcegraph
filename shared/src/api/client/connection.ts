@@ -11,6 +11,7 @@ import { ClientCommands } from './api/commands'
 import { ClientConfiguration } from './api/configuration'
 import { createClientContent } from './api/content'
 import { ClientContext } from './api/context'
+import { ClientDiagnostics } from './api/diagnostics'
 import { ClientExtensions } from './api/extensions'
 import { ClientLanguageFeatures } from './api/languageFeatures'
 import { ClientRoots } from './api/roots'
@@ -68,6 +69,9 @@ export async function createExtensionHostClientConnection(
 
     const clientContext = new ClientContext((updates: ContextValues) => services.context.updateContext(updates))
     subscription.add(clientContext)
+
+    const clientDiagnostics = new ClientDiagnostics(services.diagnostics)
+    subscription.add(clientDiagnostics)
 
     // Sync models and editors to the extension host
     subscription.add(

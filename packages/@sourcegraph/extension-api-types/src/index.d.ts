@@ -1,3 +1,4 @@
+export * from './diagnostics'
 export * from './hover'
 export * from './location'
 export * from './textDocument'

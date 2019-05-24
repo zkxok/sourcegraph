@@ -1107,29 +1107,29 @@ declare module 'sourcegraph' {
         /**
          * The range to which this diagnostic applies.
          */
-        range: Range
+        readonly range: Range
 
         /**
          * The human-readable message.
          */
-        message: string
+        readonly message: string
 
         /**
          * The severity, default is [error](#DiagnosticSeverity.Error).
          */
-        severity: DiagnosticSeverity
+        readonly severity: DiagnosticSeverity
 
         /**
          * A human-readable string describing the source of this
          * diagnostic, e.g. 'typescript' or 'super lint'.
          */
-        source?: string
+        readonly source?: string
 
         /**
          * A code or identifier for this diagnostic. This is useful for, e.g., associating [code
          * actions](#CodeActionContext) with this diagnostic.
          */
-        code?: string | number
+        readonly code?: string | number
     }
 
     /**
@@ -1139,7 +1139,7 @@ declare module 'sourcegraph' {
      * To get an instance of a {@link DiagnosticCollection}, use
      * [createDiagnosticCollection](#languages.createDiagnosticCollection).
      */
-    export interface DiagnosticCollection {
+    export interface DiagnosticCollection extends Unsubscribable {
         /**
          * The name of this diagnostic collection, such as `typescript`. Every diagnostic from this
          * collection will be associated with this name.
@@ -1185,7 +1185,7 @@ declare module 'sourcegraph' {
         /**
          * Get all entries in this collection.
          */
-        getAll(): Map<URL, Diagnostic[]>
+        getAll(): IterableIterator<[URL, Diagnostic[]]>
 
         /**
          * Get the diagnostics for a given resource.
@@ -1227,22 +1227,22 @@ declare module 'sourcegraph' {
         /**
          * A short, human-readable, title for this code action.
          */
-        title: string
+        readonly title: string
 
         /**
          * A {@link WorkspaceEdit} that this code action performs.
          */
-        edit?: WorkspaceEdit
+        readonly edit?: WorkspaceEdit
 
         /**
          * The [diagnostics](#Diagnostic) that this code action resolves.
          */
-        diagnostics?: Diagnostic[]
+        readonly diagnostics?: Diagnostic[]
 
         /**
          * A [command](#Command) that this code action executes.
          */
-        command?: Command
+        readonly command?: Command
     }
 
     /**
@@ -1256,16 +1256,14 @@ declare module 'sourcegraph' {
          * @param range The selector or range to provide code actions for. This will always be a
          * selection if there is a currently active editor.
          * @param context Context carrying additional information.
-         * @param token A cancellation token.
          * @return An array of commands, quick fixes, or refactorings or a thenable of such. The
          * lack of a result can be signaled by returning `undefined`, `null`, or an empty array.
          */
         provideCodeActions(
             document: TextDocument,
             range: Range | Selection,
-            context: CodeActionContext,
-            token: CancellationToken
-        ): ProviderResult<(Command | CodeAction)[]>
+            context: CodeActionContext
+        ): ProviderResult<CodeAction[]>
     }
 
     export namespace languages {
@@ -1365,8 +1363,7 @@ declare module 'sourcegraph' {
         export function getDiagnostics(resource: URL): Diagnostic[]
 
         /**
-         * Get all diagnostics. *Note* that this includes diagnostics from
-         * all extensions but *not yet* from the task framework.
+         * Get all diagnostics.
          *
          * @returns An array of uri-diagnostics tuples or an empty array.
          */

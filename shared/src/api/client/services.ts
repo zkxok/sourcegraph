@@ -6,6 +6,7 @@ import { CommandRegistry } from './services/command'
 import { CompletionItemProviderRegistry } from './services/completion'
 import { ContributionRegistry } from './services/contribution'
 import { TextDocumentDecorationProviderRegistry } from './services/decoration'
+import { createDiagnosticsService } from './services/diagnosticsService'
 import { createEditorService } from './services/editorService'
 import { ExtensionsService } from './services/extensionsService'
 import { TextDocumentHoverProviderRegistry } from './services/hover'
@@ -36,6 +37,7 @@ export class Services {
 
     public readonly commands = new CommandRegistry()
     public readonly context = createContextService(this.platformContext)
+    public readonly diagnostics = createDiagnosticsService()
     public readonly workspace = createWorkspaceService()
     public readonly model = createModelService()
     public readonly editor = createEditorService(this.model)
