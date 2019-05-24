@@ -1,5 +1,7 @@
 import * as comlink from '@sourcegraph/comlink'
 import { Location, MarkupKind, Position, Range, Selection } from '@sourcegraph/extension-api-classes'
+import { WorkspaceEdit } from '../client/types/workspaceEdit'
+import { TextEdit } from '../client/types/textEdit'
 import { Subscription, Unsubscribable } from 'rxjs'
 import * as sourcegraph from 'sourcegraph'
 import { EndpointPair } from '../../platform/context'
@@ -19,6 +21,7 @@ import { ExtRoots } from './api/roots'
 import { ExtSearch } from './api/search'
 import { ExtViews } from './api/views'
 import { ExtWindows } from './api/windows'
+import { DiagnosticSeverity } from '../client/types/diagnosticCollection'
 
 /**
  * Required information when initializing an extension host.
@@ -171,6 +174,10 @@ function createExtensionAPI(
         Location,
         MarkupKind,
         NotificationType,
+        TextEdit,
+        CodeAction,
+        DiagnosticSeverity,
+        WorkspaceEdit,
         app: {
             activeWindowChanges: windows.activeWindowChanges,
             get activeWindow(): sourcegraph.Window | undefined {
@@ -240,6 +247,11 @@ function createExtensionAPI(
                 selector: sourcegraph.DocumentSelector,
                 provider: sourcegraph.CompletionItemProvider
             ) => languageFeatures.registerCompletionItemProvider(selector, provider),
+
+            registerCodeActionProvider: (
+                selector: sourcegraph.DocumentSelector,
+                provider: sourcegraph.CodeActionProvider
+            ) => languageFeatures.registerCodeActionProvider(selector, provider),
 
             diagnosticsChanges: diagnostics.diagnosticsChanges,
             getDiagnostics: diagnostics.getDiagnostics.bind(diagnostics),

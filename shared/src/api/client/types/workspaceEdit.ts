@@ -30,8 +30,20 @@ export interface FileTextEdit {
 export class WorkspaceEdit implements sourcegraph.WorkspaceEdit {
     private _edits: (FileOperation | FileTextEdit)[] = []
 
-    public entries(): IterableIterator<[URL, sourcegraph.TextEdit[]]> {
+    public textEdits(): IterableIterator<[URL, sourcegraph.TextEdit[]]> {
         return this.groupedEntries().values()
+    }
+
+    public entries(): ([URL, sourcegraph.TextEdit[]] | [URL?, URL?, FileOperationOptions?])[] {
+        const res: ([URL, sourcegraph.TextEdit[]] | [URL?, URL?, FileOperationOptions?])[] = []
+        for (const edit of this._edits) {
+            if (edit.type === WorkspaceEditOperationType.FileOperation) {
+                res.push([edit.from, edit.to, edit.options])
+            } else {
+                res.push([edit.uri, [edit.edit]])
+            }
+        }
+        return res
     }
 
     private groupedEntries(): Map<string, [URL, sourcegraph.TextEdit[]]> {
@@ -117,6 +129,6 @@ export class WorkspaceEdit implements sourcegraph.WorkspaceEdit {
     }
 
     public toJSON(): any {
-        return this.entries()
+        return this.textEdits()
     }
 }

@@ -41,9 +41,49 @@ export function fromHover(hover: sourcegraph.Hover): clientType.Hover {
  *
  * @internal
  */
+export function fromRange(range: Range | sourcegraph.Range): clientType.Range
+export function fromRange(range: undefined): undefined
 export function fromRange(range: Range | sourcegraph.Range | undefined): clientType.Range | undefined {
     if (!range) {
         return undefined
     }
     return range instanceof Range ? range.toJSON() : range
+}
+
+/**
+ * Converts from an instance of {@link Diagnostic} to the plain object
+ * {@link clientType.Diagnostic}.
+ *
+ * @internal
+ */
+export function fromDiagnostic(diag: sourcegraph.Diagnostic): clientType.Diagnostic {
+    return {
+        ...diag,
+        range: fromRange(diag.range),
+    }
+}
+
+/**
+ * Converts from an instance of {@link WorkspaceEdit} to the plain object
+ * {@link clientType.WorkspaceEdit}.
+ *
+ * @internal
+ */
+export function fromWorkspaceEdit(edit: sourcegraph.WorkspaceEdit): clientType.WorkspaceEdit {
+    return {
+        entries: Array.from(edit.textEdits()).map([uri, edits]),
+    }
+}
+
+/**
+ * Converts from an instance of {@link CodeAction} to the plain object {@link clientType.CodeAction}.
+ *
+ * @internal
+ */
+export function fromCodeAction(codeAction: sourcegraph.CodeAction): clientType.CodeAction {
+    return {
+        ...codeAction,
+        diagnostics: codeAction.diagnostics && codeAction.diagnostics.map(fromDiagnostic),
+        edit: codeAction.edit && fromWorkspaceEdit(codeAction.edit),
+    }
 }

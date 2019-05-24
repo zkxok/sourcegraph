@@ -1,26 +1,32 @@
+import { Range, Selection } from '@sourcegraph/extension-api-types'
 import { isEqual } from 'lodash'
 import { from, Observable } from 'rxjs'
 import { catchError, defaultIfEmpty, distinctUntilChanged, map, switchMap } from 'rxjs/operators'
-import { CompletionList } from 'sourcegraph'
+import { CodeAction, CodeActionContext } from 'sourcegraph'
 import { combineLatestOrDefault } from '../../../util/rxjs/combineLatestOrDefault'
-import { isDefined } from '../../../util/types'
 import { TextDocumentPositionParams } from '../../protocol'
+import { TextDocumentIdentifier } from '../types/textDocument'
 import { DocumentFeatureProviderRegistry } from './registry'
+import { flattenAndCompact } from './util'
 
-export type ProvideCompletionItemSignature = (
-    params: TextDocumentPositionParams
-) => Observable<CompletionList | null | undefined>
+export interface CodeActionsParams {
+    textDocument: TextDocumentIdentifier
+    range: Range | Selection
+    context: CodeActionContext
+}
 
-/** Provides completion items from all extensions. */
-export class CompletionItemProviderRegistry extends DocumentFeatureProviderRegistry<ProvideCompletionItemSignature> {
+export type ProvideCodeActionsSignature = (params: CodeActionsParams) => Observable<CodeAction[] | null | undefined>
+
+/** Provides code actions from all extensions. */
+export class CodeActionProviderRegistry extends DocumentFeatureProviderRegistry<ProvideCodeActionsSignature> {
     /**
      * Returns an observable that emits all providers' results whenever any of the last-emitted set
-     * of providers emits completion items. If any provider emits an error, the error is logged and
-     * the provider result is omitted from the emission of the observable (the observable does not
-     * emit the error).
+     * of providers emits code actions. If any provider emits an error, the error is logged and the
+     * provider result is omitted from the emission of the observable (the observable does not emit
+     * the error).
      */
-    public getCompletionItems(params: TextDocumentPositionParams): Observable<CompletionList | null> {
-        return getCompletionItems(this.providersForDocument(params.textDocument), params)
+    public getCodeActions(params: CodeActionsParams): Observable<CodeAction[] | null> {
+        return getCodeActions(this.providersForDocument(params.textDocument), params)
     }
 }
 
@@ -30,14 +36,14 @@ export class CompletionItemProviderRegistry extends DocumentFeatureProviderRegis
  * the provider is omitted from the emission of the observable (the observable does not emit the
  * error).
  *
- * Most callers should use {@link CompletionItemsProviderRegistry#getCompletionItems}, which uses
+ * Most callers should use {@link CodeActionsProviderRegistry#getCodeActions}, which uses
  * the registered providers.
  */
-export function getCompletionItems(
-    providers: Observable<ProvideCompletionItemSignature[]>,
-    params: TextDocumentPositionParams,
+export function getCodeActions(
+    providers: Observable<ProvideCodeActionsSignature[]>,
+    params: CodeActionsParams,
     logErrors = true
-): Observable<CompletionList | null> {
+): Observable<CodeAction[] | null> {
     return providers.pipe(
         switchMap(providers =>
             combineLatestOrDefault(
@@ -54,18 +60,10 @@ export function getCompletionItems(
                     )
                 )
             ).pipe(
-                map(mergeCompletionLists),
-                defaultIfEmpty<CompletionList | null>(null),
+                map(flattenAndCompact),
+                defaultIfEmpty<CodeAction[] | null>(null),
                 distinctUntilChanged((a, b) => isEqual(a, b))
             )
         )
     )
-}
-
-function mergeCompletionLists(values: (CompletionList | null | undefined)[]): CompletionList | null {
-    const items = values
-        .filter(isDefined)
-        .map(({ items }) => items)
-        .flat()
-    return items.length > 0 ? { items } : null
 }

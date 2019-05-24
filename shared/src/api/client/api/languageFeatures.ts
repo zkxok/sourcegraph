@@ -1,12 +1,14 @@
 import { ProxyResult, ProxyValue, proxyValue, proxyValueSymbol } from '@sourcegraph/comlink'
-import { Hover, Location } from '@sourcegraph/extension-api-types'
-import { CompletionList, DocumentSelector, Unsubscribable } from 'sourcegraph'
+import { Hover, Location, Range, Selection } from '@sourcegraph/extension-api-types'
+import { CodeAction, CodeActionContext, CompletionList, DocumentSelector, Unsubscribable } from 'sourcegraph'
 import { ProxySubscribable } from '../../extension/api/common'
 import { ReferenceParams, TextDocumentPositionParams, TextDocumentRegistrationOptions } from '../../protocol'
+import { CodeActionsParams, ProvideCodeActionsSignature } from '../services/codeActions'
 import { ProvideCompletionItemSignature } from '../services/completion'
 import { ProvideTextDocumentHoverSignature } from '../services/hover'
 import { TextDocumentLocationProviderIDRegistry, TextDocumentLocationProviderRegistry } from '../services/location'
 import { FeatureProviderRegistry } from '../services/registry'
+import { TextDocumentIdentifier } from '../types/textDocument'
 import { wrapRemoteObservable } from './common'
 
 /** @internal */
@@ -46,6 +48,13 @@ export interface ClientLanguageFeaturesAPI extends ProxyValue {
             ((params: TextDocumentPositionParams) => ProxySubscribable<CompletionList | null | undefined>) & ProxyValue
         >
     ): Unsubscribable & ProxyValue
+
+    $registerCodeActionProvider(
+        selector: DocumentSelector,
+        providerFunction: ProxyResult<
+            ((params: CodeActionsParams) => ProxySubscribable<CodeAction[] | null | undefined>) & ProxyValue
+        >
+    ): Unsubscribable & ProxyValue
 }
 
 /** @internal */
@@ -63,6 +72,10 @@ export class ClientLanguageFeatures implements ClientLanguageFeaturesAPI, ProxyV
         private completionItemsRegistry: FeatureProviderRegistry<
             TextDocumentRegistrationOptions,
             ProvideCompletionItemSignature
+        >,
+        private codeActionsRegistry: FeatureProviderRegistry<
+            TextDocumentRegistrationOptions,
+            ProvideCodeActionsSignature
         >
     ) {}
 
@@ -127,6 +140,19 @@ export class ClientLanguageFeatures implements ClientLanguageFeaturesAPI, ProxyV
     ): Unsubscribable & ProxyValue {
         return proxyValue(
             this.completionItemsRegistry.registerProvider({ documentSelector }, params =>
+                wrapRemoteObservable(providerFunction(params))
+            )
+        )
+    }
+
+    public $registerCodeActionProvider(
+        documentSelector: DocumentSelector,
+        providerFunction: ProxyResult<
+            ((params: CodeActionsParams) => ProxySubscribable<CodeAction[] | null | undefined>) & ProxyValue
+        >
+    ): Unsubscribable & ProxyValue {
+        return proxyValue(
+            this.codeActionsRegistry.registerProvider({ documentSelector }, params =>
                 wrapRemoteObservable(providerFunction(params))
             )
         )

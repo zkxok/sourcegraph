@@ -378,7 +378,7 @@ declare module 'sourcegraph' {
     }
 
     /**
-     * A text edit represents edits that should be applied to a document.
+     * A text edit represents edits to apply to a document.
      */
     export class TextEdit {
         /**
@@ -436,7 +436,7 @@ declare module 'sourcegraph' {
          *
          * @return A shallow copy of `[URL, TextEdit[]]`-tuples.
          */
-        entries(): IterableIterator<[URL, TextEdit[]]>
+        textEdits(): IterableIterator<[URL, TextEdit[]]>
 
         /**
          * The number of affected resources of textual or resource changes.
@@ -1359,6 +1359,34 @@ declare module 'sourcegraph' {
     }
 
     /**
+     * Represents a reference to a command. Provides a title which will be used to represent a
+     * command in the UI and, optionally, an array of arguments which will be passed to the command
+     * handler function when invoked.
+     */
+    export interface Command {
+        /**
+         * Title of the command, such as `Save`.
+         */
+        title: string
+
+        /**
+         * The identifier of the actual command handler.
+         * @see [commands.registerCommand](#commands.registerCommand).
+         */
+        command: string
+
+        /**
+         * A tooltip for the command, when represented in the UI.
+         */
+        tooltip?: string
+
+        /**
+         * Arguments that the command handler should be invoked with.
+         */
+        arguments?: any[]
+    }
+
+    /**
      * A code action represents a change that can be performed in code, e.g. to fix a problem or to
      * refactor code.
      *
@@ -1531,10 +1559,7 @@ declare module 'sourcegraph' {
          * @param provider A code action provider.
          * @return An unsubscribable to unregister this provider.
          */
-        export function registerCodeActionsProvider(
-            selector: DocumentSelector,
-            provider: CodeActionProvider
-        ): Disposable
+        export function registerCodeActionProvider(selector: DocumentSelector, provider: CodeActionProvider): Disposable
     }
 
     /**
