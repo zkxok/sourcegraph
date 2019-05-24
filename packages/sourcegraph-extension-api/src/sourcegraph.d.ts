@@ -378,6 +378,149 @@ declare module 'sourcegraph' {
     }
 
     /**
+     * A text edit represents edits that should be applied to a document.
+     */
+    export class TextEdit {
+        /**
+         * Utility to create a replace edit.
+         *
+         * @param range A range.
+         * @param newText A string.
+         * @return A new text edit object.
+         */
+        static replace(range: Range, newText: string): TextEdit
+
+        /**
+         * Utility to create an insert edit.
+         *
+         * @param position The insertion position.
+         * @param newText A string.
+         * @return A new text edit object.
+         */
+        static insert(position: Position, newText: string): TextEdit
+
+        /**
+         * Utility to create a delete edit.
+         *
+         * @param range A range.
+         * @return A new text edit object.
+         */
+        static delete(range: Range): TextEdit
+
+        /**
+         * The range this edit applies to.
+         */
+        readonly range: Range
+
+        /**
+         * The string this edit will insert.
+         */
+        readonly newText: string
+
+        /**
+         * Create a new TextEdit.
+         *
+         * @param range A range.
+         * @param newText A string.
+         */
+        constructor(range: Range, newText: string)
+    }
+
+    /**
+     * A workspace edit is a collection of textual and files changes for multiple resources and
+     * documents.
+     */
+    export class WorkspaceEdit {
+        /**
+         * The number of affected resources of textual or resource changes.
+         */
+        readonly size: number
+
+        /**
+         * Replace the given range with given text for the given resource.
+         *
+         * @param uri A resource identifier.
+         * @param range A range.
+         * @param newText A string.
+         */
+        replace(uri: URL, range: Range, newText: string): void
+
+        /**
+         * Insert the given text at the given position.
+         *
+         * @param uri A resource identifier.
+         * @param position A position.
+         * @param newText A string.
+         */
+        insert(uri: URL, position: Position, newText: string): void
+
+        /**
+         * Delete the text at the given range.
+         *
+         * @param uri A resource identifier.
+         * @param range A range.
+         */
+        delete(uri: URL, range: Range): void
+
+        /**
+         * Check if a text edit for a resource exists.
+         *
+         * @param uri A resource identifier.
+         * @return `true` if the given resource will be touched by this edit.
+         */
+        has(uri: URL): boolean
+
+        /**
+         * Set (and replace) text edits for a resource.
+         *
+         * @param uri A resource identifier.
+         * @param edits An array of text edits.
+         */
+        set(uri: URL, edits: TextEdit[]): void
+
+        /**
+         * Get the text edits for a resource.
+         *
+         * @param uri A resource identifier.
+         * @return An array of text edits.
+         */
+        get(uri: URL): TextEdit[]
+
+        /**
+         * Create a regular file.
+         *
+         * @param uri URL of the new file..
+         * @param options Defines if an existing file should be overwritten or be
+         * ignored. When overwrite and ignoreIfExists are both set overwrite wins.
+         */
+        createFile(uri: URL, options?: { overwrite?: boolean; ignoreIfExists?: boolean }): void
+
+        /**
+         * Delete a file or folder.
+         *
+         * @param uri The uri of the file that is to be deleted.
+         */
+        deleteFile(uri: URL, options?: { recursive?: boolean; ignoreIfNotExists?: boolean }): void
+
+        /**
+         * Rename a file or folder.
+         *
+         * @param oldUrl The existing file.
+         * @param newUrl The new location.
+         * @param options Defines if existing files should be overwritten or be ignored. When
+         * overwrite and ignoreIfExists are both set overwrite wins.
+         */
+        renameFile(oldUrl: URL, newUrl: URL, options?: { overwrite?: boolean; ignoreIfExists?: boolean }): void
+
+        /**
+         * Get all text edits grouped by resource.
+         *
+         * @return A shallow copy of `[URL, TextEdit[]]`-tuples.
+         */
+        entries(): [URL, TextEdit[]][]
+    }
+
+    /**
      * A document filter denotes a document by different properties like the
      * [language](#TextDocument.languageId), the scheme of its resource, or a glob-pattern that is
      * applied to the [path](#TextDocument.fileName).

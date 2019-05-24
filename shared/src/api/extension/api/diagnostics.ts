@@ -9,7 +9,7 @@ import { Range } from '@sourcegraph/extension-api-classes'
 /** @internal */
 export interface ExtDiagnosticsAPI extends ProxyValue {
     // TODO!(sqs): inefficient
-    $acceptDiagnosticsData(updates: DiagnosticData): void
+    $acceptDiagnosticData(updates: DiagnosticData): void
 }
 
 class DiagnosticCollectionWithUnsubscribeCallback extends DiagnosticCollection<sourcegraph.Diagnostic> {
@@ -26,7 +26,7 @@ class DiagnosticCollectionWithUnsubscribeCallback extends DiagnosticCollection<s
 /** @internal */
 // TODO!(sqs): this is weird because it stores duplicates of the diagnostics data on the ext host,
 // one for the version of the data received roundtrip from the client and one the original
-// DiagnosticCollection owned by an extension.
+// DiagnosticCollection owned by an extension. See skipped test `$acceptDiagnosticData`.
 export class ExtDiagnostics
     implements
         ExtDiagnosticsAPI,
@@ -44,7 +44,7 @@ export class ExtDiagnostics
 
     public readonly diagnosticsChanges = from(this.data.changes).pipe(map(uris => ({ uris })))
 
-    public $acceptDiagnosticsData(data: DiagnosticData): void {
+    public $acceptDiagnosticData(data: DiagnosticData): void {
         this.data.set(
             data.map(([uri, diagnostics]) => [uri, diagnostics.map(d => ({ ...d, range: Range.fromPlain(d.range) }))])
         )
@@ -77,7 +77,7 @@ export class ExtDiagnostics
         // Send the new data (from all collections) to the client when there is a change to any
         // collection.
         const subscription = c.changes.subscribe(() =>
-            this.proxy.$acceptDiagnosticsData(
+            this.proxy.$acceptDiagnosticData(
                 this.getDiagnostics().map(([uri, diagnostics]) => [uri.toString(), diagnostics])
             )
         )

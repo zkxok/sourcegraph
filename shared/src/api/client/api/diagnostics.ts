@@ -9,7 +9,7 @@ export type DiagnosticData = [string, Diagnostic[]][]
 /** @internal */
 export interface ClientDiagnosticsAPI extends ProxyValue {
     // TODO!(sqs): inefficient
-    $acceptDiagnosticsData(updates: DiagnosticData): void
+    $acceptDiagnosticData(updates: DiagnosticData): void
 }
 
 /** @internal */
@@ -18,7 +18,7 @@ export class ClientDiagnostics implements ClientDiagnosticsAPI, Unsubscribable {
 
     constructor(private diagnosticsService: Pick<DiagnosticsService, 'collection'>) {}
 
-    public $acceptDiagnosticsData(data: DiagnosticData): void {
+    public $acceptDiagnosticData(data: DiagnosticData): void {
         this.diagnosticsService.collection.set(data)
     }
 
