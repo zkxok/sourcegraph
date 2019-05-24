@@ -229,6 +229,7 @@ func initRouter() {
 	router.Get(routeHelp).HandlerFunc(serveHelp)
 	router.Get(routeSnippets).Handler(handler(serveBasicPageString("Snippets - Sourcegraph")))
 	router.Get(routeSubscriptions).Handler(handler(serveBasicPageString("Subscriptions - Sourcegraph")))
+	router.PathPrefix("/p").Handler(handler(serveBasicPageString("Projects - Sourcegraph")))
 
 	router.Get(routeUserSettings).Handler(handler(serveBasicPageString("User settings - Sourcegraph")))
 	router.Get(routeUserRedirect).Handler(handler(serveBasicPageString("User - Sourcegraph")))
