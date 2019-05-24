@@ -14,7 +14,7 @@ import { ThreadSettings } from '../../settings'
 import { ThreadInboxItemActions } from './ThreadInboxItemActions'
 
 interface Props extends ExtensionsControllerProps {
-    thread: Pick<GQL.IDiscussionThread, 'id' | 'settings'>
+    thread: Pick<GQL.IDiscussionThread, 'id' | 'idWithoutKind' | 'settings'>
     onThreadUpdate: (thread: GQL.IDiscussionThread) => void
     threadSettings: ThreadSettings
     inboxItem: GQL.IDiscussionThreadTargetRepo
