@@ -50,7 +50,7 @@ export const TextDocumentLocationInboxItem: React.FunctionComponent<Props> = ({
             <div className="card-header d-flex align-items-center">
                 <Icon
                     className={classNames('icon-inline', 'mr-2', 'h5', 'mb-0', {
-                        'text-info': !inboxItem.isIgnored,
+                        'text-success': !inboxItem.isIgnored,
                         'text-muted': inboxItem.isIgnored,
                     })}
                     data-tooltip={upperFirst(status)}
