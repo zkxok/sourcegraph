@@ -1063,6 +1063,211 @@ declare module 'sourcegraph' {
         provideCompletionItems(document: TextDocument, position: Position): ProviderResult<CompletionList>
     }
 
+    /**
+     * The event that is emitted when diagnostics change.
+     */
+    export interface DiagnosticChangeEvent {
+        /**
+         * An array of resources for which diagnostics have changed.
+         */
+        readonly uris: URL[]
+    }
+
+    /**
+     * The severity level of a [diagnostic](#Diagnostic).
+     */
+    export enum DiagnosticSeverity {
+        /**
+         * Something not allowed by the rules of a language or other means.
+         */
+        Error = 0,
+
+        /**
+         * Something suspicious but allowed.
+         */
+        Warning = 1,
+
+        /**
+         * Something to inform about but not a problem.
+         */
+        Information = 2,
+
+        /**
+         * Something to hint to a better way of doing it, like proposing
+         * a refactoring.
+         */
+        Hint = 3,
+    }
+
+    /**
+     * Represents a diagnostic, such as a compiler error or warning. Diagnostic objects
+     * are only valid in the scope of a file.
+     */
+    export interface Diagnostic {
+        /**
+         * The range to which this diagnostic applies.
+         */
+        range: Range
+
+        /**
+         * The human-readable message.
+         */
+        message: string
+
+        /**
+         * The severity, default is [error](#DiagnosticSeverity.Error).
+         */
+        severity: DiagnosticSeverity
+
+        /**
+         * A human-readable string describing the source of this
+         * diagnostic, e.g. 'typescript' or 'super lint'.
+         */
+        source?: string
+
+        /**
+         * A code or identifier for this diagnostic. This is useful for, e.g., associating [code
+         * actions](#CodeActionContext) with this diagnostic.
+         */
+        code?: string | number
+    }
+
+    /**
+     * A diagnostics collection is a container that manages a set of [diagnostics](#Diagnostic).
+     * Diagnostics are always scoped to a diagnostics collection and a resource.
+     *
+     * To get an instance of a {@link DiagnosticCollection}, use
+     * [createDiagnosticCollection](#languages.createDiagnosticCollection).
+     */
+    export interface DiagnosticCollection {
+        /**
+         * The name of this diagnostic collection, such as `typescript`. Every diagnostic from this
+         * collection will be associated with this name.
+         */
+        readonly name: string
+
+        /**
+         * Assign diagnostics for given resource. Existing diagnostics for the resource (if any)
+         * will be replaced.
+         *
+         * @param uri A resource identifier.
+         * @param diagnostics Array of diagnostics or `undefined`
+         */
+        set(uri: URL, diagnostics: Diagnostic[] | undefined): void
+
+        /**
+         * Replace all entries in this collection.
+         *
+         * Diagnostics of multiple tuples of the same uri will be merged, e.g `[[file1, [d1]],
+         * [file1, [d2]]]` is equivalent to `[[file1, [d1, d2]]]`. If a diagnostics item is
+         * `undefined` as in `[file1, undefined]` all previous but not subsequent diagnostics are
+         * removed.
+         *
+         * @param entries An array of tuples, like `[[file1, [d1, d2]], [file2, [d3, d4, d5]]]`, or
+         * `undefined`.
+         */
+        set(entries: [URL, Diagnostic[] | undefined][]): void
+
+        /**
+         * Remove all diagnostics from this collection that belong to the provided `uri`. This is
+         * equivalent to `#set(uri, undefined)`.
+         *
+         * @param uri A resource identifier.
+         */
+        delete(uri: URL): void
+
+        /**
+         * Remove all diagnostics from this collection. The same
+         * as calling `#set(undefined)`;
+         */
+        clear(): void
+
+        /**
+         * Get all entries in this collection.
+         */
+        getAll(): Map<URL, Diagnostic[]>
+
+        /**
+         * Get the diagnostics for a given resource.
+         *
+         * @param uri A resource identifier.
+         * @returns An immutable array of [diagnostics](#Diagnostic) or `undefined`.
+         */
+        get(uri: URL): readonly Diagnostic[] | undefined
+
+        /**
+         * Check if this collection contains diagnostics for a given resource.
+         *
+         * @param uri A resource identifier.
+         * @returns `true` if this collection has diagnostic for the given resource.
+         */
+        has(uri: URL): boolean
+    }
+
+    /**
+     * Contains additional information about the context in which a [code
+     * action](#CodeActionProvider.provideCodeActions) is run.
+     */
+    export interface CodeActionContext {
+        /**
+         * An array of diagnostics.
+         */
+        readonly diagnostics: Diagnostic[]
+    }
+
+    /**
+     * A code action represents a change that can be performed in code, e.g. to fix a problem or to
+     * refactor code.
+     *
+     * A CodeAction must set either [`edit`](#CodeAction.edit) and/or a
+     * [`command`](#CodeAction.command). If both are supplied, the `edit` is applied first, then the
+     * command is executed.
+     */
+    export class CodeAction {
+        /**
+         * A short, human-readable, title for this code action.
+         */
+        title: string
+
+        /**
+         * A {@link WorkspaceEdit} that this code action performs.
+         */
+        edit?: WorkspaceEdit
+
+        /**
+         * The [diagnostics](#Diagnostic) that this code action resolves.
+         */
+        diagnostics?: Diagnostic[]
+
+        /**
+         * A [command](#Command) that this code action executes.
+         */
+        command?: Command
+    }
+
+    /**
+     * A code action is an action that can be taken on code.
+     */
+    export interface CodeActionProvider {
+        /**
+         * Provide code actions for the given document and range.
+         *
+         * @param document The document to provide code actions for.
+         * @param range The selector or range to provide code actions for. This will always be a
+         * selection if there is a currently active editor.
+         * @param context Context carrying additional information.
+         * @param token A cancellation token.
+         * @return An array of commands, quick fixes, or refactorings or a thenable of such. The
+         * lack of a result can be signaled by returning `undefined`, `null`, or an empty array.
+         */
+        provideCodeActions(
+            document: TextDocument,
+            range: Range | Selection,
+            context: CodeActionContext,
+            token: CancellationToken
+        ): ProviderResult<(Command | CodeAction)[]>
+    }
+
     export namespace languages {
         /**
          * Registers a hover provider, which returns a formatted hover message (intended for display in a tooltip)
@@ -1145,6 +1350,117 @@ declare module 'sourcegraph' {
             selector: DocumentSelector,
             provider: CompletionItemProvider
         ): Unsubscribable
+
+        /**
+         * A subscribable that emits when the global set of diagnostics changes.
+         */
+        export const diagnosticsChanges: Subscribable<DiagnosticChangeEvent>
+
+        /**
+         * Get all diagnostics for a given resource.
+         *
+         * @param resource A resource
+         * @returns An array of [diagnostics](#Diagnostic) or an empty array.
+         */
+        export function getDiagnostics(resource: URL): Diagnostic[]
+
+        /**
+         * Get all diagnostics. *Note* that this includes diagnostics from
+         * all extensions but *not yet* from the task framework.
+         *
+         * @returns An array of uri-diagnostics tuples or an empty array.
+         */
+        export function getDiagnostics(): [URL, Diagnostic[]][]
+
+        /**
+         * Create a diagnostics collection.
+         *
+         * @param name The [name](#DiagnosticCollection.name) of the collection.
+         * @return A new diagnostic collection.
+         */
+        export function createDiagnosticCollection(name: string): DiagnosticCollection
+
+        /**
+         * Register a code action provider.
+         *
+         * Multiple providers can be registered for a language. In that case, providers are queried
+         * in parallel and the results are merged. A failing provider (rejected promise or
+         * exception) will not cause a failure of the whole operation.
+         *
+         * @param selector A selector that defines the documents this provider is applicable to.
+         * @param provider A code action provider.
+         * @return An unsubscribable to unregister this provider.
+         */
+        export function registerCodeActionsProvider(
+            selector: DocumentSelector,
+            provider: CodeActionProvider
+        ): Disposable
+    }
+
+    /**
+     * A match in a {@link SearchResult} from a {@link SearchResultProvider}.
+     */
+    export interface SearchResultMatch {
+        /**
+         * URL to the matched item.
+         */
+        url: string
+        /**
+         * A string containing the preview text of the result match, including any context to be displayed.
+         * The preview can be any length, and is displayed in its entirety. Can be plain text or Markdown.
+         */
+        preview: MarkupContent
+        /**
+         * Highlights are currently only applied if the body is a code block. The highlights
+         * are applied after the markdown is rendered; therefore, the line and character count
+         * should exclude the markdown code fences.
+         */
+        highlights: Range[]
+    }
+
+    /**
+     * A search result from a {@link SearchResultProvider}. A search result may contain multiple matches.
+     */
+    export interface SearchResult {
+        /**
+         * URL to an icon to be displayed with each search result.
+         * Can be a URL to an image or base-64 encoded data uri.
+         */
+        iconUrl: string
+        /**
+         * A prominently-displayed string describing the result. Can be plain text or Markdown.
+         */
+        label: MarkupContent
+        /**
+         * URL to the search result. This is a URL to the containing corpus of the {@link SearchResult#matches} (e.g.
+         * a file), whereas {@link SearchResultMatch#url} will link to the specific match (e.g. a line in the file).
+         * For SearchResults with a single match, this value is often the same as {@link SearchResultMatch#url}.
+         *
+         * This is used to display a URL associated with search results in text-based clients such as the src-cli.
+         */
+        url: string
+        /**
+         * A less prominently-displayed string with secondary information about the result. Can
+         * be plain text or Markdown.
+         */
+        detail: MarkupContent
+        /**
+         * A list of matches in this search result.
+         */
+        matches: SearchResultMatch[]
+    }
+
+    /**
+     * A search result provider accepts a query and returns a list of results.
+     * Experimental. Subject to change or removal without notice.
+     */
+    export interface SearchResultProvider {
+        /**
+         * Provide results for a search query.
+         *
+         * @param query A search query.
+         */
+        provideSearchResults(query: string): ProviderResult<SearchResult[]>
     }
 
     /**
@@ -1177,6 +1493,18 @@ declare module 'sourcegraph' {
          * @param provider A query transformer.
          */
         export function registerQueryTransformer(provider: QueryTransformer): Unsubscribable
+
+        /**
+         * Experimental. Subject to change or removal without notice.
+         *
+         * Registers a search result provider.
+         *
+         * Multiple providers can be registered. In that case, results will be returned grouped by
+         * provider. The order in which results from providers are returned is not defined.
+         *
+         * @param provider A search result provider.
+         */
+        export function registerSearchResultProvider(provider: SearchResultProvider): Unsubscribable
     }
 
     /**
