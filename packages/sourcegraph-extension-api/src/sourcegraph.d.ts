@@ -439,11 +439,6 @@ declare module 'sourcegraph' {
         textEdits(): IterableIterator<[URL, TextEdit[]]>
 
         /**
-         * The number of affected resources of textual or resource changes.
-         */
-        readonly size: number
-
-        /**
          * Get the text edits for a resource.
          *
          * @param uri A resource identifier.

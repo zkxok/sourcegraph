@@ -1,5 +1,5 @@
 import { Diagnostic } from '@sourcegraph/extension-api-types'
-import { DiagnosticCollection } from '../types/diagnosticCollection'
+import { DiagnosticCollection } from '../../types/diagnosticCollection'
 
 /**
  * The diagnostics service publishes diagnostics about resources.

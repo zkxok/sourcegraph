@@ -4,7 +4,7 @@ import { ProxyResult, ProxyValue, proxyValueSymbol } from '@sourcegraph/comlink'
 import { Unsubscribable, from } from 'rxjs'
 import * as sourcegraph from 'sourcegraph'
 import { ClientDiagnosticsAPI, DiagnosticData } from '../../client/api/diagnostics'
-import { DiagnosticCollection } from '../../client/types/diagnosticCollection'
+import { DiagnosticCollection } from '../../types/diagnosticCollection'
 
 /** @internal */
 export interface ExtDiagnosticsAPI extends ProxyValue {

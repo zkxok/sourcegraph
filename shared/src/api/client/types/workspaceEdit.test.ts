@@ -1,5 +1,5 @@
 import { Range } from '@sourcegraph/extension-api-classes'
-import { WorkspaceEdit } from './workspaceEdit'
+import { WorkspaceEdit } from '../../types/workspaceEdit'
 
 const URL_1 = new URL('http://u1')
 

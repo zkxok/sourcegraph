@@ -1,4 +1,5 @@
 import { Position, Range } from '@sourcegraph/extension-api-classes'
+import * as clientTypes from '@sourcegraph/extension-api-types'
 import * as sourcegraph from 'sourcegraph'
 
 export class TextEdit implements sourcegraph.TextEdit {
@@ -27,10 +28,14 @@ export class TextEdit implements sourcegraph.TextEdit {
 
     constructor(public readonly range: Range, public readonly newText: string) {}
 
-    public toJSON(): any {
+    public toJSON(): Pick<sourcegraph.TextEdit, 'newText'> & { range: clientTypes.Range } {
         return {
-            range: this.range,
+            range: this.range.toJSON(),
             newText: this.newText,
         }
+    }
+
+    public static fromJSON(arg: ReturnType<(typeof TextEdit)['prototype']['toJSON']>): TextEdit {
+        return new TextEdit(Range.fromPlain(arg.range), arg.newText)
     }
 }

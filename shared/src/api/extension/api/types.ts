@@ -71,7 +71,7 @@ export function fromDiagnostic(diag: sourcegraph.Diagnostic): clientType.Diagnos
  */
 export function fromWorkspaceEdit(edit: sourcegraph.WorkspaceEdit): clientType.WorkspaceEdit {
     return {
-        entries: Array.from(edit.textEdits()).map([uri, edits]),
+        operations: Array.from(edit.textEdits()).map([uri, edits]),
     }
 }
 

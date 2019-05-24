@@ -1,7 +1,7 @@
 import * as comlink from '@sourcegraph/comlink'
 import { Location, MarkupKind, Position, Range, Selection } from '@sourcegraph/extension-api-classes'
-import { WorkspaceEdit } from '../client/types/workspaceEdit'
-import { TextEdit } from '../client/types/textEdit'
+import { WorkspaceEdit } from '../types/workspaceEdit'
+import { TextEdit } from '../types/textEdit'
 import { Subscription, Unsubscribable } from 'rxjs'
 import * as sourcegraph from 'sourcegraph'
 import { EndpointPair } from '../../platform/context'
@@ -21,7 +21,7 @@ import { ExtRoots } from './api/roots'
 import { ExtSearch } from './api/search'
 import { ExtViews } from './api/views'
 import { ExtWindows } from './api/windows'
-import { DiagnosticSeverity } from '../client/types/diagnosticCollection'
+import { DiagnosticSeverity } from '../types/diagnosticCollection'
 
 /**
  * Required information when initializing an extension host.
