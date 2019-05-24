@@ -158,10 +158,18 @@ export const ThreadInboxItemsNavbar: React.FunctionComponent<Props> = ({
                             threadSettings={threadSettings}
                             buttonClassName="btn-link text-decoration-none"
                         />
-                        <button type="button" className="btn btn-secondary mr-2" onClick={() => setShowFilter(true)}>
+                        <button
+                            type="button"
+                            className="btn btn-link text-decoration-none"
+                            onClick={() => setShowFilter(true)}
+                        >
                             <SourcePullIcon className="icon-inline" /> Add all to pull requests
                         </button>
-                        <button type="button" className="btn btn-secondary" onClick={() => setShowFilter(true)}>
+                        <button
+                            type="button"
+                            className="btn btn-link text-decoration-none"
+                            onClick={() => setShowFilter(true)}
+                        >
                             <FilterIcon /> Filter...
                         </button>
                     </div>

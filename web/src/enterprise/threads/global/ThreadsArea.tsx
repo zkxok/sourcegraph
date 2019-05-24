@@ -3,6 +3,7 @@ import React, { useEffect } from 'react'
 import { Route, RouteComponentProps, Switch } from 'react-router'
 import { ExtensionsControllerProps } from '../../../../../shared/src/extensions/controller'
 import * as GQL from '../../../../../shared/src/graphql/schema'
+import { PlatformContextProps } from '../../../../../shared/src/platform/context'
 import { HeroPage } from '../../../components/HeroPage'
 import { registerDiscussionsContributions } from '../../../repo/blob/discussions/contributions'
 import { ThreadArea } from '../detail/ThreadArea'
@@ -18,7 +19,7 @@ const NotFoundPage: React.FunctionComponent = () => (
  * Properties passed to all page components in the threads area (and derived areas, such as checks
  * and codemods).
  */
-export interface ThreadsAreaContext extends ExtensionsControllerProps {
+export interface ThreadsAreaContext extends ExtensionsControllerProps, PlatformContextProps {
     project: Pick<GQL.IProject, 'id' | 'name' | 'url'>
     type: GQL.ThreadType
     authenticatedUser: GQL.IUser | null

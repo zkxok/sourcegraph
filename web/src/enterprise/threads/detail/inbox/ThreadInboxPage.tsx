@@ -2,12 +2,13 @@ import H from 'history'
 import React from 'react'
 import { ExtensionsControllerProps } from '../../../../../../shared/src/extensions/controller'
 import * as GQL from '../../../../../../shared/src/graphql/schema'
+import { PlatformContextProps } from '../../../../../../shared/src/platform/context'
 import { WithQueryParameter } from '../../components/withQueryParameter/WithQueryParameter'
 import { ThreadSettings } from '../../settings'
 import { threadsQueryWithValues } from '../../url'
 import { ThreadInboxItemsList } from './ThreadInboxItemsList'
 
-interface Props extends ExtensionsControllerProps {
+interface Props extends ExtensionsControllerProps, PlatformContextProps {
     thread: GQL.IDiscussionThread
     onThreadUpdate: (thread: GQL.IDiscussionThread) => void
     threadSettings: ThreadSettings

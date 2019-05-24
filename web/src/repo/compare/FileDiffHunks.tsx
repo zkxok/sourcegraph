@@ -38,7 +38,7 @@ const DiffBoundary: React.FunctionComponent<{
 
 const DiffHunk: React.FunctionComponent<{
     /** The anchor (URL hash link) of the file diff. The component creates sub-anchors with this prefix. */
-    fileDiffAnchor: string
+    fileDiffAnchor?: string
 
     hunk: GQL.IFileDiffHunk
     lineNumbers: boolean
@@ -66,16 +66,18 @@ const DiffHunk: React.FunctionComponent<{
                     if (line[0] !== '-') {
                         newLine++
                     }
-                    const oldAnchor = `${fileDiffAnchor}L${oldLine - 1}`
-                    const newAnchor = `${fileDiffAnchor}R${newLine - 1}`
+                    const anchors =
+                        fileDiffAnchor !== undefined
+                            ? { old: `${fileDiffAnchor}L${oldLine - 1}`, new: `${fileDiffAnchor}R${newLine - 1}` }
+                            : null
                     return (
                         <tr
                             key={i}
                             className={`diff-hunk__line ${line[0] === ' ' ? 'diff-hunk__line--both' : ''} ${
                                 line[0] === '-' ? 'diff-hunk__line--deletion' : ''
                             } ${line[0] === '+' ? 'diff-hunk__line--addition' : ''} ${
-                                (line[0] !== '+' && location.hash === '#' + oldAnchor) ||
-                                (line[0] !== '-' && location.hash === '#' + newAnchor)
+                                (anchors && line[0] !== '+' && location.hash === '#' + anchors.old) ||
+                                (anchors && line[0] !== '-' && location.hash === '#' + anchors.new)
                                     ? 'diff-hunk__line--active'
                                     : ''
                             }`}
@@ -87,9 +89,9 @@ const DiffHunk: React.FunctionComponent<{
                                             className="diff-hunk__num"
                                             data-line={oldLine - 1}
                                             data-part="base"
-                                            id={oldAnchor}
+                                            id={anchors ? anchors.old : undefined}
                                             // tslint:disable-next-line:jsx-no-lambda need access to props
-                                            onClick={() => history.push({ hash: oldAnchor })}
+                                            onClick={anchors ? () => history.push({ hash: anchors.old }) : undefined}
                                         />
                                     ) : (
                                         <td className="diff-hunk__num diff-hunk__num--empty" />
@@ -99,9 +101,9 @@ const DiffHunk: React.FunctionComponent<{
                                             className="diff-hunk__num"
                                             data-line={newLine - 1}
                                             data-part="head"
-                                            id={newAnchor}
+                                            id={anchors ? anchors.new : undefined}
                                             // tslint:disable-next-line:jsx-no-lambda need access to props
-                                            onClick={() => history.push({ hash: newAnchor })}
+                                            onClick={anchors ? () => history.push({ hash: anchors.new }) : undefined}
                                         />
                                     ) : (
                                         <td className="diff-hunk__num diff-hunk__num--empty" />
@@ -184,7 +186,7 @@ interface Part {
 
 interface Props extends PlatformContextProps {
     /** The anchor (URL hash link) of the file diff. The component creates sub-anchors with this prefix. */
-    fileDiffAnchor: string
+    fileDiffAnchor?: string
 
     /** The base repository, revision, and file. */
     base: Part
@@ -198,10 +200,10 @@ interface Props extends PlatformContextProps {
     /** Whether to show line numbers. */
     lineNumbers: boolean
 
-    className: string
+    className?: string
     location: H.Location
     history: H.History
-    hoverifier: Hoverifier<RepoSpec & RevSpec & FileSpec & ResolvedRevSpec, HoverMerged, ActionItemAction>
+    hoverifier?: Hoverifier<RepoSpec & RevSpec & FileSpec & ResolvedRevSpec, HoverMerged, ActionItemAction>
 }
 
 interface State {}
@@ -245,22 +247,24 @@ export class FileDiffHunks extends React.Component<Props, State> {
             mouseIsMoving: false,
         }
 
-        this.subscriptions.add(
-            this.props.hoverifier.hoverify({
-                dom: diffDomFunctions,
-                positionEvents: this.codeElements.pipe(
-                    filter(isDefined),
-                    findPositionsFromEvents(diffDomFunctions)
-                ),
-                positionJumps: NEVER, // TODO support diff URLs
-                resolveContext: hoveredToken => {
-                    // if part is undefined, it doesn't matter whether we chose head or base, the line stayed the same
-                    const { repoName, rev, filePath, commitID } = this.props[hoveredToken.part || 'head']
-                    // If a hover or go-to-definition was invoked on this part, we know the file path must exist
-                    return { repoName, filePath: filePath!, rev, commitID }
-                },
-            })
-        )
+        if (this.props.hoverifier) {
+            this.subscriptions.add(
+                this.props.hoverifier.hoverify({
+                    dom: diffDomFunctions,
+                    positionEvents: this.codeElements.pipe(
+                        filter(isDefined),
+                        findPositionsFromEvents(diffDomFunctions)
+                    ),
+                    positionJumps: NEVER, // TODO support diff URLs
+                    resolveContext: hoveredToken => {
+                        // if part is undefined, it doesn't matter whether we chose head or base, the line stayed the same
+                        const { repoName, rev, filePath, commitID } = this.props[hoveredToken.part || 'head']
+                        // If a hover or go-to-definition was invoked on this part, we know the file path must exist
+                        return { repoName, filePath: filePath!, rev, commitID }
+                    },
+                })
+            )
+        }
     }
 
     public componentDidUpdate(): void {
@@ -277,7 +281,7 @@ export class FileDiffHunks extends React.Component<Props, State> {
 
     public render(): JSX.Element | null {
         return (
-            <div className={`file-diff-hunks ${this.props.className}`} ref={this.nextBlobElement}>
+            <div className={`file-diff-hunks ${this.props.className || ''}`} ref={this.nextBlobElement}>
                 {this.props.hunks.length === 0 ? (
                     <div className="text-muted m-2">No changes</div>
                 ) : (

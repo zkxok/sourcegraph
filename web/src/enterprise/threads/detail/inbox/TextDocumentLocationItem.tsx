@@ -9,11 +9,13 @@ import { LinkOrSpan } from '../../../../../../shared/src/components/LinkOrSpan'
 import { displayRepoName } from '../../../../../../shared/src/components/RepoFileLink'
 import { ExtensionsControllerProps } from '../../../../../../shared/src/extensions/controller'
 import * as GQL from '../../../../../../shared/src/graphql/schema'
+import { PlatformContextProps } from '../../../../../../shared/src/platform/context'
 import { fetchHighlightedFileLines } from '../../../../repo/backend'
+import { FileDiffHunks } from '../../../../repo/compare/FileDiffHunks'
 import { ThreadSettings } from '../../settings'
 import { ThreadInboxItemActions } from './ThreadInboxItemActions'
 
-interface Props extends ExtensionsControllerProps {
+interface Props extends ExtensionsControllerProps, PlatformContextProps {
     thread: Pick<GQL.IDiscussionThread, 'id' | 'idWithoutKind' | 'settings'>
     onThreadUpdate: (thread: GQL.IDiscussionThread) => void
     threadSettings: ThreadSettings
@@ -87,10 +89,10 @@ export const TextDocumentLocationInboxItem: React.FunctionComponent<Props> = ({
                     )}
                     </div>*/}
             </div>
-            {inboxItem.path && (
+            {inboxItem.path && false ? (
                 <CodeExcerpt
                     repoName={inboxItem.repository.name}
-                    commitID="master" // TODO!(sqs)
+                    commitID="master" // TODO!(sqs) un-hardcode master
                     filePath={inboxItem.path}
                     context={3}
                     highlightRanges={
@@ -108,6 +110,40 @@ export const TextDocumentLocationInboxItem: React.FunctionComponent<Props> = ({
                     className="p-1 overflow-auto"
                     isLightTheme={isLightTheme}
                     fetchHighlightedFileLines={fetchHighlightedFileLines}
+                />
+            ) : (
+                <FileDiffHunks
+                    {...props}
+                    base={{
+                        repoName: inboxItem.repository.name,
+                        repoID: inboxItem.repository.id,
+                        rev: inboxItem.revision
+                            ? inboxItem.revision.name
+                            : 'master' /* TODO!(sqs) un-hardcode master */,
+                        commitID: 'master' /* TODO!(sqs) un-hardcode master */,
+                        filePath: inboxItem.path,
+                    }}
+                    head={{
+                        repoName: inboxItem.repository.name,
+                        repoID: inboxItem.repository.id,
+                        rev: inboxItem.revision
+                            ? inboxItem.revision.name
+                            : 'master' /* TODO!(sqs) un-hardcode master */,
+                        commitID: 'master' /* TODO!(sqs) un-hardcode master */,
+                        filePath: inboxItem.path,
+                    }}
+                    hunks={[
+                        {
+                            __typename: 'FileDiffHunk' as const,
+                            body: ' hello\n-world\n+awesome world\n',
+                            oldRange: { __typename: 'FileDiffHunkRange' as const, startLine: 1, lines: 3 },
+                            newRange: { __typename: 'FileDiffHunkRange' as const, startLine: 1, lines: 3 },
+                            oldNoNewlineAt: false,
+                            section: null,
+                        },
+                    ]}
+                    lineNumbers={false}
+                    className="overflow-auto"
                 />
             )}
             <ThreadInboxItemActions

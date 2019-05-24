@@ -6,6 +6,7 @@ import { WithStickyTop } from '../../../../../../shared/src/components/withStick
 import { ExtensionsControllerProps } from '../../../../../../shared/src/extensions/controller'
 import { gql } from '../../../../../../shared/src/graphql/graphql'
 import * as GQL from '../../../../../../shared/src/graphql/schema'
+import { PlatformContextProps } from '../../../../../../shared/src/platform/context'
 import { asError, createAggregateError, ErrorLike, isErrorLike } from '../../../../../../shared/src/util/errors'
 import { queryGraphQL } from '../../../../backend/graphql'
 import { discussionThreadTargetFieldsFragment } from '../../../../discussions/backend'
@@ -55,7 +56,7 @@ const queryInboxItems = (threadID: GQL.ID): Promise<GQL.IDiscussionThreadTargetC
         )
         .toPromise()
 
-interface Props extends ExtensionsControllerProps, QueryParameterProps {
+interface Props extends QueryParameterProps, ExtensionsControllerProps, PlatformContextProps {
     thread: Pick<GQL.IDiscussionThread, 'id' | 'idWithoutKind' | 'title' | 'type' | 'settings'>
     onThreadUpdate: (thread: GQL.IDiscussionThread) => void
     threadSettings: ThreadSettings
@@ -76,10 +77,7 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
     threadSettings,
     query,
     onQueryChange,
-    history,
-    location,
-    isLightTheme,
-    extensionsController,
+    ...props
 }) => {
     const [itemsOrError, setItemsOrError] = useState<
         | typeof LOADING
@@ -154,6 +152,7 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
                         <WithStickyTop scrollContainerSelector=".thread-area">
                             {({ isStuck }) => (
                                 <ThreadInboxItemsNavbar
+                                    {...props}
                                     thread={thread}
                                     onThreadUpdate={onThreadUpdate}
                                     threadSettings={threadSettings}
@@ -164,8 +163,6 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
                                     className={`sticky-top position-sticky row bg-body thread-inbox-items-list__navbar py-2 px-3 ${
                                         isStuck ? 'border-bottom shadow' : ''
                                     }`}
-                                    location={location}
-                                    extensionsController={extensionsController}
                                 />
                             )}
                         </WithStickyTop>
@@ -179,6 +176,7 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
                             {itemsOrError.matchingNodes.map((item, i) => (
                                 <li key={i}>
                                     <TextDocumentLocationInboxItem
+                                        {...props}
                                         key={i}
                                         thread={thread}
                                         threadSettings={threadSettings}
@@ -186,10 +184,6 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
                                         inboxItem={item}
                                         onInboxItemUpdate={onInboxItemUpdate}
                                         className="my-3"
-                                        isLightTheme={isLightTheme}
-                                        history={history}
-                                        location={location}
-                                        extensionsController={extensionsController}
                                     />
                                 </li>
                             ))}
