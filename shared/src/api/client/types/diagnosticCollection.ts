@@ -1,5 +1,6 @@
 import { Diagnostic } from '@sourcegraph/extension-api-types'
 import { Subject, Subscribable } from 'rxjs'
+import * as sourcegraph from 'sourcegraph'
 
 /**
  * A collection of diagnostics.

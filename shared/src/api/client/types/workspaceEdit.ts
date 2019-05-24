@@ -1,93 +1,43 @@
-export interface IFileOperationOptions {
+import { Position, Range } from '@sourcegraph/extension-api-classes'
+import * as sourcegraph from 'sourcegraph'
+import { TextEdit } from './textEdit'
+
+export interface FileOperationOptions {
     overwrite?: boolean
     ignoreIfExists?: boolean
     ignoreIfNotExists?: boolean
     recursive?: boolean
 }
 
-export interface IFileOperation {
-    _type: 1
-    from?: URI
-    to?: URI
-    options?: IFileOperationOptions
+export enum WorkspaceEditOperationType {
+    FileOperation,
+    FileTextEdit,
 }
 
-export interface IFileTextEdit {
-    _type: 2
-    uri: URI
-    edit: TextEdit
+export interface FileOperation {
+    type: WorkspaceEditOperationType.FileOperation
+    from?: URL
+    to?: URL
+    options?: FileOperationOptions
 }
 
-export class WorkspaceEdit implements vscode.WorkspaceEdit {
-    private _edits = new Array<IFileOperation | IFileTextEdit>()
+export interface FileTextEdit {
+    type: WorkspaceEditOperationType.FileTextEdit
+    uri: URL
+    edit: sourcegraph.TextEdit
+}
 
-    renameFile(from: vscode.Uri, to: vscode.Uri, options?: { overwrite?: boolean; ignoreIfExists?: boolean }): void {
-        this._edits.push({ _type: 1, from, to, options })
+export class WorkspaceEdit implements sourcegraph.WorkspaceEdit {
+    private _edits: (FileOperation | FileTextEdit)[] = []
+
+    public entries(): IterableIterator<[URL, sourcegraph.TextEdit[]]> {
+        return this.groupedEntries().values()
     }
 
-    createFile(uri: vscode.Uri, options?: { overwrite?: boolean; ignoreIfExists?: boolean }): void {
-        this._edits.push({ _type: 1, from: undefined, to: uri, options })
-    }
-
-    deleteFile(uri: vscode.Uri, options?: { recursive?: boolean; ignoreIfNotExists?: boolean }): void {
-        this._edits.push({ _type: 1, from: uri, to: undefined, options })
-    }
-
-    replace(uri: URI, range: Range, newText: string): void {
-        this._edits.push({ _type: 2, uri, edit: new TextEdit(range, newText) })
-    }
-
-    insert(resource: URI, position: Position, newText: string): void {
-        this.replace(resource, new Range(position, position), newText)
-    }
-
-    delete(resource: URI, range: Range): void {
-        this.replace(resource, range, '')
-    }
-
-    has(uri: URI): boolean {
-        for (const edit of this._edits) {
-            if (edit._type === 2 && edit.uri.toString() === uri.toString()) {
-                return true
-            }
-        }
-        return false
-    }
-
-    set(uri: URI, edits: TextEdit[]): void {
-        if (!edits) {
-            // remove all text edits for `uri`
-            for (let i = 0; i < this._edits.length; i++) {
-                const element = this._edits[i]
-                if (element._type === 2 && element.uri.toString() === uri.toString()) {
-                    this._edits[i] = undefined! // will be coalesced down below
-                }
-            }
-            this._edits = coalesce(this._edits)
-        } else {
-            // append edit to the end
-            for (const edit of edits) {
-                if (edit) {
-                    this._edits.push({ _type: 2, uri, edit })
-                }
-            }
-        }
-    }
-
-    get(uri: URI): TextEdit[] {
-        const res: TextEdit[] = []
-        for (let candidate of this._edits) {
-            if (candidate._type === 2 && candidate.uri.toString() === uri.toString()) {
-                res.push(candidate.edit)
-            }
-        }
-        return res
-    }
-
-    entries(): [URI, TextEdit[]][] {
-        const textEdits = new Map<string, [URI, TextEdit[]]>()
-        for (let candidate of this._edits) {
-            if (candidate._type === 2) {
+    private groupedEntries(): Map<string, [URL, sourcegraph.TextEdit[]]> {
+        const textEdits = new Map<string, [URL, sourcegraph.TextEdit[]]>()
+        for (const candidate of this._edits) {
+            if (candidate.type === WorkspaceEditOperationType.FileTextEdit) {
                 let textEdit = textEdits.get(candidate.uri.toString())
                 if (!textEdit) {
                     textEdit = [candidate.uri, []]
@@ -96,26 +46,77 @@ export class WorkspaceEdit implements vscode.WorkspaceEdit {
                 textEdit[1].push(candidate.edit)
             }
         }
-        return values(textEdits)
+        return textEdits
     }
 
-    _allEntries(): ([URI, TextEdit[]] | [URI?, URI?, IFileOperationOptions?])[] {
-        const res: ([URI, TextEdit[]] | [URI?, URI?, IFileOperationOptions?])[] = []
-        for (let edit of this._edits) {
-            if (edit._type === 1) {
-                res.push([edit.from, edit.to, edit.options])
-            } else {
-                res.push([edit.uri, [edit.edit]])
+    public get size(): number {
+        return this.groupedEntries().size
+    }
+
+    public get(uri: URL): sourcegraph.TextEdit[] {
+        const res: sourcegraph.TextEdit[] = []
+        for (const candidate of this._edits) {
+            if (
+                candidate.type === WorkspaceEditOperationType.FileTextEdit &&
+                candidate.uri.toString() === uri.toString()
+            ) {
+                res.push(candidate.edit)
             }
         }
         return res
     }
 
-    get size(): number {
-        return this.entries().length
+    public has(uri: URL): boolean {
+        for (const edit of this._edits) {
+            if (edit.type === WorkspaceEditOperationType.FileTextEdit && edit.uri.toString() === uri.toString()) {
+                return true
+            }
+        }
+        return false
     }
 
-    toJSON(): any {
+    public set(uri: URL, edits?: sourcegraph.TextEdit[]): void {
+        if (!edits) {
+            // Remove all text edits for `uri`.
+            this._edits = this._edits.filter(
+                edit =>
+                    !(edit.type === WorkspaceEditOperationType.FileTextEdit && edit.uri.toString() === uri.toString())
+            )
+        } else {
+            // Append edit to the end.
+            for (const edit of edits) {
+                if (edit) {
+                    this._edits.push({ type: WorkspaceEditOperationType.FileTextEdit, uri, edit })
+                }
+            }
+        }
+    }
+
+    public createFile(uri: URL, options?: { overwrite?: boolean; ignoreIfExists?: boolean }): void {
+        this._edits.push({ type: WorkspaceEditOperationType.FileOperation, from: undefined, to: uri, options })
+    }
+
+    public deleteFile(uri: URL, options?: { recursive?: boolean; ignoreIfNotExists?: boolean }): void {
+        this._edits.push({ type: WorkspaceEditOperationType.FileOperation, from: uri, to: undefined, options })
+    }
+
+    public renameFile(from: URL, to: URL, options?: { overwrite?: boolean; ignoreIfExists?: boolean }): void {
+        this._edits.push({ type: WorkspaceEditOperationType.FileOperation, from, to, options })
+    }
+
+    public replace(uri: URL, range: Range, newText: string): void {
+        this._edits.push({ type: WorkspaceEditOperationType.FileTextEdit, uri, edit: new TextEdit(range, newText) })
+    }
+
+    public insert(resource: URL, position: Position, newText: string): void {
+        this.replace(resource, new Range(position, position), newText)
+    }
+
+    public delete(resource: URL, range: Range): void {
+        this.replace(resource, range, '')
+    }
+
+    public toJSON(): any {
         return this.entries()
     }
 }

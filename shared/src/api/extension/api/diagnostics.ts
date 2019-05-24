@@ -1,10 +1,10 @@
+import { map } from 'rxjs/operators'
+import { Range } from '@sourcegraph/extension-api-classes'
 import { ProxyResult, ProxyValue, proxyValueSymbol } from '@sourcegraph/comlink'
 import { Unsubscribable, from } from 'rxjs'
 import * as sourcegraph from 'sourcegraph'
 import { ClientDiagnosticsAPI, DiagnosticData } from '../../client/api/diagnostics'
 import { DiagnosticCollection } from '../../client/types/diagnosticCollection'
-import { map } from 'rxjs/operators'
-import { Range } from '@sourcegraph/extension-api-classes'
 
 /** @internal */
 export interface ExtDiagnosticsAPI extends ProxyValue {

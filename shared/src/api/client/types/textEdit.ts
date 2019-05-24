@@ -1,79 +1,36 @@
-export class TextEdit {
-    static isTextEdit(thing: any): thing is TextEdit {
+import { Position, Range } from '@sourcegraph/extension-api-classes'
+import * as sourcegraph from 'sourcegraph'
+
+export class TextEdit implements sourcegraph.TextEdit {
+    public static isTextEdit(thing: any): thing is TextEdit {
         if (thing instanceof TextEdit) {
             return true
         }
         if (!thing) {
             return false
         }
-        return Range.isRange(<TextEdit>thing) && typeof (<TextEdit>thing).newText === 'string'
+        // tslint:disable-next-line: strict-type-predicates
+        return Range.isRange(thing as TextEdit) && typeof (thing as TextEdit).newText === 'string'
     }
 
-    static replace(range: Range, newText: string): TextEdit {
+    public static replace(range: Range, newText: string): TextEdit {
         return new TextEdit(range, newText)
     }
 
-    static insert(position: Position, newText: string): TextEdit {
+    public static insert(position: Position, newText: string): TextEdit {
         return TextEdit.replace(new Range(position, position), newText)
     }
 
-    static delete(range: Range): TextEdit {
+    public static delete(range: Range): TextEdit {
         return TextEdit.replace(range, '')
     }
 
-    static setEndOfLine(eol: EndOfLine): TextEdit {
-        const ret = new TextEdit(new Range(new Position(0, 0), new Position(0, 0)), '')
-        ret.newEol = eol
-        return ret
-    }
+    constructor(public readonly range: Range, public readonly newText: string) {}
 
-    protected _range: Range
-    protected _newText: string | null
-    protected _newEol: EndOfLine
-
-    get range(): Range {
-        return this._range
-    }
-
-    set range(value: Range) {
-        if (value && !Range.isRange(value)) {
-            throw illegalArgument('range')
-        }
-        this._range = value
-    }
-
-    get newText(): string {
-        return this._newText || ''
-    }
-
-    set newText(value: string) {
-        if (value && typeof value !== 'string') {
-            throw illegalArgument('newText')
-        }
-        this._newText = value
-    }
-
-    get newEol(): EndOfLine {
-        return this._newEol
-    }
-
-    set newEol(value: EndOfLine) {
-        if (value && typeof value !== 'number') {
-            throw illegalArgument('newEol')
-        }
-        this._newEol = value
-    }
-
-    constructor(range: Range, newText: string | null) {
-        this.range = range
-        this._newText = newText
-    }
-
-    toJSON(): any {
+    public toJSON(): any {
         return {
             range: this.range,
             newText: this.newText,
-            newEol: this._newEol,
         }
     }
 }

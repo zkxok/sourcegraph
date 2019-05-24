@@ -432,9 +432,40 @@ declare module 'sourcegraph' {
      */
     export class WorkspaceEdit {
         /**
+         * Get all text edits grouped by resource.
+         *
+         * @return A shallow copy of `[URL, TextEdit[]]`-tuples.
+         */
+        entries(): IterableIterator<[URL, TextEdit[]]>
+
+        /**
          * The number of affected resources of textual or resource changes.
          */
         readonly size: number
+
+        /**
+         * Get the text edits for a resource.
+         *
+         * @param uri A resource identifier.
+         * @return An array of text edits.
+         */
+        get(uri: URL): TextEdit[]
+
+        /**
+         * Check if a text edit for a resource exists.
+         *
+         * @param uri A resource identifier.
+         * @return `true` if the given resource will be touched by this edit.
+         */
+        has(uri: URL): boolean
+
+        /**
+         * Set (and replace) text edits for a resource.
+         *
+         * @param uri A resource identifier.
+         * @param edits An array of text edits.
+         */
+        set(uri: URL, edits: TextEdit[]): void
 
         /**
          * Replace the given range with given text for the given resource.
@@ -463,30 +494,6 @@ declare module 'sourcegraph' {
         delete(uri: URL, range: Range): void
 
         /**
-         * Check if a text edit for a resource exists.
-         *
-         * @param uri A resource identifier.
-         * @return `true` if the given resource will be touched by this edit.
-         */
-        has(uri: URL): boolean
-
-        /**
-         * Set (and replace) text edits for a resource.
-         *
-         * @param uri A resource identifier.
-         * @param edits An array of text edits.
-         */
-        set(uri: URL, edits: TextEdit[]): void
-
-        /**
-         * Get the text edits for a resource.
-         *
-         * @param uri A resource identifier.
-         * @return An array of text edits.
-         */
-        get(uri: URL): TextEdit[]
-
-        /**
          * Create a regular file.
          *
          * @param uri URL of the new file..
@@ -511,13 +518,6 @@ declare module 'sourcegraph' {
          * overwrite and ignoreIfExists are both set overwrite wins.
          */
         renameFile(oldUrl: URL, newUrl: URL, options?: { overwrite?: boolean; ignoreIfExists?: boolean }): void
-
-        /**
-         * Get all text edits grouped by resource.
-         *
-         * @return A shallow copy of `[URL, TextEdit[]]`-tuples.
-         */
-        entries(): [URL, TextEdit[]][]
     }
 
     /**
