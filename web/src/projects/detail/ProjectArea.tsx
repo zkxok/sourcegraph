@@ -88,7 +88,7 @@ export const ProjectArea: React.FunctionComponent<Props> = props => {
     }
 
     return (
-        <div className="project-area border-top flex-1 d-flex overflow-hidden">
+        <div className="project-area flex-1 d-flex overflow-hidden">
             <ProjectAreaSidebar {...context} className="project-area__sidebar flex-0 border-right" />
             <div className="flex-1 overflow-auto d-flex flex-column">
                 <ErrorBoundary location={props.location}>

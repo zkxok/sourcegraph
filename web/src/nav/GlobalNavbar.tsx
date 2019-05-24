@@ -104,7 +104,7 @@ export class GlobalNavbar extends React.PureComponent<Props, State> {
             <img className={`global-navbar__logo ${showFullLogo ? 'global-navbar__logo--full' : ''}`} src={logoSrc} />
         )
         return (
-            <div className={`global-navbar ${this.props.lowProfile ? '' : 'global-navbar--bg'} py-1`}>
+            <div className={`global-navbar ${this.props.lowProfile ? '' : 'global-navbar--bg border-bottom'} py-1`}>
                 {this.props.lowProfile ? (
                     <div />
                 ) : (
