@@ -1,4 +1,5 @@
 import { Diagnostic } from '@sourcegraph/extension-api-types'
+import { Subject, Subscribable } from 'rxjs'
 
 /**
  * A collection of diagnostics.
@@ -6,6 +7,8 @@ import { Diagnostic } from '@sourcegraph/extension-api-types'
 export class DiagnosticCollection<D extends Diagnostic> {
     /** Map of resource URI to the resource's diagnostics. */
     private data = new Map<string, D[]>()
+
+    private _changes = new Subject<URL[]>()
 
     constructor(public readonly name: string) {}
 
@@ -24,16 +27,26 @@ export class DiagnosticCollection<D extends Diagnostic> {
             } else {
                 this.data.delete(key)
             }
+            this.changed(arg1)
         }
     }
 
     public delete(uri: URL | string): void {
         this.data.delete(uri.toString())
+        this.changed(uri)
     }
 
     public clear(): void {
+        const uris = [...this.data.keys()]
         this.data.clear()
+        this.changed(uris)
     }
+
+    private changed(uris: URL | string | (URL | string)[]): void {
+        this._changes.next((Array.isArray(uris) ? uris : [uris]).map(u => (typeof u === 'string' ? new URL(u) : u)))
+    }
+
+    public readonly changes: Subscribable<URL[]> = this._changes
 
     public *getAll(): IterableIterator<[URL, D[]]> {
         for (const [uri, diagnostics] of this.data) {

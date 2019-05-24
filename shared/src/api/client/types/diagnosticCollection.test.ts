@@ -1,7 +1,10 @@
 import { Range } from '@sourcegraph/extension-api-classes'
+import { TestScheduler } from 'rxjs/testing'
 import { Diagnostic } from '@sourcegraph/extension-api-types'
 import * as sourcegraph from 'sourcegraph'
 import { DiagnosticCollection } from './diagnosticCollection'
+import { from, merge } from 'rxjs'
+import { tap, switchMapTo } from 'rxjs/operators'
 
 const FIXTURE_DIAGNOSTIC_1: Diagnostic = {
     message: 'm',
@@ -17,8 +20,10 @@ const FIXTURE_DIAGNOSTIC_2: Diagnostic = {
     range: new Range(5, 6, 7, 8),
 }
 
-const URL_1 = new URL('http://1')
-const URL_2 = new URL('http://2')
+const URL_1 = new URL('http://u1')
+const URL_2 = new URL('http://u2')
+
+const scheduler = () => new TestScheduler((a, b) => expect(a).toEqual(b))
 
 describe('DiagnosticCollection', () => {
     test('', () => {
@@ -40,9 +45,29 @@ describe('DiagnosticCollection', () => {
 
     test('set merges', () => {
         const c = new DiagnosticCollection('a')
-
         c.set(URL_1, [FIXTURE_DIAGNOSTIC_2])
         c.set([[URL_1, FIXTURE_DIAGNOSTICS], [URL_1, FIXTURE_DIAGNOSTICS]])
         expect(Array.from(c.getAll())).toEqual([[URL_1, [...FIXTURE_DIAGNOSTICS, ...FIXTURE_DIAGNOSTICS]]])
+    })
+
+    test('changes', () => {
+        scheduler().run(({ cold, expectObservable }) => {
+            const c = new DiagnosticCollection('a')
+            expectObservable(
+                merge(
+                    from(c.changes),
+                    cold<[URL, Diagnostic[]]>('a-b', {
+                        a: [URL_1, FIXTURE_DIAGNOSTICS],
+                        b: [URL_2, [FIXTURE_DIAGNOSTIC_2]],
+                    }).pipe(
+                        tap(([uri, diagnostics]) => c.set(uri, diagnostics)),
+                        switchMapTo([])
+                    )
+                )
+            ).toBe('a-b', {
+                a: [URL_1],
+                b: [URL_2],
+            })
+        })
     })
 })
