@@ -3,11 +3,14 @@
         width: 3.5rem;
     }
     &--expanded {
-        width: 10rem;
+        width: 12rem;
     }
 
     &__nav-link {
         box-shadow: none !important;
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
         &--active {
             font-weight: bold;
             background-color: rgba(0, 0, 0, 0.25);
@@ -17,6 +20,9 @@
 
 .theme-light .project-area-sidebar {
     &__nav-link {
+        &:hover {
+            background-color: rgba(#566e9f, 0.08);
+        }
         &--active {
             background-color: rgba(#566e9f, 0.1);
         }

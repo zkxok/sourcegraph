@@ -14,6 +14,7 @@ import { HeroPage } from '../../components/HeroPage'
 import { ChecksArea } from '../../enterprise/checks/global/ChecksArea'
 import { ThreadsArea } from '../../enterprise/threads/global/ThreadsArea'
 import { ProjectLabelsPage } from './labels/ProjectLabelsPage'
+import { ProjectSettingsPage } from './settings/ProjectSettingsPage'
 import { ProjectAreaSidebar } from './sidebar/ProjectAreaSidebar'
 
 const getProject = (idWithoutKind: GQL.IProjectOnQueryArguments['idWithoutKind']): Promise<GQL.IProject> =>
@@ -117,6 +118,15 @@ export const ProjectArea: React.FunctionComponent<Props> = props => {
                             exact={true}
                             // tslint:disable-next-line:jsx-no-lambda
                             render={routeComponentProps => <ProjectLabelsPage {...context} {...routeComponentProps} />}
+                        />
+                        <Route
+                            path={`${props.match.url}/settings`}
+                            key="hardcoded-key" // see https://github.com/ReactTraining/react-router/issues/4578#issuecomment-334489490
+                            exact={true}
+                            // tslint:disable-next-line:jsx-no-lambda
+                            render={routeComponentProps => (
+                                <ProjectSettingsPage {...context} {...routeComponentProps} />
+                            )}
                         />
                         <Route key="hardcoded-key" component={NotFoundPage} />
                     </Switch>

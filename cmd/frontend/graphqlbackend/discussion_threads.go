@@ -777,7 +777,8 @@ func (d *discussionThreadResolver) Type() threadType {
 }
 
 func (d *discussionThreadResolver) URL(ctx context.Context) string {
-	return fmt.Sprintf("/threads/%s", d.IDWithoutKind())
+	// TODO!(sqs): hardcoded /p/
+	return fmt.Sprintf("/p/%d/threads/%s", d.t.ProjectID, d.IDWithoutKind())
 }
 
 func (d *discussionThreadResolver) InlineURL(ctx context.Context) (*string, error) {

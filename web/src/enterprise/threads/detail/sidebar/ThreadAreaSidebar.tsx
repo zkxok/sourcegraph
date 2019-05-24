@@ -1,9 +1,13 @@
 import H from 'history'
+import BellIcon from 'mdi-react/BellIcon'
+import UserGroupIcon from 'mdi-react/UserGroupIcon'
+import UserIcon from 'mdi-react/UserIcon'
 import React from 'react'
 import { Toggle } from '../../../../../../shared/src/components/Toggle'
 import { ExtensionsControllerProps } from '../../../../../../shared/src/extensions/controller'
 import * as GQL from '../../../../../../shared/src/graphql/schema'
 import { CollapsibleSidebar } from '../../../../components/collapsibleSidebar/CollapsibleSidebar'
+import { LabelIcon } from '../../../../projects/icons'
 import { ThreadDeleteButton } from '../../form/ThreadDeleteButton'
 import { ThreadSettings } from '../../settings'
 import { CopyThreadLinkButton } from './CopyThreadLinkButton'
@@ -22,9 +26,9 @@ interface Props extends ExtensionsControllerProps {
  */
 export const ThreadAreaSidebar: React.FunctionComponent<Props> = ({ thread, className = '', ...props }) => (
     <CollapsibleSidebar
-        localStorageKey="project-area__sidebar"
+        localStorageKey="thread-area__sidebar"
         side="right"
-        className={`project-area-sidebar d-flex flex-column ${className}`}
+        className={`project-area-sidebar d-flex flex-column border-left ${className}`}
         collapsedClassName="project-area-sidebar--collapsed"
         expandedClassName="project-area-sidebar--expanded"
     >
@@ -32,54 +36,85 @@ export const ThreadAreaSidebar: React.FunctionComponent<Props> = ({ thread, clas
             <div className={`thread-area-sidebar d-flex flex-column ${className}`}>
                 <ul className="list-group list-group-flush px-2">
                     <li className="list-group-item py-3">
-                        <h6>Assignee</h6>
-                        <div>
-                            <strong>@sqs</strong>
-                        </div>
+                        {expanded ? (
+                            <>
+                                <h6>Assignee</h6>
+                                <div>
+                                    <strong>@sqs</strong>
+                                </div>
+                            </>
+                        ) : (
+                            <UserIcon className="icon-inline" data-tooltip={`Assignee: @sqs`} />
+                        )}
                     </li>
                     <li className="list-group-item py-3">
-                        <h6>Labels</h6>
-                        <div>
-                            {thread.title
-                                .toLowerCase()
-                                .split(' ')
-                                .filter(w => w.length >= 3)
-                                .map((label, i) => (
-                                    <span key={i} className={`badge mr-1 ${badgeColorClass(label)}`}>
-                                        {label}
-                                    </span>
-                                ))}
-                        </div>
+                        {expanded ? (
+                            <>
+                                <h6>Labels</h6>
+                                <div>
+                                    {thread.title
+                                        .toLowerCase()
+                                        .split(' ')
+                                        .filter(w => w.length >= 3)
+                                        .map((label, i) => (
+                                            <span key={i} className={`badge mr-1 ${badgeColorClass(label)}`}>
+                                                {label}
+                                            </span>
+                                        ))}
+                                </div>
+                            </>
+                        ) : (
+                            <LabelIcon className="icon-inline" data-tooltip="Labels TODO!(sqs)" />
+                        )}
                     </li>
                     <li className="list-group-item py-3">
-                        <h6>3 participants</h6>
-                        <div className="text-muted">@sqs @jtal3sf @rrono3 @jstykes</div>
+                        {expanded ? (
+                            <>
+                                <h6>3 participants</h6>
+                                <div className="text-muted">@sqs @jtal3sf @rrono3 @jstykes</div>
+                            </>
+                        ) : (
+                            <UserGroupIcon className="icon-inline" data-tooltip="TODO" />
+                        )}
                     </li>
                     <li className="list-group-item py-3">
-                        <h6 className="mb-0 d-flex align-items-center justify-content-between">
-                            Notifications <Toggle value={true} />
-                        </h6>
+                        {expanded ? (
+                            <h6 className="mb-0 d-flex align-items-center justify-content-between">
+                                Notifications <Toggle value={true} />
+                            </h6>
+                        ) : (
+                            <BellIcon className="icon-inline" />
+                        )}
                     </li>
                     <li className="list-group-item py-3">
-                        <h6 className="mb-0 d-flex align-items-center justify-content-between">
-                            Link
+                        {expanded ? (
+                            <h6 className="mb-0 d-flex align-items-center justify-content-between">
+                                Link
+                                <CopyThreadLinkButton
+                                    link={thread.url}
+                                    className="btn btn-link btn-link-sm text-decoration-none px-0"
+                                >
+                                    #{thread.idWithoutKind}
+                                </CopyThreadLinkButton>
+                            </h6>
+                        ) : (
                             <CopyThreadLinkButton
                                 link={thread.url}
                                 className="btn btn-link btn-link-sm text-decoration-none px-0"
-                            >
-                                #{thread.idWithoutKind}
-                            </CopyThreadLinkButton>
-                        </h6>
+                            />
+                        )}
                     </li>
-                    <li className="list-group-item py-3">
-                        <ThreadDeleteButton
-                            {...props}
-                            thread={thread}
-                            buttonClassName="btn-link"
-                            className="btn-sm px-0 text-decoration-none"
-                            includeNounInLabel={true}
-                        />
-                    </li>
+                    {expanded && (
+                        <li className="list-group-item py-3">
+                            <ThreadDeleteButton
+                                {...props}
+                                thread={thread}
+                                buttonClassName="btn-link"
+                                className="btn-sm px-0 text-decoration-none"
+                                includeNounInLabel={true}
+                            />
+                        </li>
+                    )}
                 </ul>
             </div>
         )}

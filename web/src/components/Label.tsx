@@ -1,15 +1,6 @@
 import React from 'react'
-import { hex } from 'wcag-contrast'
 import * as GQL from '../../../shared/src/graphql/schema'
-
-const BLACK = '#000'
-const WHITE = '#fff'
-
-const contrastingForegroundColor = (backgroundColor: string) => {
-    const blackContrast = hex(backgroundColor, BLACK)
-    const whiteContrast = hex(backgroundColor, WHITE)
-    return blackContrast > whiteContrast ? BLACK : WHITE
-}
+import { contrastingForegroundColor } from '../util/contrastingForegroundColor'
 
 interface Props extends Pick<React.HTMLAttributes<HTMLElement>, 'className' | 'onClick'> {
     label: Pick<GQL.ILabel, 'name' | 'color'>

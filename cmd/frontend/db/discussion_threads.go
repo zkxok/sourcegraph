@@ -638,6 +638,7 @@ func (t *discussionThreads) getBySQL(ctx context.Context, query string, args ...
 	rows, err := dbconn.Global.QueryContext(ctx, `
 		SELECT
 			t.id,
+			t.project_id,
 			t.author_user_id,
 			t.title,
 			t.settings,
@@ -657,6 +658,7 @@ func (t *discussionThreads) getBySQL(ctx context.Context, query string, args ...
 		var thread types.DiscussionThread
 		err := rows.Scan(
 			&thread.ID,
+			&thread.ProjectID,
 			&thread.AuthorUserID,
 			&thread.Title,
 			&thread.Settings,

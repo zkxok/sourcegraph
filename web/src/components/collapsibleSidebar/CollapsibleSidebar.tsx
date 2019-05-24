@@ -41,7 +41,7 @@ export const CollapsibleSidebar: React.FunctionComponent<Props> = ({
         setIsExpanded(!isExpanded)
         if (localStorageKey !== undefined) {
             if (isExpanded) {
-                localStorage.deleteItem(localStorageKey)
+                localStorage.removeItem(localStorageKey)
             } else {
                 localStorage.setItem(localStorageKey, 'expanded')
             }

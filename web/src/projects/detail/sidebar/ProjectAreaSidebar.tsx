@@ -1,5 +1,6 @@
-import CircleIcon from 'mdi-react/CircleIcon'
 import FolderTextIcon from 'mdi-react/FolderTextIcon'
+import HomeVariantIcon from 'mdi-react/HomeVariantIcon'
+import SettingsIcon from 'mdi-react/SettingsIcon'
 import React from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { ExtensionsControllerProps } from '../../../../../shared/src/extensions/controller'
@@ -8,7 +9,8 @@ import { CollapsibleSidebar } from '../../../components/collapsibleSidebar/Colla
 import { ChecksIcon } from '../../../enterprise/checks/icons'
 import { ThreadsIcon } from '../../../enterprise/threads/icons'
 import { NavItemWithIconDescriptor } from '../../../util/contributions'
-import { LabelIcon, ProjectIcon } from '../../icons'
+import { ProjectAvatar } from '../../components/ProjectAvatar'
+import { LabelIcon } from '../../icons'
 
 interface Props extends ExtensionsControllerProps {
     project: GQL.IProject
@@ -17,17 +19,18 @@ interface Props extends ExtensionsControllerProps {
 }
 
 const LINKS: NavItemWithIconDescriptor[] = [
-    { to: '', label: 'Project', icon: ProjectIcon, exact: true },
+    { to: '', label: 'Project', icon: HomeVariantIcon, exact: true },
     { to: '/tree', label: 'Repository', icon: FolderTextIcon },
     { to: '/checks', label: 'Checks', icon: ChecksIcon },
     { to: '/threads', label: 'Threads', icon: ThreadsIcon },
     { to: '/labels', label: 'Labels', icon: LabelIcon },
+    { to: '/settings', label: 'Settings', icon: SettingsIcon },
 ]
 
 /**
  * The sidebar for the project area (for a single project).
  */
-export const ProjectAreaSidebar: React.FunctionComponent<Props> = ({ project, areaURL, className = '', ...props }) => (
+export const ProjectAreaSidebar: React.FunctionComponent<Props> = ({ project, areaURL, className = '' }) => (
     <CollapsibleSidebar
         localStorageKey="project-area__sidebar"
         side="left"
@@ -38,8 +41,13 @@ export const ProjectAreaSidebar: React.FunctionComponent<Props> = ({ project, ar
         {expanded => (
             <>
                 <h3>
-                    <Link to={areaURL} className="px-2 pt-3 pb-2 d-block text-decoration-none shadow-none text-body">
-                        {expanded ? project.name : <CircleIcon />}
+                    <Link
+                        to={areaURL}
+                        className="project-area-sidebar__nav-link pt-3 pb-2 d-block text-decoration-none shadow-none text-body px-2 text-truncate"
+                        data-tooltip={expanded ? '' : project.name}
+                    >
+                        <ProjectAvatar project={project} className={expanded ? 'mr-2' : ''} />
+                        {expanded && project.name}
                     </Link>
                 </h3>
                 <ul className="list-group list-group-flush">

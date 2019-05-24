@@ -11,6 +11,7 @@ interface Props {
     thread: GQL.IDiscussionThread
     threadSettings: ThreadSettings
     sections: { review: boolean; actions: boolean; settings: boolean }
+    areaURL: string
     className?: string
 }
 
@@ -24,6 +25,7 @@ export const ThreadAreaNavbar: React.FunctionComponent<Props> = ({
     thread,
     threadSettings,
     sections,
+    areaURL,
     className = '',
 }) => (
     <div className={`thread-area-navbar border-top border-bottom ${className}`}>
@@ -31,7 +33,7 @@ export const ThreadAreaNavbar: React.FunctionComponent<Props> = ({
             <div className="nav nav-pills flex-nowrap">
                 <div className="nav-item">
                     <NavLink
-                        to={thread.url}
+                        to={areaURL}
                         exact={true}
                         className="thread-area-navbar__nav-link nav-link rounded-0"
                         activeClassName="thread-area-navbar__nav-link--active"
@@ -43,7 +45,7 @@ export const ThreadAreaNavbar: React.FunctionComponent<Props> = ({
                 {sections.review && (
                     <div className="nav-item">
                         <NavLink
-                            to={`${thread.url}/inbox`}
+                            to={`${areaURL}/inbox`}
                             className="thread-area-navbar__nav-link nav-link rounded-0"
                             activeClassName="thread-area-navbar__nav-link--active"
                         >
@@ -65,7 +67,7 @@ export const ThreadAreaNavbar: React.FunctionComponent<Props> = ({
                 {sections.actions && (
                     <div className="nav-item">
                         <NavLink
-                            to={`${thread.url}/actions/pull-requests`}
+                            to={`${areaURL}/actions/pull-requests`}
                             className="thread-area-navbar__nav-link nav-link rounded-0"
                             activeClassName="thread-area-navbar__nav-link--active"
                         >
@@ -77,7 +79,7 @@ export const ThreadAreaNavbar: React.FunctionComponent<Props> = ({
                 {sections.settings && (
                     <div className="nav-item">
                         <NavLink
-                            to={`${thread.url}/settings`}
+                            to={`${areaURL}/settings`}
                             className="thread-area-navbar__nav-link nav-link rounded-0"
                             activeClassName="thread-area-navbar__nav-link--active"
                         >

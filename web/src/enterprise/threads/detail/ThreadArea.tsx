@@ -33,6 +33,9 @@ export interface ThreadAreaContext {
 
     /** The thread's parsed JSON settings. */
     threadSettings: ThreadSettings
+
+    /** The project containing the thread. */
+    project: Pick<GQL.IProject, 'id' | 'name' | 'url'> | null
 }
 
 const LOADING: 'loading' = 'loading'
@@ -79,7 +82,7 @@ export const ThreadArea: React.FunctionComponent<Props> = props => {
     }
 
     return (
-        <div className="thread-area border-top flex-1 d-flex overflow-hidden">
+        <div className="thread-area flex-1 d-flex overflow-hidden">
             <div className="flex-1 overflow-auto">
                 <ErrorBoundary location={props.location}>
                     <ThreadOverview {...context} location={props.location} history={props.history} />

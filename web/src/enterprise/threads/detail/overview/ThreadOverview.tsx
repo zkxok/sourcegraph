@@ -2,7 +2,6 @@ import H from 'history'
 import React from 'react'
 import { ExtensionsControllerProps } from '../../../../../../shared/src/extensions/controller'
 import * as GQL from '../../../../../../shared/src/graphql/schema'
-import { ErrorLike } from '../../../../../../shared/src/util/errors'
 import { Timestamp } from '../../../../components/time/Timestamp'
 import { PersonLink } from '../../../../user/PersonLink'
 import { CheckThreadActivationStatusButton } from '../../../checks/threads/form/CheckThreadActivationStatusButton'
@@ -19,6 +18,11 @@ interface Props extends ExtensionsControllerProps {
     onThreadUpdate: (thread: GQL.IDiscussionThread) => void
     threadSettings: ThreadSettings
 
+    /** The project containing the thread. */
+    project: Pick<GQL.IProject, 'id' | 'name' | 'url'> | null
+
+    areaURL: string
+
     history: H.History
     location: H.Location
 }
@@ -30,10 +34,12 @@ export const ThreadOverview: React.FunctionComponent<Props> = ({
     thread,
     onThreadUpdate,
     threadSettings,
+    project,
+    areaURL,
     ...props
 }) => (
     <div className="thread-overview container">
-        <ThreadBreadcrumbs thread={thread} className="py-3" />
+        <ThreadBreadcrumbs thread={thread} project={project} areaURL={areaURL} className="py-3" />
         <hr className="my-0" />
         <div className="d-flex align-items-center py-3">
             <ThreadStatusBadge thread={thread} className="mr-3" />
