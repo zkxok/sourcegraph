@@ -1185,7 +1185,7 @@ declare module 'sourcegraph' {
         /**
          * Get all entries in this collection.
          */
-        getAll(): IterableIterator<[URL, Diagnostic[]]>
+        entries(): IterableIterator<[URL, Diagnostic[]]>
 
         /**
          * Get the diagnostics for a given resource.

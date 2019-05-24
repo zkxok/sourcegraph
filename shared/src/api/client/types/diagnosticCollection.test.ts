@@ -31,14 +31,14 @@ describe('DiagnosticCollection', () => {
         expect(c.name).toBe('a')
 
         c.set(URL_1, FIXTURE_DIAGNOSTICS)
-        expect(Array.from(c.getAll())).toEqual([[URL_1, FIXTURE_DIAGNOSTICS]])
+        expect(Array.from(c.entries())).toEqual([[URL_1, FIXTURE_DIAGNOSTICS]])
         expect(c.get(URL_1)).toEqual(FIXTURE_DIAGNOSTICS)
         expect(c.get(URL_2)).toBe(undefined)
         expect(c.has(URL_1)).toBe(true)
         expect(c.has(URL_2)).toBe(false)
 
         c.delete(URL_1)
-        expect(Array.from(c.getAll())).toEqual([])
+        expect(Array.from(c.entries())).toEqual([])
         expect(c.get(URL_1)).toBe(undefined)
         expect(c.has(URL_1)).toBe(false)
     })
@@ -47,7 +47,7 @@ describe('DiagnosticCollection', () => {
         const c = new DiagnosticCollection('a')
         c.set(URL_1, [FIXTURE_DIAGNOSTIC_2])
         c.set([[URL_1, FIXTURE_DIAGNOSTICS], [URL_1, FIXTURE_DIAGNOSTICS]])
-        expect(Array.from(c.getAll())).toEqual([[URL_1, [...FIXTURE_DIAGNOSTICS, ...FIXTURE_DIAGNOSTICS]]])
+        expect(Array.from(c.entries())).toEqual([[URL_1, [...FIXTURE_DIAGNOSTICS, ...FIXTURE_DIAGNOSTICS]]])
     })
 
     test('changes', () => {

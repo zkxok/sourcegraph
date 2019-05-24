@@ -3,6 +3,7 @@ import { ClientCommandsAPI } from './commands'
 import { ClientConfigurationAPI } from './configuration'
 import { ClientContentAPI } from './content'
 import { ClientContextAPI } from './context'
+import { ClientDiagnosticsAPI } from './diagnostics'
 import { ClientLanguageFeaturesAPI } from './languageFeatures'
 import { ClientSearchAPI } from './search'
 import { ClientViewsAPI } from './views'
@@ -23,4 +24,5 @@ export interface ClientAPI {
     codeEditor: ClientCodeEditorAPI
     views: ClientViewsAPI
     content: ClientContentAPI
+    diagnostics: ClientDiagnosticsAPI
 }

@@ -11,6 +11,7 @@ import { ExtConfiguration } from './api/configuration'
 import { ExtContent } from './api/content'
 import { ExtContext } from './api/context'
 import { createDecorationType } from './api/decorations'
+import { ExtDiagnostics } from './api/diagnostics'
 import { ExtDocuments } from './api/documents'
 import { ExtExtensions } from './api/extensions'
 import { ExtLanguageFeatures } from './api/languageFeatures'
@@ -139,6 +140,9 @@ function createExtensionAPI(
     const commands = new ExtCommands(proxy.commands)
     const content = new ExtContent(proxy.content)
 
+    const diagnostics = new ExtDiagnostics(proxy.diagnostics)
+    subscription.add(diagnostics)
+
     // Expose the extension host API to the client (main thread)
     const extensionHostAPI: ExtensionHostAPI = {
         [comlink.proxyValueSymbol]: true,
@@ -236,6 +240,10 @@ function createExtensionAPI(
                 selector: sourcegraph.DocumentSelector,
                 provider: sourcegraph.CompletionItemProvider
             ) => languageFeatures.registerCompletionItemProvider(selector, provider),
+
+            diagnosticsChanges: diagnostics.diagnosticsChanges,
+            getDiagnostics: diagnostics.getDiagnostics.bind(diagnostics),
+            createDiagnosticCollection: name => diagnostics.createDiagnosticCollection(name),
         },
 
         search: {

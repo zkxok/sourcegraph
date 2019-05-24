@@ -4,12 +4,12 @@ import { Unsubscribable } from 'rxjs'
 import { DiagnosticsService } from '../services/diagnosticsService'
 
 /** The format for sending {@link Diagnostic} data between the client and extension host. */
-type DiagnosticsData = [[string, Diagnostic[]]]
+export type DiagnosticData = [string, Diagnostic[]][]
 
 /** @internal */
 export interface ClientDiagnosticsAPI extends ProxyValue {
     // TODO!(sqs): inefficient
-    $acceptDiagnosticsData(updates: DiagnosticsData): void
+    $acceptDiagnosticsData(updates: DiagnosticData): void
 }
 
 /** @internal */
@@ -18,7 +18,7 @@ export class ClientDiagnostics implements ClientDiagnosticsAPI, Unsubscribable {
 
     constructor(private diagnosticsService: Pick<DiagnosticsService, 'collection'>) {}
 
-    public $acceptDiagnosticsData(data: DiagnosticsData): void {
+    public $acceptDiagnosticsData(data: DiagnosticData): void {
         this.diagnosticsService.collection.set(data)
     }
 

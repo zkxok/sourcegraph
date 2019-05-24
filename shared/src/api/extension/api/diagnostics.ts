@@ -1,28 +1,104 @@
+import { ProxyResult, ProxyValue, proxyValueSymbol } from '@sourcegraph/comlink'
+import { Unsubscribable, from } from 'rxjs'
 import * as sourcegraph from 'sourcegraph'
-import { ProxyInput, ProxyResult, proxyValue } from '@sourcegraph/comlink'
-import { Subject, Unsubscribable } from 'rxjs'
-import { LinkPreviewProvider } from 'sourcegraph'
-import { ClientContentAPI } from '../../client/api/content'
-import { syncSubscription } from '../../util'
-import { toProxyableSubscribable } from './common'
-import { ClientDiagnosticsAPI } from '../../client/api/diagnostics'
+import { ClientDiagnosticsAPI, DiagnosticData } from '../../client/api/diagnostics'
 import { DiagnosticCollection } from '../../client/types/diagnosticCollection'
+import { map } from 'rxjs/operators'
+import { Range } from '@sourcegraph/extension-api-classes'
 
 /** @internal */
+export interface ExtDiagnosticsAPI extends ProxyValue {
+    // TODO!(sqs): inefficient
+    $acceptDiagnosticsData(updates: DiagnosticData): void
+}
+
+class DiagnosticCollectionWithUnsubscribeCallback extends DiagnosticCollection<sourcegraph.Diagnostic> {
+    public onUnsubscribe?: () => void
+
+    public unsubscribe(): void {
+        if (this.onUnsubscribe) {
+            this.onUnsubscribe()
+        }
+        super.unsubscribe()
+    }
+}
+
+/** @internal */
+// TODO!(sqs): this is weird because it stores duplicates of the diagnostics data on the ext host,
+// one for the version of the data received roundtrip from the client and one the original
+// DiagnosticCollection owned by an extension.
 export class ExtDiagnostics
     implements
-        Pick<typeof sourcegraph.languages, 'diagnosticsChanges' | 'getDiagnostics' | 'createDiagnosticCollection'> {
+        ExtDiagnosticsAPI,
+        Pick<typeof sourcegraph.languages, 'diagnosticsChanges' | 'getDiagnostics' | 'createDiagnosticCollection'>,
+        Unsubscribable {
+    public readonly [proxyValueSymbol] = true
+
+    /** All diagnostics data, from the client. */
+    private data = new DiagnosticCollection<sourcegraph.Diagnostic>('')
+
+    /** All diagnostic collections created on the extension host. */
+    private collections: sourcegraph.DiagnosticCollection[] = []
+
     constructor(private proxy: ProxyResult<ClientDiagnosticsAPI>) {}
 
-    public readonly diagnosticsChanges = new Subject<sourcegraph.DiagnosticChangeEvent>()
+    public readonly diagnosticsChanges = from(this.data.changes).pipe(map(uris => ({ uris })))
+
+    public $acceptDiagnosticsData(data: DiagnosticData): void {
+        this.data.set(
+            data.map(([uri, diagnostics]) => [uri, diagnostics.map(d => ({ ...d, range: Range.fromPlain(d.range) }))])
+        )
+    }
 
     public getDiagnostics(resource: URL): sourcegraph.Diagnostic[]
     public getDiagnostics(): [URL, sourcegraph.Diagnostic[]][]
     public getDiagnostics(resource?: URL): sourcegraph.Diagnostic[] | [URL, sourcegraph.Diagnostic[]][] {
-        throw new Error(`not yet implemented ${resource}`)
+        if (resource) {
+            const diagnostics: sourcegraph.Diagnostic[] = []
+            for (const c of this.collections) {
+                diagnostics.push(...(c.get(resource) || []))
+            }
+            return diagnostics
+        }
+
+        const merged = new Map<URL, sourcegraph.Diagnostic[]>()
+        for (const c of this.collections) {
+            for (const [uri, diagnostics] of c.entries()) {
+                merged.set(uri, [...(merged.get(uri) || []), ...diagnostics])
+            }
+        }
+        return [...merged.entries()]
     }
 
     public createDiagnosticCollection(name: string): sourcegraph.DiagnosticCollection {
-        return new DiagnosticCollection<sourcegraph.Diagnostic>(name)
+        const c = new DiagnosticCollectionWithUnsubscribeCallback(name)
+        this.collections.push(c)
+
+        // Send the new data (from all collections) to the client when there is a change to any
+        // collection.
+        const subscription = c.changes.subscribe(() =>
+            this.proxy.$acceptDiagnosticsData(
+                this.getDiagnostics().map(([uri, diagnostics]) => [uri.toString(), diagnostics])
+            )
+        )
+
+        // Remove from ExtDiagnostics#collections array when the DiagnosticCollection is
+        // unsubscribed.
+        c.onUnsubscribe = () => {
+            subscription.unsubscribe()
+            const i = this.collections.indexOf(c)
+            if (i !== -1) {
+                this.collections.splice(i, 1)
+            }
+        }
+
+        return c
+    }
+
+    public unsubscribe(): void {
+        for (const c of this.collections) {
+            c.unsubscribe()
+        }
+        this.data.unsubscribe()
     }
 }

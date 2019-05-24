@@ -132,6 +132,7 @@ export async function createExtensionHostClientConnection(
         codeEditor: clientCodeEditor,
         views: clientViews,
         content: clientContent,
+        diagnostics: clientDiagnostics,
     }
     comlink.expose(clientAPI, endpoints.expose)
 

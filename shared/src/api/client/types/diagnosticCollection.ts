@@ -43,12 +43,15 @@ export class DiagnosticCollection<D extends Diagnostic> {
     }
 
     private changed(uris: URL | string | (URL | string)[]): void {
+        if (Array.isArray(uris) && uris.length === 0) {
+            return
+        }
         this._changes.next((Array.isArray(uris) ? uris : [uris]).map(u => (typeof u === 'string' ? new URL(u) : u)))
     }
 
     public readonly changes: Subscribable<URL[]> = this._changes
 
-    public *getAll(): IterableIterator<[URL, D[]]> {
+    public *entries(): IterableIterator<[URL, D[]]> {
         for (const [uri, diagnostics] of this.data) {
             yield [new URL(uri), diagnostics]
         }
@@ -64,6 +67,7 @@ export class DiagnosticCollection<D extends Diagnostic> {
 
     public unsubscribe(): void {
         this.clear()
+        this._changes.unsubscribe()
     }
 }
 
@@ -72,4 +76,4 @@ export class DiagnosticCollection<D extends Diagnostic> {
  * this diagnostic collection.
  */
 export interface ReadonlyDiagnosticCollection
-    extends Pick<DiagnosticCollection<Diagnostic>, 'getAll' | 'get' | 'has'> {}
+    extends Pick<DiagnosticCollection<Diagnostic>, 'changes' | 'entries' | 'get' | 'has'> {}
