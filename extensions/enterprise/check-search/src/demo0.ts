@@ -47,7 +47,9 @@ function startDiagnostics(): Unsubscribable {
                             }
                         }
                     }`,
-                        vars: { query: 'lang:typescript' },
+                        vars: {
+                            query: 'lang:typescript repo:sourcegraph$ f:^web/src/(components|repo|enterprise)/ count:4',
+                        },
                     })
                     if (resp.errors && resp.errors.length > 0) {
                         throw new Error(`GraphQL error: ${resp.errors.map(e => e.message).join(', ')}`)

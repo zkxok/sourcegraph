@@ -2,11 +2,9 @@ import classNames from 'classnames'
 import H from 'history'
 import { upperFirst } from 'lodash'
 import AlertCircleOutlineIcon from 'mdi-react/AlertCircleOutlineIcon'
-import CancelIcon from 'mdi-react/CancelIcon'
 import React from 'react'
 import * as sourcegraph from 'sourcegraph'
 import { DiagnosticSeverity } from '../../../../../../shared/src/api/types/diagnosticCollection'
-import { CodeExcerpt } from '../../../../../../shared/src/components/CodeExcerpt'
 import { LinkOrSpan } from '../../../../../../shared/src/components/LinkOrSpan'
 import { displayRepoName } from '../../../../../../shared/src/components/RepoFileLink'
 import { ExtensionsControllerProps } from '../../../../../../shared/src/extensions/controller'
@@ -18,11 +16,18 @@ import { ThreadSettings } from '../../settings'
 import { ThreadInboxItemActions } from './ThreadInboxItemActions'
 import { WorkspaceEditPreview } from './WorkspaceEditPreview'
 
+export interface DiagnosticInfo extends sourcegraph.Diagnostic {
+    entry: Pick<GQL.ITreeEntry, 'path' | 'isDirectory' | 'url'> & {
+        commit: Pick<GQL.IGitCommit, 'oid'>
+        repository: Pick<GQL.IRepository, 'name'>
+    } & (Pick<GQL.IGitBlob, '__typename' | 'content'> | Pick<GQL.IGitTree, '__typename'>)
+}
+
 interface Props extends ExtensionsControllerProps, PlatformContextProps {
     thread: Pick<GQL.IDiscussionThread, 'id' | 'idWithoutKind' | 'settings'>
     onThreadUpdate: (thread: GQL.IDiscussionThread) => void
     threadSettings: ThreadSettings
-    diagnostic: sourcegraph.Diagnostic
+    diagnostic: DiagnosticInfo
     className?: string
     isLightTheme: boolean
     history: H.History
@@ -69,16 +74,16 @@ export const ThreadInboxDiagnosticItem: React.FunctionComponent<Props> = ({
                 />
                 <div className="flex-1">
                     <h3 className="d-flex align-items-center mb-0 h6">
-                        <LinkOrSpan to={diagnostic.url} className="text-body">
-                            {diagnostic.path ? (
+                        <LinkOrSpan to={diagnostic.entry.url} className="text-body">
+                            {diagnostic.entry.path ? (
                                 <>
                                     <span className="font-weight-normal">
-                                        {displayRepoName(diagnostic.repository.name)}
+                                        {displayRepoName(diagnostic.entry.repository.name)}
                                     </span>{' '}
-                                    › {diagnostic.path}
+                                    › {diagnostic.entry.path}
                                 </>
                             ) : (
-                                displayRepoName(diagnostic.repository.name)
+                                displayRepoName(diagnostic.entry.repository.name)
                             )}
                         </LinkOrSpan>
                     </h3>
@@ -99,8 +104,8 @@ export const ThreadInboxDiagnosticItem: React.FunctionComponent<Props> = ({
                     )}
                     </div>*/}
             </div>
-            <WorkspaceEditPreview {...props} diagnostic={diagnostic} />
-            <ThreadInboxItemActions {...props} diagnostic={diagnostic} className="border-top" />
+            {/*<WorkspaceEditPreview {...props} diagnostic={diagnostic} />
+            <ThreadInboxItemActions {...props} diagnostic={diagnostic} className="border-top" /> TODO!(sqs)*/}
         </div>
     )
 }

@@ -2,7 +2,7 @@ import { LoadingSpinner } from '@sourcegraph/react-loading-spinner'
 import H from 'history'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { from, Subscription } from 'rxjs'
-import { catchError, map, startWith } from 'rxjs/operators'
+import { catchError, first, map, startWith, switchMap } from 'rxjs/operators'
 import * as sourcegraph from 'sourcegraph'
 import { WithStickyTop } from '../../../../../../shared/src/components/withStickyTop/WithStickyTop'
 import { ExtensionsControllerProps } from '../../../../../../shared/src/extensions/controller'
@@ -10,11 +10,13 @@ import { gql } from '../../../../../../shared/src/graphql/graphql'
 import * as GQL from '../../../../../../shared/src/graphql/schema'
 import { PlatformContextProps } from '../../../../../../shared/src/platform/context'
 import { asError, createAggregateError, ErrorLike, isErrorLike } from '../../../../../../shared/src/util/errors'
+import { parseRepoURI } from '../../../../../../shared/src/util/url'
 import { queryGraphQL } from '../../../../backend/graphql'
 import { discussionThreadTargetFieldsFragment } from '../../../../discussions/backend'
 import { QueryParameterProps } from '../../components/withQueryParameter/WithQueryParameter'
 import { ThreadSettings } from '../../settings'
 import { TextDocumentLocationInboxItem } from './TextDocumentLocationItem'
+import { DiagnosticInfo, ThreadInboxDiagnosticItem } from './ThreadInboxDiagnosticItem'
 import { ThreadInboxItemsNavbar } from './ThreadInboxItemsNavbar'
 
 // TODO!(sqs): use relative path/rev for DiscussionThreadTargetRepo
@@ -57,6 +59,51 @@ const queryInboxItems = (threadID: GQL.ID): Promise<GQL.IDiscussionThreadTargetC
             })
         )
         .toPromise()
+
+// TODO!(sqs): use relative path/rev for DiscussionThreadTargetRepo
+const queryCandidateFiles = (uris: URL[]): Promise<[URL, DiagnosticInfo['entry']][]> =>
+    Promise.all(
+        uris.map(uri => {
+            const parsed = parseRepoURI(uri.toString())
+            return queryGraphQL(
+                gql`
+                    query CandidateFile($repo: String!, $rev: String!, $path: String!) {
+                        repository(name: $repo) {
+                            commit(rev: $rev) {
+                                blob(path: $path) {
+                                    path
+                                    content
+                                    repository {
+                                        name
+                                    }
+                                    commit {
+                                        oid
+                                    }
+                                }
+                            }
+                        }
+                    }
+                `,
+                { repo: parsed.repoName, rev: parsed.rev || parsed.commitID, path: parsed.filePath }
+            )
+                .pipe(
+                    map(({ data, errors }) => {
+                        if (
+                            !data ||
+                            !data.repository ||
+                            !data.repository.commit ||
+                            !data.repository.commit.blob ||
+                            (errors && errors.length > 0)
+                        ) {
+                            throw createAggregateError(errors)
+                        }
+                        return data.repository.commit.blob
+                    }),
+                    map(data => [uri, data] as [URL, DiagnosticInfo['entry']])
+                )
+                .toPromise()
+        })
+    )
 
 interface Props extends QueryParameterProps, ExtensionsControllerProps, PlatformContextProps {
     thread: Pick<GQL.IDiscussionThread, 'id' | 'idWithoutKind' | 'title' | 'type' | 'settings'>
@@ -123,9 +170,7 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
         }
     }, [thread.id, threadSettings])
 
-    const [itemsOrError, setItemsOrError] = useState<typeof LOADING | [URL, sourcegraph.Diagnostic[]][] | ErrorLike>(
-        LOADING
-    )
+    const [itemsOrError, setItemsOrError] = useState<typeof LOADING | DiagnosticInfo[] | ErrorLike>(LOADING)
     // tslint:disable-next-line: no-floating-promises
     useEffect(() => {
         const subscriptions = new Subscription()
@@ -133,6 +178,16 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
             from(extensionsController.services.diagnostics.collection.changes)
                 .pipe(
                     map(() => Array.from(extensionsController.services.diagnostics.collection.entries())),
+                    switchMap(async diagEntries => {
+                        const entries = await queryCandidateFiles(diagEntries.map(([url]) => url))
+                        const m = new Map<URL, DiagnosticInfo['entry']>()
+                        for (const [url, entry] of entries) {
+                            m.set(url, entry)
+                        }
+                        return diagEntries.flatMap(([url, diag]) =>
+                            diag.map(d => ({ ...d, entry: m.get(url)! } as DiagnosticInfo))
+                        )
+                    }),
                     catchError(err => [asError(err)]),
                     startWith(LOADING)
                 )
@@ -194,16 +249,15 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
                         <p className="p-2 mb-0 text-muted">Inbox is empty.</p>
                     ) : (
                         <ul className="list-unstyled">
-                            {itemsOrError.map((item0, i) => (
+                            {itemsOrError.map((diagnostic, i) => (
                                 <li key={i}>
-                                    <TextDocumentLocationInboxItem
+                                    <ThreadInboxDiagnosticItem
                                         {...props}
                                         key={i}
                                         thread={thread}
                                         threadSettings={threadSettings}
+                                        diagnostic={diagnostic}
                                         onThreadUpdate={onThreadUpdate}
-                                        inboxItem={item0}
-                                        onInboxItemUpdate={onInboxItemUpdate}
                                         className="my-3"
                                         extensionsController={extensionsController}
                                     />

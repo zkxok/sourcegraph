@@ -15122,7 +15122,7 @@ function startDiagnostics() {
                         }
                     }`,
       vars: {
-        query: 'lang:typescript'
+        query: 'lang:typescript repo:sourcegraph$ f:^web/src/(components|repo|enterprise)/ count:4'
       }
     });
 
