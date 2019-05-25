@@ -10,7 +10,7 @@ const FIXTURE_DIAGNOSTIC: sourcegraph.Diagnostic = {
 
 const FIXTURE_DIAGNOSTICS: sourcegraph.Diagnostic[] = [FIXTURE_DIAGNOSTIC]
 
-const URL_1 = new URL('http://u1')
+const URL_1 = new URL('file:///1')
 
 describe('ExtDiagnostics', () => {
     // TODO!(sqs): failing

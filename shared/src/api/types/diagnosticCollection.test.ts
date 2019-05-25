@@ -20,8 +20,8 @@ const FIXTURE_DIAGNOSTIC_2: Diagnostic = {
     range: new Range(5, 6, 7, 8),
 }
 
-const URL_1 = new URL('http://u1')
-const URL_2 = new URL('http://u2')
+const URL_1 = new URL('file:///1')
+const URL_2 = new URL('file:///2')
 
 const scheduler = () => new TestScheduler((a, b) => expect(a).toEqual(b))
 

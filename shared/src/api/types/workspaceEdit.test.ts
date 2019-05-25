@@ -1,8 +1,8 @@
 import { Range } from '@sourcegraph/extension-api-classes'
 import { WorkspaceEdit } from './workspaceEdit'
 
-const URL_1 = new URL('http://u1')
-const URL_2 = new URL('http://u2')
+const URL_1 = new URL('file:///1')
+const URL_2 = new URL('file:///2')
 
 describe('WorkspaceEdit', () => {
     test('replace', () => {
