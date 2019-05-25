@@ -1,7 +1,7 @@
 // tslint:disable-next-line:no-reference
 /// <reference path="../shared/src/types/terser-webpack-plugin/index.d.ts" />
 
-// import MiniCssExtractPlugin from 'mini-css-extract-plugin'
+import MiniCssExtractPlugin from 'mini-css-extract-plugin'
 import MonacoWebpackPlugin from 'monaco-editor-webpack-plugin'
 import OptimizeCssAssetsPlugin from 'optimize-css-assets-webpack-plugin'
 import * as path from 'path'
@@ -19,6 +19,11 @@ const monacoEditorPaths = [path.resolve(nodeModulesPath, 'monaco-editor')]
 
 const isEnterpriseBuild = !!process.env.ENTERPRISE
 const enterpriseDir = path.resolve(__dirname, 'src', 'enterprise')
+
+const styleEntrypoints = [
+    path.join(__dirname, 'src', 'main.scss'),
+    isEnterpriseBuild ? path.join(__dirname, 'src', 'enterprise.scss') : null,
+].filter((path): path is string => !!path)
 
 const config: webpack.Configuration = {
     context: __dirname, // needed when running `gulp webpackDevServer` from the root dir
@@ -50,11 +55,12 @@ const config: webpack.Configuration = {
         app: [
             'react-hot-loader/patch',
             isEnterpriseBuild ? path.join(enterpriseDir, 'main.tsx') : path.join(__dirname, 'src', 'main.tsx'),
-        ],
-        style: [
-            path.join(__dirname, 'src', 'main.scss'),
-            isEnterpriseBuild ? path.join(__dirname, 'src', 'enterprise.scss') : null,
+
+            // In development, use style-loader for CSS and include the styles in the app
+            // entrypoint. The style.bundle.css file will be empty.
+            ...(mode === 'development' ? styleEntrypoints : []),
         ].filter((path): path is string => !!path),
+        style: mode === 'production' ? styleEntrypoints : [path.join(__dirname, 'src', 'util', 'empty.css')],
 
         'editor.worker': 'monaco-editor/esm/vs/editor/editor.worker.js',
         'json.worker': 'monaco-editor/esm/vs/language/json/json.worker',
@@ -75,7 +81,7 @@ const config: webpack.Configuration = {
                 NODE_ENV: JSON.stringify(mode),
             },
         }),
-        // new MiniCssExtractPlugin({ filename: 'styles/[name].bundle.css' }) as any, // @types package is incorrect
+        new MiniCssExtractPlugin({ filename: 'styles/[name].bundle.css' }) as any, // @types package is incorrect
         new OptimizeCssAssetsPlugin(),
         new MonacoWebpackPlugin({
             languages: ['json'],
@@ -139,10 +145,13 @@ const config: webpack.Configuration = {
                 ],
             },
             {
+                include: path.join(__dirname, 'src', 'util', 'empty.css'),
+                use: [MiniCssExtractPlugin.loader, 'css-loader'],
+            },
+            {
                 test: /\.(sass|scss)$/,
                 use: [
-                    // MiniCssExtractPlugin.loader,
-                    'style-loader',
+                    mode === 'production' ? MiniCssExtractPlugin.loader : 'style-loader',
                     'css-loader',
                     // {
                     //     loader: 'postcss-loader',
