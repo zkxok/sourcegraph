@@ -1,7 +1,9 @@
 import { ProxyResult, ProxyValue, proxyValue, proxyValueSymbol } from '@sourcegraph/comlink'
 import { Hover, Location } from '@sourcegraph/extension-api-types'
+import { map } from 'rxjs/operators'
 import { CodeAction, CompletionList, DocumentSelector, Unsubscribable } from 'sourcegraph'
 import { ProxySubscribable } from '../../extension/api/common'
+import { toCodeAction } from '../../extension/api/types'
 import { ReferenceParams, TextDocumentPositionParams, TextDocumentRegistrationOptions } from '../../protocol'
 import { CodeActionsParams, ProvideCodeActionsSignature } from '../services/codeActions'
 import { ProvideCompletionItemSignature } from '../services/completion'
@@ -152,7 +154,11 @@ export class ClientLanguageFeatures implements ClientLanguageFeaturesAPI, ProxyV
     ): Unsubscribable & ProxyValue {
         return proxyValue(
             this.codeActionsRegistry.registerProvider({ documentSelector }, params =>
-                wrapRemoteObservable(providerFunction(params))
+                wrapRemoteObservable(providerFunction({ ...params, range: (params.range as any).toJSON() })).pipe(
+                    map(codeActions =>
+                        codeActions ? codeActions.map(codeAction => toCodeAction(codeAction)) : codeActions
+                    )
+                )
             )
         )
     }

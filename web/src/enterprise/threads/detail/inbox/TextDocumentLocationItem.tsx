@@ -14,6 +14,7 @@ import { fetchHighlightedFileLines } from '../../../../repo/backend'
 import { FileDiffHunks } from '../../../../repo/compare/FileDiffHunks'
 import { ThreadSettings } from '../../settings'
 import { ThreadInboxItemActions } from './ThreadInboxItemActions'
+import { WorkspaceEditPreview } from './WorkspaceEditPreview'
 
 interface Props extends ExtensionsControllerProps, PlatformContextProps {
     thread: Pick<GQL.IDiscussionThread, 'id' | 'idWithoutKind' | 'settings'>
@@ -111,6 +112,8 @@ export const TextDocumentLocationInboxItem: React.FunctionComponent<Props> = ({
                     isLightTheme={isLightTheme}
                     fetchHighlightedFileLines={fetchHighlightedFileLines}
                 />
+            ) : true ? (
+                <WorkspaceEditPreview {...props} inboxItem={inboxItem} />
             ) : (
                 <FileDiffHunks
                     {...props}

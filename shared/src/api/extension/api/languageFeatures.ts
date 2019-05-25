@@ -11,6 +11,7 @@ import {
     Location,
     LocationProvider,
     ReferenceProvider,
+    CodeAction,
 } from 'sourcegraph'
 import { ClientLanguageFeaturesAPI } from '../../client/api/languageFeatures'
 import { CodeActionsParams } from '../../client/services/codeActions'
@@ -18,7 +19,8 @@ import { ReferenceParams, TextDocumentPositionParams } from '../../protocol'
 import { syncSubscription } from '../../util'
 import { toProxyableSubscribable } from './common'
 import { ExtDocuments } from './documents'
-import { fromHover, fromLocation, toPosition } from './types'
+import { fromCodeAction, fromHover, fromLocation, toPosition } from './types'
+import { WorkspaceEdit } from '../../types/workspaceEdit'
 
 /** @internal */
 export class ExtLanguageFeatures {
@@ -107,7 +109,8 @@ export class ExtLanguageFeatures {
                         : Range.fromPlain(rangeOrSelection),
                     context
                 ),
-                items => items
+                (items: null | undefined | (CodeAction & { edit?: WorkspaceEdit })[]) =>
+                    items ? items.map(fromCodeAction) : items
             )
         )
         return syncSubscription(this.proxy.$registerCodeActionProvider(selector, providerFunction))

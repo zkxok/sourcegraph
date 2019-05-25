@@ -33,8 +33,17 @@ function createCodeActionProvider(): sourcegraph.CodeActionProvider {
     return {
         provideCodeActions: (doc, rangeOrSelection, context): Observable<sourcegraph.CodeAction[]> => {
             const workspaceEdit = new sourcegraph.WorkspaceEdit()
-            workspaceEdit.replace(new URL('file:///a'), new sourcegraph.Range(1, 2, 10, 4), 'xyz')
-            return of<sourcegraph.CodeAction[]>([{ title: 'Replace with XYZ', edit: workspaceEdit }])
+            for (const [i, line] of doc.text.split('\n').entries()) {
+                const pat = /\b(function|const|class)\b/g
+                for (let match = pat.exec(line); !!match; match = pat.exec(line)) {
+                    workspaceEdit.replace(
+                        new URL(doc.uri),
+                        new sourcegraph.Range(i, match.index, i, match.index + match[0].length),
+                        'let'
+                    )
+                }
+            }
+            return of<sourcegraph.CodeAction[]>([{ title: 'Replace const -> let', edit: workspaceEdit }])
         },
     }
 }

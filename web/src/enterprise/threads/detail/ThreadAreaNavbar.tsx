@@ -38,7 +38,7 @@ export const ThreadAreaNavbar: React.FunctionComponent<Props> = ({
                         className="thread-area-navbar__nav-link nav-link rounded-0"
                         activeClassName="thread-area-navbar__nav-link--active"
                     >
-                        <ChatIcon className="icon-inline" /> Discussion{' '}
+                        <ChatIcon className="icon-inline" /> Conversation{' '}
                         <span className="badge badge-secondary">{thread.comments.totalCount - 1}</span>
                     </NavLink>
                 </div>
@@ -71,7 +71,7 @@ export const ThreadAreaNavbar: React.FunctionComponent<Props> = ({
                             className="thread-area-navbar__nav-link nav-link rounded-0"
                             activeClassName="thread-area-navbar__nav-link--active"
                         >
-                            <PlayCircleIcon className="icon-inline" /> Actions
+                            <PlayCircleIcon className="icon-inline" /> Process
                         </NavLink>
                     </div>
                 )}

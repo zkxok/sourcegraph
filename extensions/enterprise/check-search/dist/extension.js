@@ -7112,17 +7112,17 @@ var _rxjs = require("rxjs");
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
 
 function registerDemo0() {
-  var subscriptions = new _rxjs.Subscription();
+  const subscriptions = new _rxjs.Subscription();
   subscriptions.add(startDiagnostics());
   subscriptions.add(sourcegraph.languages.registerCodeActionProvider(['*'], createCodeActionProvider()));
   return subscriptions;
 }
 
 function startDiagnostics() {
-  var subscriptions = new _rxjs.Subscription();
-  var diags = sourcegraph.languages.createDiagnosticCollection('demo0');
+  const subscriptions = new _rxjs.Subscription();
+  const diags = sourcegraph.languages.createDiagnosticCollection('demo0');
   subscriptions.add(diags);
-  subscriptions.add(sourcegraph.workspace.openedTextDocuments.subscribe(function (doc) {
+  subscriptions.add(sourcegraph.workspace.openedTextDocuments.subscribe(doc => {
     diags.set(new URL(doc.uri), [{
       message: 'My diagnostic',
       range: new sourcegraph.Range(1, 2, 10, 4),
@@ -7134,11 +7134,19 @@ function startDiagnostics() {
 
 function createCodeActionProvider() {
   return {
-    provideCodeActions: function provideCodeActions(doc, rangeOrSelection, context) {
-      var workspaceEdit = new sourcegraph.WorkspaceEdit();
-      workspaceEdit.replace(new URL('file:///a'), new sourcegraph.Range(1, 2, 10, 4), 'xyz');
+    provideCodeActions: (doc, rangeOrSelection, context) => {
+      const workspaceEdit = new sourcegraph.WorkspaceEdit();
+
+      for (const [i, line] of doc.text.split('\n').entries()) {
+        const pat = /\b(function|const|class)\b/g;
+
+        for (let match = pat.exec(line); !!match; match = pat.exec(line)) {
+          workspaceEdit.replace(new URL(doc.uri), new sourcegraph.Range(i, match.index, i, match.index + match[0].length), 'let');
+        }
+      }
+
       return (0, _rxjs.of)([{
-        title: 'Replace with XYZ',
+        title: 'Replace const -> let',
         edit: workspaceEdit
       }]);
     }

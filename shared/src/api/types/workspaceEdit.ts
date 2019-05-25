@@ -125,7 +125,22 @@ export class WorkspaceEdit implements sourcegraph.WorkspaceEdit {
     }
 
     public toJSON(): { operations: (JSONFileTextEdit | JSONFileOperation)[] } {
-        return { operations: this.operations }
+        return {
+            operations: this.operations.map(op => {
+                if (op.type === WorkspaceEditOperationType.FileOperation) {
+                    return {
+                        ...op,
+                        from: op.from && op.from.toJSON(),
+                        to: op.to && op.to.toJSON(),
+                    }
+                }
+                return {
+                    ...op,
+                    uri: op.uri.toJSON(),
+                    edit: op.edit.toJSON(),
+                }
+            }),
+        }
     }
 
     public static fromJSON(arg: ReturnType<(typeof WorkspaceEdit)['prototype']['toJSON']>): WorkspaceEdit {
