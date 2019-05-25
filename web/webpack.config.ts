@@ -11,7 +11,7 @@ import * as webpack from 'webpack'
 const mode = process.env.NODE_ENV === 'production' ? 'production' : 'development'
 console.log('Using mode', mode)
 
-const devtool = mode === 'production' ? 'source-map' : 'eval'
+const devtool = mode === 'production' ? 'source-map' : 'cheap-module-eval-source-map'
 
 const rootDir = path.resolve(__dirname, '..')
 const nodeModulesPath = path.resolve(__dirname, '..', 'node_modules')
@@ -156,14 +156,14 @@ const config: webpack.Configuration = {
                 use: [
                     mode === 'production' ? MiniCssExtractPlugin.loader : 'style-loader',
                     'css-loader',
-                    // {
-                    //     loader: 'postcss-loader',
-                    //     options: {
-                    //         config: {
-                    //             path: __dirname,
-                    //         },
-                    //     },
-                    // },
+                    {
+                        loader: 'postcss-loader',
+                        options: {
+                            config: {
+                                path: __dirname,
+                            },
+                        },
+                    },
                     {
                         loader: 'sass-loader',
                         options: {
