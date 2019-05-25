@@ -111,9 +111,7 @@ describe('getCodeActions', () => {
                         FIXTURE_PARAMS
                     )
                 ).toBe('-a-|', {
-                    a: {
-                        items: [...FIXTURE_CODE_ACTIONS, ...FIXTURE_CODE_ACTIONS],
-                    },
+                    a: [...FIXTURE_CODE_ACTIONS, ...FIXTURE_CODE_ACTIONS],
                 })
             ))
     })

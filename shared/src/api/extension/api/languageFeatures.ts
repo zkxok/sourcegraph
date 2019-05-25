@@ -1,4 +1,5 @@
 import { ProxyInput, ProxyResult, proxyValue } from '@sourcegraph/comlink'
+import { Range, Selection } from '@sourcegraph/extension-api-classes'
 import * as clientType from '@sourcegraph/extension-api-types'
 import { Unsubscribable } from 'rxjs'
 import {
@@ -12,6 +13,7 @@ import {
     ReferenceProvider,
 } from 'sourcegraph'
 import { ClientLanguageFeaturesAPI } from '../../client/api/languageFeatures'
+import { CodeActionsParams } from '../../client/services/codeActions'
 import { ReferenceParams, TextDocumentPositionParams } from '../../protocol'
 import { syncSubscription } from '../../util'
 import { toProxyableSubscribable } from './common'
@@ -96,9 +98,15 @@ export class ExtLanguageFeatures {
     public registerCodeActionProvider(selector: DocumentSelector, provider: CodeActionProvider): Unsubscribable {
         const providerFunction: ProxyInput<
             Parameters<ClientLanguageFeaturesAPI['$registerCodeActionProvider']>[1]
-        > = proxyValue(async ({ textDocument, position }: TextDocumentPositionParams) =>
+        > = proxyValue(async ({ textDocument, range: rangeOrSelection, context }: CodeActionsParams) =>
             toProxyableSubscribable(
-                provider.provideCodeActionss(await this.documents.getSync(textDocument.uri), toPosition(position)),
+                provider.provideCodeActions(
+                    await this.documents.getSync(textDocument.uri),
+                    Selection.isSelection(rangeOrSelection)
+                        ? Selection.fromPlain(rangeOrSelection)
+                        : Range.fromPlain(rangeOrSelection),
+                    context
+                ),
                 items => items
             )
         )

@@ -1389,7 +1389,7 @@ declare module 'sourcegraph' {
      * [`command`](#CodeAction.command). If both are supplied, the `edit` is applied first, then the
      * command is executed.
      */
-    export class CodeAction {
+    export interface CodeAction {
         /**
          * A short, human-readable, title for this code action.
          */

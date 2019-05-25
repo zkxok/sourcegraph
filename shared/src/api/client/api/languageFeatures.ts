@@ -1,6 +1,6 @@
 import { ProxyResult, ProxyValue, proxyValue, proxyValueSymbol } from '@sourcegraph/comlink'
-import { Hover, Location, Range, Selection } from '@sourcegraph/extension-api-types'
-import { CodeAction, CodeActionContext, CompletionList, DocumentSelector, Unsubscribable } from 'sourcegraph'
+import { Hover, Location } from '@sourcegraph/extension-api-types'
+import { CodeAction, CompletionList, DocumentSelector, Unsubscribable } from 'sourcegraph'
 import { ProxySubscribable } from '../../extension/api/common'
 import { ReferenceParams, TextDocumentPositionParams, TextDocumentRegistrationOptions } from '../../protocol'
 import { CodeActionsParams, ProvideCodeActionsSignature } from '../services/codeActions'
@@ -8,7 +8,6 @@ import { ProvideCompletionItemSignature } from '../services/completion'
 import { ProvideTextDocumentHoverSignature } from '../services/hover'
 import { TextDocumentLocationProviderIDRegistry, TextDocumentLocationProviderRegistry } from '../services/location'
 import { FeatureProviderRegistry } from '../services/registry'
-import { TextDocumentIdentifier } from '../types/textDocument'
 import { wrapRemoteObservable } from './common'
 
 /** @internal */

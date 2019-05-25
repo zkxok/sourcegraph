@@ -175,7 +175,6 @@ function createExtensionAPI(
         MarkupKind,
         NotificationType,
         TextEdit,
-        CodeAction,
         DiagnosticSeverity,
         WorkspaceEdit,
         app: {

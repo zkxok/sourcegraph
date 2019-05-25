@@ -1,6 +1,7 @@
 import { Position, Range } from '@sourcegraph/extension-api-classes'
 import * as clientType from '@sourcegraph/extension-api-types'
 import * as sourcegraph from 'sourcegraph'
+import { WorkspaceEdit, WorkspaceEditOperationType } from '../../types/workspaceEdit'
 
 /**
  * Converts from a plain object {@link clientType.Position} to an instance of {@link Position}.
@@ -43,6 +44,7 @@ export function fromHover(hover: sourcegraph.Hover): clientType.Hover {
  */
 export function fromRange(range: Range | sourcegraph.Range): clientType.Range
 export function fromRange(range: undefined): undefined
+export function fromRange(range: Range | sourcegraph.Range | undefined): clientType.Range | undefined
 export function fromRange(range: Range | sourcegraph.Range | undefined): clientType.Range | undefined {
     if (!range) {
         return undefined
@@ -64,26 +66,14 @@ export function fromDiagnostic(diag: sourcegraph.Diagnostic): clientType.Diagnos
 }
 
 /**
- * Converts from an instance of {@link WorkspaceEdit} to the plain object
- * {@link clientType.WorkspaceEdit}.
- *
- * @internal
- */
-export function fromWorkspaceEdit(edit: sourcegraph.WorkspaceEdit): clientType.WorkspaceEdit {
-    return {
-        operations: Array.from(edit.textEdits()).map([uri, edits]),
-    }
-}
-
-/**
  * Converts from an instance of {@link CodeAction} to the plain object {@link clientType.CodeAction}.
  *
  * @internal
  */
-export function fromCodeAction(codeAction: sourcegraph.CodeAction): clientType.CodeAction {
+export function fromCodeAction(codeAction: sourcegraph.CodeAction & { edit?: WorkspaceEdit }): clientType.CodeAction {
     return {
         ...codeAction,
         diagnostics: codeAction.diagnostics && codeAction.diagnostics.map(fromDiagnostic),
-        edit: codeAction.edit && fromWorkspaceEdit(codeAction.edit),
+        edit: codeAction.edit && codeAction.edit.toJSON(),
     }
 }

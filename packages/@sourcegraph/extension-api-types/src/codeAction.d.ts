@@ -8,7 +8,7 @@ import { WorkspaceEdit } from './workspaceEdit'
  * @see module:sourcegraph.CodeAction
  */
 export interface CodeAction
-    extends Pick<sourcegraph.Diagnostic, Exclude<keyof sourcegraph.Diagnostic, 'edit' | 'diagnostics'>> {
+    extends Pick<sourcegraph.CodeAction, Exclude<keyof sourcegraph.CodeAction, 'edit' | 'diagnostics'>> {
     readonly edit?: WorkspaceEdit
     readonly diagnostics?: Diagnostic[]
 }

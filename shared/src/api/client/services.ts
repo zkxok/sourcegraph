@@ -2,6 +2,7 @@ import { PlatformContext } from '../../platform/context'
 import { ReferenceParams } from '../protocol'
 import { createContextService } from './context/contextService'
 import { CheckTemplateRegistry } from './services/checkTemplates'
+import { CodeActionProviderRegistry } from './services/codeActions'
 import { CommandRegistry } from './services/command'
 import { CompletionItemProviderRegistry } from './services/completion'
 import { ContributionRegistry } from './services/contribution'
@@ -35,6 +36,7 @@ export class Services {
         >
     ) {}
 
+    public readonly codeActions = new CodeActionProviderRegistry()
     public readonly commands = new CommandRegistry()
     public readonly context = createContextService(this.platformContext)
     public readonly diagnostics = createDiagnosticsService()

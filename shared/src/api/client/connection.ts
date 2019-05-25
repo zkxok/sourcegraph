@@ -112,7 +112,8 @@ export async function createExtensionHostClientConnection(
         services.textDocumentDefinition,
         services.textDocumentReferences,
         services.textDocumentLocations,
-        services.completionItems
+        services.completionItems,
+        services.codeActions
     )
     const clientSearch = new ClientSearch(services.queryTransformer)
     const clientCommands = new ClientCommands(services.commands)
