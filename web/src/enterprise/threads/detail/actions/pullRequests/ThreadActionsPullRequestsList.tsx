@@ -5,6 +5,7 @@ import CloseCircleIcon from 'mdi-react/CloseCircleIcon'
 import DotsHorizontalCircleIcon from 'mdi-react/DotsHorizontalCircleIcon'
 import SourcePullIcon from 'mdi-react/SourcePullIcon'
 import React, { useMemo, useState } from 'react'
+import { ExtensionsControllerProps } from '../../../../../../../shared/src/extensions/controller'
 import * as GQL from '../../../../../../../shared/src/graphql/schema'
 import { asError, ErrorLike, isErrorLike } from '../../../../../../../shared/src/util/errors'
 import { ListHeaderQueryLinksNav } from '../../../components/ListHeaderQueryLinks'
@@ -36,7 +37,7 @@ const queryPullRequests = async (threadSettings: ThreadSettings, query: string):
     }
 }
 
-interface Props extends QueryParameterProps {
+interface Props extends QueryParameterProps, ExtensionsControllerProps {
     thread: Pick<GQL.IDiscussionThread, 'id' | 'url'>
     onThreadUpdate: (thread: GQL.IDiscussionThread) => void
     threadSettings: ThreadSettings
@@ -59,6 +60,7 @@ export const ThreadActionsPullRequestsList: React.FunctionComponent<Props> = ({
     onQueryChange,
     action,
     location,
+    extensionsController,
 }) => {
     const [itemsOrError, setItemsOrError] = useState<typeof LOADING | PullRequestConnection | ErrorLike>(LOADING)
 
@@ -160,6 +162,7 @@ export const ThreadActionsPullRequestsList: React.FunctionComponent<Props> = ({
                                     threadSettings={threadSettings}
                                     pull={pull}
                                     className="list-group-item p-2"
+                                    extensionsController={extensionsController}
                                 />
                             ))}
                         </div>

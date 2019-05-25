@@ -11,13 +11,13 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import { LinkOrSpan } from '../../../../../../../shared/src/components/LinkOrSpan'
 import { displayRepoName } from '../../../../../../../shared/src/components/RepoFileLink'
+import { ExtensionsControllerProps } from '../../../../../../../shared/src/extensions/controller'
 import * as GQL from '../../../../../../../shared/src/graphql/schema'
 import { pluralize } from '../../../../../../../shared/src/util/strings'
-import { extensionsController } from '../../../../../search/testHelpers'
 import { PullRequest, ThreadSettings } from '../../../settings'
 import { CreatePRButton } from './CreatePRButton'
 
-interface Props {
+interface Props extends ExtensionsControllerProps {
     pull: PullRequest
     thread: Pick<GQL.IDiscussionThread, 'id' | 'url'>
     onThreadUpdate: (thread: GQL.IDiscussionThread) => void
@@ -42,6 +42,7 @@ export const ThreadActionsPullRequestsListItem: React.FunctionComponent<Props> =
     onThreadUpdate,
     threadSettings,
     className = '',
+    extensionsController,
 }) => {
     const Icon = STATUS_ICONS[pull.status]
     return (
