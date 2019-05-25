@@ -3,7 +3,7 @@
 
 // import MiniCssExtractPlugin from 'mini-css-extract-plugin'
 import MonacoWebpackPlugin from 'monaco-editor-webpack-plugin'
-// import OptimizeCssAssetsPlugin from 'optimize-css-assets-webpack-plugin'
+import OptimizeCssAssetsPlugin from 'optimize-css-assets-webpack-plugin'
 import * as path from 'path'
 // @ts-ignore
 import rxPaths from 'rxjs/_esm5/path-mapping'
@@ -78,7 +78,7 @@ const config: webpack.Configuration = {
             },
         }),
         // new MiniCssExtractPlugin({ filename: 'styles/[name].bundle.css' }) as any, // @types package is incorrect
-        // new OptimizeCssAssetsPlugin(),
+        new OptimizeCssAssetsPlugin(),
         new MonacoWebpackPlugin({
             languages: ['json'],
             features: [
