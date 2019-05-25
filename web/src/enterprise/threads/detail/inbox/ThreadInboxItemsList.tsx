@@ -1,7 +1,9 @@
 import { LoadingSpinner } from '@sourcegraph/react-loading-spinner'
 import H from 'history'
-import React, { useCallback, useMemo, useState } from 'react'
-import { map } from 'rxjs/operators'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { from, Subscription } from 'rxjs'
+import { catchError, map, startWith } from 'rxjs/operators'
+import * as sourcegraph from 'sourcegraph'
 import { WithStickyTop } from '../../../../../../shared/src/components/withStickyTop/WithStickyTop'
 import { ExtensionsControllerProps } from '../../../../../../shared/src/extensions/controller'
 import { gql } from '../../../../../../shared/src/graphql/graphql'
@@ -77,21 +79,21 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
     threadSettings,
     query,
     onQueryChange,
+    extensionsController,
     ...props
 }) => {
-    const [itemsOrError, setItemsOrError] = useState<
+    const [items0OrError, setItems0OrError] = useState<
         | typeof LOADING
         | (GQL.IDiscussionThreadTargetConnection & { matchingNodes: GQL.IDiscussionThreadTargetRepo[] })
         | ErrorLike
     >(LOADING)
-
     // tslint:disable-next-line: no-floating-promises
     useMemo(async () => {
         try {
             const data = await queryInboxItems(thread.id)
             const isHandled = (item: GQL.IDiscussionThreadTargetRepo): boolean =>
                 (threadSettings.pullRequests || []).some(pull => pull.items.includes(item.id))
-            setItemsOrError({
+            setItems0OrError({
                 ...data,
                 matchingNodes: data.nodes
                     .filter(
@@ -117,16 +119,34 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
                     }),
             })
         } catch (err) {
-            setItemsOrError(asError(err))
+            setItems0OrError(asError(err))
         }
     }, [thread.id, threadSettings])
 
+    const [itemsOrError, setItemsOrError] = useState<typeof LOADING | [URL, sourcegraph.Diagnostic[]][] | ErrorLike>(
+        LOADING
+    )
+    // tslint:disable-next-line: no-floating-promises
+    useEffect(() => {
+        const subscriptions = new Subscription()
+        subscriptions.add(
+            from(extensionsController.services.diagnostics.collection.changes)
+                .pipe(
+                    map(() => Array.from(extensionsController.services.diagnostics.collection.entries())),
+                    catchError(err => [asError(err)]),
+                    startWith(LOADING)
+                )
+                .subscribe(setItemsOrError)
+        )
+        return () => subscriptions.unsubscribe()
+    }, [thread.id, threadSettings, extensionsController])
+
     const onInboxItemUpdate = useCallback(
         (updatedItem: GQL.DiscussionThreadTarget) => {
-            if (itemsOrError !== LOADING && !isErrorLike(itemsOrError)) {
-                setItemsOrError({
-                    ...itemsOrError,
-                    nodes: itemsOrError.nodes.map(item => {
+            if (items0OrError !== LOADING && !isErrorLike(items0OrError)) {
+                setItems0OrError({
+                    ...items0OrError,
+                    nodes: items0OrError.nodes.map(item => {
                         if (
                             updatedItem.__typename === 'DiscussionThreadTargetRepo' &&
                             item.__typename === 'DiscussionThreadTargetRepo' &&
@@ -139,7 +159,7 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
                 })
             }
         },
-        [itemsOrError]
+        [items0OrError]
     )
 
     return (
@@ -148,8 +168,9 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
                 <div className="alert alert-danger mt-2">{itemsOrError.message}</div>
             ) : (
                 <>
-                    {itemsOrError !== LOADING && !isErrorLike(itemsOrError) && (
-                        <WithStickyTop scrollContainerSelector=".thread-area">
+                    {itemsOrError !== LOADING &&
+                        !isErrorLike(itemsOrError) &&
+                        /* TODO!(sqs) <WithStickyTop scrollContainerSelector=".thread-area">
                             {({ isStuck }) => (
                                 <ThreadInboxItemsNavbar
                                     {...props}
@@ -163,17 +184,17 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
                                     className={`sticky-top position-sticky row bg-body thread-inbox-items-list__navbar py-2 px-3 ${
                                         isStuck ? 'border-bottom shadow' : ''
                                     }`}
+                                    extensionsController={extensionsController}
                                 />
                             )}
-                        </WithStickyTop>
-                    )}
+                                </WithStickyTop>*/ ''}
                     {itemsOrError === LOADING ? (
                         <LoadingSpinner className="mt-2" />
-                    ) : itemsOrError.matchingNodes.length === 0 ? (
+                    ) : itemsOrError.length === 0 ? (
                         <p className="p-2 mb-0 text-muted">Inbox is empty.</p>
                     ) : (
                         <ul className="list-unstyled">
-                            {itemsOrError.matchingNodes.map((item, i) => (
+                            {itemsOrError.map((item0, i) => (
                                 <li key={i}>
                                     <TextDocumentLocationInboxItem
                                         {...props}
@@ -181,9 +202,10 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
                                         thread={thread}
                                         threadSettings={threadSettings}
                                         onThreadUpdate={onThreadUpdate}
-                                        inboxItem={item}
+                                        inboxItem={item0}
                                         onInboxItemUpdate={onInboxItemUpdate}
                                         className="my-3"
+                                        extensionsController={extensionsController}
                                     />
                                 </li>
                             ))}

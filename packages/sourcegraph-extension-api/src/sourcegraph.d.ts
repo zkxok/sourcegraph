@@ -1238,8 +1238,8 @@ declare module 'sourcegraph' {
     }
 
     /**
-     * Represents a diagnostic, such as a compiler error or warning. Diagnostic objects
-     * are only valid in the scope of a file.
+     * Represents a diagnostic, such as a compiler error or warning. Diagnostic objects are only
+     * valid in the scope of a file.
      */
     export interface Diagnostic {
         /**

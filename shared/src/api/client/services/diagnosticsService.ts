@@ -1,4 +1,4 @@
-import { Diagnostic } from '@sourcegraph/extension-api-types'
+import * as sourcegraph from 'sourcegraph'
 import { DiagnosticCollection } from '../../types/diagnosticCollection'
 
 /**
@@ -6,13 +6,13 @@ import { DiagnosticCollection } from '../../types/diagnosticCollection'
  */
 export interface DiagnosticsService {
     /** The diagnostic collection, containing all diagnostics. */
-    readonly collection: DiagnosticCollection<Diagnostic>
+    readonly collection: DiagnosticCollection<sourcegraph.Diagnostic>
 }
 
 /**
  * Creates a {@link DiagnosticsService} instance.
  */
 export function createDiagnosticsService(): DiagnosticsService {
-    const collection = new DiagnosticCollection('')
+    const collection = new DiagnosticCollection<sourcegraph.Diagnostic>('')
     return { collection }
 }
