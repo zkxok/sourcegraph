@@ -2,7 +2,7 @@
 /// <reference path="../shared/src/types/terser-webpack-plugin/index.d.ts" />
 
 // import MiniCssExtractPlugin from 'mini-css-extract-plugin'
-// import MonacoWebpackPlugin from 'monaco-editor-webpack-plugin'
+import MonacoWebpackPlugin from 'monaco-editor-webpack-plugin'
 // import OptimizeCssAssetsPlugin from 'optimize-css-assets-webpack-plugin'
 import * as path from 'path'
 // @ts-ignore
@@ -17,7 +17,7 @@ const devtool = mode === 'production' ? 'source-map' : 'eval'
 
 const rootDir = path.resolve(__dirname, '..')
 const nodeModulesPath = path.resolve(__dirname, '..', 'node_modules')
-// const monacoEditorPaths = [path.resolve(nodeModulesPath, 'monaco-editor')]
+const monacoEditorPaths = [path.resolve(nodeModulesPath, 'monaco-editor')]
 
 const isEnterpriseBuild = !!process.env.ENTERPRISE
 const enterpriseDir = path.resolve(__dirname, 'src', 'enterprise')
@@ -58,8 +58,8 @@ const config: webpack.Configuration = {
             isEnterpriseBuild ? path.join(__dirname, 'src', 'enterprise.scss') : null,
         ].filter((path): path is string => !!path),
 
-        // 'editor.worker': 'monaco-editor/esm/vs/editor/editor.worker.js',
-        // 'json.worker': 'monaco-editor/esm/vs/language/json/json.worker',
+        'editor.worker': 'monaco-editor/esm/vs/editor/editor.worker.js',
+        'json.worker': 'monaco-editor/esm/vs/language/json/json.worker',
     },
     output: {
         path: path.join(rootDir, 'ui', 'assets'),
@@ -79,22 +79,22 @@ const config: webpack.Configuration = {
         }),
         // new MiniCssExtractPlugin({ filename: 'styles/[name].bundle.css' }) as any, // @types package is incorrect
         // new OptimizeCssAssetsPlugin(),
-        // new MonacoWebpackPlugin({
-        //     languages: ['json'],
-        //     features: [
-        //         'bracketMatching',
-        //         'clipboard',
-        //         'coreCommands',
-        //         'cursorUndo',
-        //         'find',
-        //         'format',
-        //         'hover',
-        //         'inPlaceReplace',
-        //         'iPadShowKeyboard',
-        //         'links',
-        //         'suggest',
-        //     ],
-        // }),
+        new MonacoWebpackPlugin({
+            languages: ['json'],
+            features: [
+                'bracketMatching',
+                'clipboard',
+                'coreCommands',
+                'cursorUndo',
+                'find',
+                'format',
+                'hover',
+                'inPlaceReplace',
+                'iPadShowKeyboard',
+                'links',
+                'suggest',
+            ],
+        }),
         new webpack.IgnorePlugin(/\.flow$/, /.*/),
     ],
     resolve: {
@@ -163,12 +163,12 @@ const config: webpack.Configuration = {
                     },
                 ],
             },
-            // {
-            //     // CSS rule for monaco-editor and other external plain CSS (skip SASS and PostCSS for build perf)
-            //     test: /\.css$/,
-            //     include: monacoEditorPaths,
-            //     use: ['style-loader', 'css-loader'],
-            // },
+            {
+                // CSS rule for monaco-editor and other external plain CSS (skip SASS and PostCSS for build perf)
+                test: /\.css$/,
+                include: monacoEditorPaths,
+                use: ['style-loader', 'css-loader'],
+            },
         ],
     },
 }

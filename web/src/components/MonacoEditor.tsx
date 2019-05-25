@@ -1,4 +1,4 @@
-// import * as monaco from 'monaco-editor'
+import * as monaco from 'monaco-editor'
 import * as React from 'react'
 
 export type BuiltinTheme = monaco.editor.BuiltinTheme | 'sourcegraph-dark'
