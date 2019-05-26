@@ -1,10 +1,8 @@
 import { LoadingSpinner } from '@sourcegraph/react-loading-spinner'
 import H from 'history'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { from, Subscription } from 'rxjs'
-import { catchError, first, map, startWith, switchMap } from 'rxjs/operators'
-import * as sourcegraph from 'sourcegraph'
-import { WithStickyTop } from '../../../../../../shared/src/components/withStickyTop/WithStickyTop'
+import { catchError, map, startWith, switchMap } from 'rxjs/operators'
 import { ExtensionsControllerProps } from '../../../../../../shared/src/extensions/controller'
 import { gql } from '../../../../../../shared/src/graphql/graphql'
 import * as GQL from '../../../../../../shared/src/graphql/schema'
@@ -15,9 +13,8 @@ import { queryGraphQL } from '../../../../backend/graphql'
 import { discussionThreadTargetFieldsFragment } from '../../../../discussions/backend'
 import { QueryParameterProps } from '../../components/withQueryParameter/WithQueryParameter'
 import { ThreadSettings } from '../../settings'
-import { TextDocumentLocationInboxItem } from './TextDocumentLocationItem'
 import { DiagnosticInfo, ThreadInboxDiagnosticItem } from './ThreadInboxDiagnosticItem'
-import { ThreadInboxItemsNavbar } from './ThreadInboxItemsNavbar'
+import { useEffectAsync } from '../../../../util/useEffectAsync'
 
 // TODO!(sqs): use relative path/rev for DiscussionThreadTargetRepo
 const queryInboxItems = (threadID: GQL.ID): Promise<GQL.IDiscussionThreadTargetConnection> =>
@@ -129,13 +126,13 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
     extensionsController,
     ...props
 }) => {
-    const [items0OrError, setItems0OrError] = useState<
+    const [, setItems0OrError] = useState<
         | typeof LOADING
         | (GQL.IDiscussionThreadTargetConnection & { matchingNodes: GQL.IDiscussionThreadTargetRepo[] })
         | ErrorLike
     >(LOADING)
     // tslint:disable-next-line: no-floating-promises
-    useMemo(async () => {
+    useEffectAsync(async () => {
         try {
             const data = await queryInboxItems(thread.id)
             const isHandled = (item: GQL.IDiscussionThreadTargetRepo): boolean =>
@@ -185,6 +182,7 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
                             m.set(url, entry)
                         }
                         return diagEntries.flatMap(([url, diag]) =>
+                            // tslint:disable-next-line: no-object-literal-type-assertion
                             diag.map(d => ({ ...d, entry: m.get(url)! } as DiagnosticInfo))
                         )
                     }),
@@ -195,27 +193,6 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
         )
         return () => subscriptions.unsubscribe()
     }, [thread.id, threadSettings, extensionsController])
-
-    const onInboxItemUpdate = useCallback(
-        (updatedItem: GQL.DiscussionThreadTarget) => {
-            if (items0OrError !== LOADING && !isErrorLike(items0OrError)) {
-                setItems0OrError({
-                    ...items0OrError,
-                    nodes: items0OrError.nodes.map(item => {
-                        if (
-                            updatedItem.__typename === 'DiscussionThreadTargetRepo' &&
-                            item.__typename === 'DiscussionThreadTargetRepo' &&
-                            updatedItem.id === item.id
-                        ) {
-                            return updatedItem
-                        }
-                        return item
-                    }),
-                })
-            }
-        },
-        [items0OrError]
-    )
 
     return (
         <div className="thread-inbox-items-list position-relative">

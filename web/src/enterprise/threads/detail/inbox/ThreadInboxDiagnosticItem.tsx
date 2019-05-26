@@ -16,10 +16,7 @@ import * as GQL from '../../../../../../shared/src/graphql/schema'
 import { PlatformContextProps } from '../../../../../../shared/src/platform/context'
 import { asError, ErrorLike, isErrorLike } from '../../../../../../shared/src/util/errors'
 import { makeRepoURI } from '../../../../../../shared/src/util/url'
-import { fetchHighlightedFileLines } from '../../../../repo/backend'
-import { FileDiffHunks } from '../../../../repo/compare/FileDiffHunks'
 import { ThreadSettings } from '../../settings'
-import { ThreadInboxItemActions } from './ThreadInboxItemActions'
 import { WorkspaceEditPreview } from './WorkspaceEditPreview'
 
 export interface DiagnosticInfo extends sourcegraph.Diagnostic {
@@ -150,7 +147,18 @@ export const ThreadInboxDiagnosticItem: React.FunctionComponent<Props> = ({
             ) : isErrorLike(codeActionsOrError) ? (
                 <span className="text-danger">{codeActionsOrError.message}</span>
             ) : (
-                <WorkspaceEditPreview {...props} diagnostic={diagnostic} />
+                codeActionsOrError.map((codeAction, i) =>
+                    codeAction.edit ? (
+                        <WorkspaceEditPreview
+                            key={i}
+                            {...props}
+                            workspaceEdit={codeAction.edit}
+                            extensionsController={extensionsController}
+                        />
+                    ) : (
+                        'no edit'
+                    )
+                )
             )}
             {/*     <ThreadInboxItemActions {...props} diagnostic={diagnostic} className="border-top" /> TODO!(sqs)*/}
         </div>
