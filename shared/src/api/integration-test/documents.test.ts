@@ -1,6 +1,7 @@
 import { from } from 'rxjs'
 import { take } from 'rxjs/operators'
 import { TextDocument } from 'sourcegraph'
+import { PlatformContext } from '../../platform/context'
 import { assertToJSON, collectSubscribableValues, integrationTestContext } from './testHelpers'
 
 describe('Documents (integration)', () => {
@@ -44,6 +45,43 @@ describe('Documents (integration)', () => {
                 .toPromise()
 
             assertToJSON(values, [{ uri: 'file:///f2', languageId: 'l2', text: 't2' }] as TextDocument[])
+        })
+    })
+
+    describe('workspace.openTextDocument', () => {
+        const MOCK_READ_FILE: PlatformContext['readFile'] = async () => 't'
+
+        test('opens a document that was not already open', async () => {
+            const {
+                services: { model: modelService },
+                extensionAPI,
+            } = await integrationTestContext(
+                {
+                    readFile: MOCK_READ_FILE,
+                },
+                { editors: [], roots: [] }
+            )
+            const values = collectSubscribableValues(extensionAPI.workspace.openedTextDocuments)
+            expect(modelService.hasModel('file:///f')).toBeFalsy()
+            const doc = await extensionAPI.workspace.openTextDocument(new URL('file:///f'))
+            expect(doc).toMatchObject<Pick<TextDocument, 'uri' | 'text'>>({ uri: 'file:///f', text: 't' })
+            expect(modelService.hasModel('file:///f')).toBeTruthy()
+            expect(values).toEqual([doc])
+        })
+
+        test('returns a document that was already open', async () => {
+            const {
+                services: { model: modelService },
+                extensionAPI,
+            } = await integrationTestContext({
+                readFile: MOCK_READ_FILE,
+            })
+            const values = collectSubscribableValues(extensionAPI.workspace.openedTextDocuments)
+            expect(modelService.hasModel('file:///f')).toBeTruthy()
+            const doc = await extensionAPI.workspace.openTextDocument(new URL('file:///f'))
+            expect(doc).toMatchObject<Pick<TextDocument, 'uri' | 'text'>>({ uri: 'file:///f', text: 't' })
+            expect(modelService.hasModel('file:///f')).toBeTruthy()
+            expect(values).toEqual([])
         })
     })
 })

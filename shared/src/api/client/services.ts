@@ -10,6 +10,7 @@ import { TextDocumentDecorationProviderRegistry } from './services/decoration'
 import { createDiagnosticsService } from './services/diagnosticsService'
 import { createEditorService } from './services/editorService'
 import { ExtensionsService } from './services/extensionsService'
+import { createFileSystemService } from './services/fileSystemService'
 import { TextDocumentHoverProviderRegistry } from './services/hover'
 import { LinkPreviewProviderRegistry } from './services/linkPreview'
 import { TextDocumentLocationProviderIDRegistry, TextDocumentLocationProviderRegistry } from './services/location'
@@ -31,6 +32,7 @@ export class Services {
             | 'updateSettings'
             | 'requestGraphQL'
             | 'getScriptURLForExtension'
+            | 'readFile'
             | 'clientApplication'
             | 'sideloadedExtensionURL'
         >
@@ -40,6 +42,7 @@ export class Services {
     public readonly commands = new CommandRegistry()
     public readonly context = createContextService(this.platformContext)
     public readonly diagnostics = createDiagnosticsService()
+    public readonly fileSystem = createFileSystemService(this.platformContext)
     public readonly workspace = createWorkspaceService()
     public readonly model = createModelService()
     public readonly editor = createEditorService(this.model)

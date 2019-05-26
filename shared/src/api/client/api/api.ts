@@ -4,6 +4,7 @@ import { ClientConfigurationAPI } from './configuration'
 import { ClientContentAPI } from './content'
 import { ClientContextAPI } from './context'
 import { ClientDiagnosticsAPI } from './diagnostics'
+import { ClientDocumentsAPI } from './documents'
 import { ClientLanguageFeaturesAPI } from './languageFeatures'
 import { ClientSearchAPI } from './search'
 import { ClientViewsAPI } from './views'
@@ -25,4 +26,5 @@ export interface ClientAPI {
     views: ClientViewsAPI
     content: ClientContentAPI
     diagnostics: ClientDiagnosticsAPI
+    documents: ClientDocumentsAPI
 }

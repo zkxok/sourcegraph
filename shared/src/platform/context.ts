@@ -1,4 +1,5 @@
 import { Endpoint, isEndpoint } from '@sourcegraph/comlink'
+import { readFile } from 'fs-extra'
 import { NextObserver, Observable, Subscribable } from 'rxjs'
 import { SettingsEdit } from '../api/client/services/settings'
 import { GraphQLResult } from '../graphql/graphql'
@@ -107,6 +108,15 @@ export interface PlatformContext {
      * @return The URL to the file with the specified options.
      */
     urlToFile(location: RepoSpec & RevSpec & FileSpec & Partial<PositionSpec> & Partial<ViewStateSpec>): string
+
+    /**
+     * Reads the file at the URI and returns its text contents.
+     *
+     * @param The URI of the file.
+     * @returns A promise that resolves to the file's text contents, or rejects if there is an
+     * error.
+     */
+    readFile(uri: URL): Promise<string>
 
     /**
      * The URL to the Sourcegraph site that the user's session is associated with. This refers to

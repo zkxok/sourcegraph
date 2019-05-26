@@ -516,6 +516,26 @@ declare module 'sourcegraph' {
     }
 
     /**
+     * A file glob pattern to match file paths against. This can either be a glob pattern string
+     * (like `**​/*.{ts,js}` or `*.{ts,js}`) or a [relative pattern](#RelativePattern).
+     *
+     * Glob patterns can have the following syntax:
+     *
+     * - `*` to match one or more characters in a path segment
+     * - `?` to match on one character in a path segment
+     * - `**` to match any number of path segments, including none
+     * - `{}` to group conditions (e.g. `**​/*.{ts,js}` matches all TypeScript and JavaScript files)
+     * - `[]` to declare a range of characters to match in a path segment (e.g., `example.[0-9]` to
+     *   match on `example.0`, `example.1`, …)
+     * - `[!...]` to negate a range of characters to match in a path segment (e.g., `example.[!0-9]`
+     *   to match on `example.a`, `example.b`, but not `example.0`)
+     *
+     * @todo Introduce support for VS Code's `RelativePattern`, to make it easy to define globs
+     * relative to other globs (and handle things like backslashes correctly).
+     */
+    export type GlobPattern = string
+
+    /**
      * A document filter denotes a document by different properties like the
      * [language](#TextDocument.languageId), the scheme of its resource, or a glob-pattern that is
      * applied to the [path](#TextDocument.fileName).
@@ -928,6 +948,38 @@ declare module 'sourcegraph' {
          * An event that is fired when a workspace root is added or removed from the workspace.
          */
         export const rootChanges: Subscribable<void>
+
+        /**
+         * Find files across all [roots](#workspace.roots) in the workspace.
+         *
+         * @sample `findFiles('**​/*.js', '**​/node_modules/**', 10)`
+         * @param include A [glob pattern](#GlobPattern) that defines the files to search for. The
+         * glob pattern will be matched against the file paths of resulting matches relative to
+         * their workspace.
+         * @param exclude A [glob pattern](#GlobPattern) that defines files and folders to exclude.
+         * The glob pattern will be matched against the file paths of resulting matches relative to
+         * their workspace. When `undefined` only default excludes will apply, when `null` no
+         * excludes will apply.
+         * @param maxResults The maximum number of results to return.
+         * @return A subscribable that emits once with an array of matching resource URIs and then
+         * completes.
+         */
+        // TODO!(sqs): not implemented, maybe not needed?
+        //
+        // export function findFiles(
+        //     include: GlobPattern,
+        //     exclude?: GlobPattern | null,
+        //     maxResults?: number
+        // ): Subscribable<URL[]>
+
+        /**
+         * Opens a document. If this document is not already open when called, the
+         * {@link workspace.openedTextDocuments} subscribable will emit this document.
+         *
+         * @param uri The identifier of the resource to open.
+         * @return A promise that resolves to the opened [document](#TextDocument).
+         */
+        export function openTextDocument(uri: URL): Promise<TextDocument>
     }
 
     /**
@@ -1558,6 +1610,84 @@ declare module 'sourcegraph' {
     }
 
     /**
+     * The parameters for a search query.
+     */
+    export interface SearchQuery {
+        /**
+         * The text pattern to search for.
+         */
+        pattern: string
+
+        /**
+         * The pattern type.
+         *
+         * @todo Support structural search.
+         */
+        type: 'regexp'
+    }
+
+    /**
+     * Include and exclude patterns for searches.
+     */
+    export interface IncludeExcludePatterns {
+        /**
+         * Include results whose paths or names match any of these patterns.
+         *
+         * @todo Allow multiple patterns when globs are supported.
+         */
+        includes?: [] | [string]
+
+        /**
+         * Exclude results whose paths or names match any of these patterns.
+         *
+         * @todo Allow multiple patterns when globs are supported.
+         */
+        excludes?: [] | [string]
+
+        /**
+         * The pattern type.
+         *
+         * @todo Support globs.
+         */
+        type: 'regexp'
+    }
+
+    /**
+     * Options for searches.
+     */
+    export interface SearchOptions {
+        /**
+         * Limit the search to repositories that match these patterns.
+         *
+         * @todo Support searching one or more repositories at specific non-default-branch revisions
+         * (currently only searching repositories' default branch is supported by this API).
+         */
+        repositories?: IncludeExcludePatterns
+
+        /**
+         * Limit the search to files that match these patterns.
+         */
+        files?: IncludeExcludePatterns
+
+        /** The maximum number of results to return. */
+        maxResults?: number
+    }
+
+    /**
+     * A text search result from {@link search.findTextInFiles}.
+     */
+    export interface TextSearchResult {
+        /** The URI of the matching document. */
+        uri: string
+
+        /**
+         * The ranges of the match in the document, or undefined if the document was matched based
+         * on criteria other than its contents (e.g., based on its filename).
+         */
+        ranges?: Range[]
+    }
+
+    /**
      * A match in a {@link SearchResult} from a {@link SearchResultProvider}.
      */
     export interface SearchResultMatch {
@@ -1640,9 +1770,34 @@ declare module 'sourcegraph' {
     }
 
     /**
+     * A provider of text search results.
+     */
+    export interface TextSearchProvider {
+        /**
+         * Provide results that match the given query.
+         *
+         * @param query The query parameters.
+         * @param options The search options.
+         * @returns A subscribable that emits batches of search results and then completes.
+         */
+        provideTextSearchResults(query: SearchQuery, options: SearchOptions): Subscribable<TextSearchResult[]>
+    }
+
+    /**
      * API for extensions to augment search functionality.
      */
     export namespace search {
+        /**
+         * Search text in files across all known repositories (including repositories that are not
+         * currently open as [workspace roots](#workspace.roots)).
+         *
+         * @param query The query parameters for the search.
+         * @param options The options for the search.
+         * @returns A subscribable that emits batches of results and completes when all results have
+         * been emitted.
+         */
+        export function findTextInFiles(query: SearchQuery, options?: SearchOptions): Subscribable<TextSearchResult[]>
+
         /**
          * Registers a query transformer.
          *
@@ -1655,16 +1810,15 @@ declare module 'sourcegraph' {
         export function registerQueryTransformer(provider: QueryTransformer): Unsubscribable
 
         /**
-         * Experimental. Subject to change or removal without notice.
-         *
-         * Registers a search result provider.
+         * Register a text search provider.
          *
          * Multiple providers can be registered. In that case, results will be returned grouped by
-         * provider. The order in which results from providers are returned is not defined.
+         * provider. The order in which results from providers are grouped is not defined.
          *
          * @param provider A search result provider.
+         * @returns An unsubscribable to unregister the provider.
          */
-        export function registerSearchResultProvider(provider: SearchResultProvider): Unsubscribable
+        export function registerTextSearchProvider(provider: TextSearchProvider): Unsubscribable
     }
 
     /**

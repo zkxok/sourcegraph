@@ -129,7 +129,7 @@ function createExtensionAPI(
         await proxy.ping()
     }
     const context = new ExtContext(proxy.context)
-    const documents = new ExtDocuments(sync)
+    const documents = new ExtDocuments(proxy.documents, sync)
 
     const extensions = new ExtExtensions()
     subscription.add(extensions)
@@ -200,6 +200,7 @@ function createExtensionAPI(
             },
             onDidChangeRoots: roots.changes,
             rootChanges: roots.changes,
+            openTextDocument: uri => documents.openTextDocument(uri),
         },
 
         configuration: {
@@ -258,6 +259,7 @@ function createExtensionAPI(
         },
 
         search: {
+            findTextInFiles: (query, options) => search.findTextInFiles(query, options),
             registerQueryTransformer: (provider: sourcegraph.QueryTransformer) =>
                 search.registerQueryTransformer(provider),
         },
