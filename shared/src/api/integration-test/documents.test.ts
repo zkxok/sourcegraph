@@ -1,7 +1,6 @@
 import { from } from 'rxjs'
 import { take } from 'rxjs/operators'
 import { TextDocument } from 'sourcegraph'
-import { PlatformContext } from '../../platform/context'
 import { assertToJSON, collectSubscribableValues, integrationTestContext } from './testHelpers'
 
 describe('Documents (integration)', () => {
@@ -49,18 +48,12 @@ describe('Documents (integration)', () => {
     })
 
     describe('workspace.openTextDocument', () => {
-        const MOCK_READ_FILE: PlatformContext['readFile'] = async () => 't'
-
         test('opens a document that was not already open', async () => {
             const {
-                services: { model: modelService },
+                services: { model: modelService, fileSystem },
                 extensionAPI,
-            } = await integrationTestContext(
-                {
-                    readFile: MOCK_READ_FILE,
-                },
-                { editors: [], roots: [] }
-            )
+            } = await integrationTestContext(undefined, { editors: [], roots: [] })
+            fileSystem.setProvider(async () => 't')
             const values = collectSubscribableValues(extensionAPI.workspace.openedTextDocuments)
             expect(modelService.hasModel('file:///f')).toBeFalsy()
             const doc = await extensionAPI.workspace.openTextDocument(new URL('file:///f'))
@@ -71,11 +64,10 @@ describe('Documents (integration)', () => {
 
         test('returns a document that was already open', async () => {
             const {
-                services: { model: modelService },
+                services: { model: modelService, fileSystem },
                 extensionAPI,
-            } = await integrationTestContext({
-                readFile: MOCK_READ_FILE,
-            })
+            } = await integrationTestContext()
+            fileSystem.setProvider(async () => 't')
             const values = collectSubscribableValues(extensionAPI.workspace.openedTextDocuments)
             expect(modelService.hasModel('file:///f')).toBeTruthy()
             const doc = await extensionAPI.workspace.openTextDocument(new URL('file:///f'))

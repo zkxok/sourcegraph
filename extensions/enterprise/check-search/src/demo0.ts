@@ -1,7 +1,7 @@
 import * as sourcegraph from 'sourcegraph'
 import { flatten } from 'lodash'
 import { Subscription, Observable, of, Unsubscribable, from } from 'rxjs'
-import { map, switchMap, startWith } from 'rxjs/operators'
+import { map, switchMap, startWith, first, toArray } from 'rxjs/operators'
 import { queryGraphQL } from './util'
 import * as GQL from '../../../../shared/src/graphql/schema'
 
@@ -23,60 +23,37 @@ function startDiagnostics(): Unsubscribable {
                 startWith(void 0),
                 map(() => sourcegraph.workspace.roots),
                 switchMap(async () => {
-                    const resp: GQL.IGraphQLResponseRoot = await queryGraphQL({
-                        query: `
-                    query CandidateFiles($query: String!) {
-                        __typename
-                        search(query: $query) {
-                            results {
-                                results {
-                                    __typename
-                                    ... on FileMatch {
-                                        file {
-                                            path
-                                            content
-                                            repository {
-                                                name
-                                            }
-                                            commit {
-                                                oid
-                                            }
-                                        }
-                                    }
+                    const results = flatten(
+                        await from(
+                            sourcegraph.search.findTextInFiles(
+                                { pattern: '', type: 'regexp' },
+                                {
+                                    repositories: { includes: ['sourcegraph$'], type: 'regexp' },
+                                    files: {
+                                        includes: ['^web/src/(components|repo|enterprise)/.*\\.tsx?$'],
+                                        type: 'regexp',
+                                    },
+                                    maxResults: 4,
                                 }
-                            }
-                        }
-                    }`,
-                        vars: {
-                            query: 'lang:typescript repo:sourcegraph$ f:^web/src/(components|repo|enterprise)/ count:4',
-                        },
-                    })
-                    if (resp.errors && resp.errors.length > 0) {
-                        throw new Error(`GraphQL error: ${resp.errors.map(e => e.message).join(', ')}`)
-                    }
-                    const fileMatches =
-                        resp.data &&
-                        resp.data.__typename === 'Query' &&
-                        resp.data.search &&
-                        resp.data.search.results &&
-                        resp.data.search.results.results
-                            ? resp.data.search.results.results.filter(
-                                  (r): r is GQL.IFileMatch => r.__typename === 'FileMatch'
-                              )
-                            : []
-
-                    return fileMatches.map(({ file }) => {
-                        const uri = `git://${file.repository.name}?${file.commit.oid}#${file.path}`
-                        const diagnostics: sourcegraph.Diagnostic[] = findMatchRanges(file.content).map(
-                            range =>
-                                ({
-                                    message: 'Found foo',
-                                    range,
-                                    severity: sourcegraph.DiagnosticSeverity.Hint,
-                                } as sourcegraph.Diagnostic)
+                            )
                         )
-                        return [new URL(uri), diagnostics] as [URL, sourcegraph.Diagnostic[]]
-                    })
+                            .pipe(toArray())
+                            .toPromise()
+                    )
+                    return Promise.all(
+                        results.map(async ({ uri }) => {
+                            const { text } = await sourcegraph.workspace.openTextDocument(new URL(uri))
+                            const diagnostics: sourcegraph.Diagnostic[] = findMatchRanges(text).map(
+                                range =>
+                                    ({
+                                        message: 'Found foo',
+                                        range,
+                                        severity: sourcegraph.DiagnosticSeverity.Hint,
+                                    } as sourcegraph.Diagnostic)
+                            )
+                            return [new URL(uri), diagnostics] as [URL, sourcegraph.Diagnostic[]]
+                        })
+                    )
                 })
             )
             .subscribe(entries => {

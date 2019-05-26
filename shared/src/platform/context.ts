@@ -109,15 +109,6 @@ export interface PlatformContext {
     urlToFile(location: RepoSpec & RevSpec & FileSpec & Partial<PositionSpec> & Partial<ViewStateSpec>): string
 
     /**
-     * Reads the file at the URI and returns its text contents.
-     *
-     * @param The URI of the file.
-     * @returns A promise that resolves to the file's text contents, or rejects if there is an
-     * error.
-     */
-    readFile(uri: URL): Promise<string>
-
-    /**
      * The URL to the Sourcegraph site that the user's session is associated with. This refers to
      * Sourcegraph.com (`https://sourcegraph.com`) by default, or a self-hosted instance of
      * Sourcegraph.

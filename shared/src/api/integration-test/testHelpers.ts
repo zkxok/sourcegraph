@@ -47,7 +47,6 @@ interface Mocks
         | 'updateSettings'
         | 'requestGraphQL'
         | 'getScriptURLForExtension'
-        | 'readFile'
         | 'clientApplication'
         | 'sideloadedExtensionURL'
     > {}
@@ -57,7 +56,6 @@ const NOOP_MOCKS: Mocks = {
     updateSettings: () => Promise.reject(new Error('Mocks#updateSettings not implemented')),
     requestGraphQL: () => throwError(new Error('Mocks#queryGraphQL not implemented')),
     getScriptURLForExtension: scriptURL => scriptURL,
-    readFile: uri => Promise.reject(new Error(`Mocks#readFile not implemented (uri: ${uri})`)),
     clientApplication: 'sourcegraph',
     sideloadedExtensionURL: new BehaviorSubject<string | null>(null),
 }

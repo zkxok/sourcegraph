@@ -33,7 +33,6 @@ export class Services {
             | 'updateSettings'
             | 'requestGraphQL'
             | 'getScriptURLForExtension'
-            | 'readFile'
             | 'clientApplication'
             | 'sideloadedExtensionURL'
         >
