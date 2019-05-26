@@ -10,6 +10,10 @@ import { asError, ErrorLike, isErrorLike } from '../../../../../../shared/src/ut
 import { fetchBlob } from '../../../../repo/blob/BlobPage'
 import { useEffectAsync } from '../../../../util/useEffectAsync'
 import { computeWorkspaceEditDiff } from './computeWorkspaceEditDiff'
+import { FileDiffNode } from '../../../../repo/compare/FileDiffNode'
+import { FileDiffHunks } from '../../../../repo/compare/FileDiffHunks'
+import { Markdown } from '../../../../../../shared/src/components/Markdown'
+import { renderMarkdown } from '../../../../../../shared/src/util/markdown'
 
 interface Props extends ExtensionsControllerProps {
     // TODO!(sqs): cant show file create/rename/delete operations unless we use our internal
@@ -38,6 +42,6 @@ export const WorkspaceEditPreview: React.FunctionComponent<Props> = ({ workspace
     ) : isErrorLike(rawDiff) ? (
         <span className="text-danger">{rawDiff.message}</span>
     ) : (
-        <pre>{rawDiff.diff}</pre>
+        <Markdown dangerousInnerHTML={renderMarkdown('```diff\n' + rawDiff.diff + '\n```')} />
     )
 }

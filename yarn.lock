@@ -2430,6 +2430,11 @@
   resolved "https://registry.npmjs.org/@types/d3-time/-/d3-time-1.0.9.tgz#c2cf05a3cd51f810b8d8a9bbca0c74030d4e535e"
   integrity sha512-m+D4NbQdDlTVaO7QgXAnatR3IDxQYDMBtRhgSCi5rs9R1LPq1y7/2aqa1FJ2IWjFm1mOV63swDxonnCDlHgHMA==
 
+"@types/diff@^4.0.2":
+  version "4.0.2"
+  resolved "https://registry.npmjs.org/@types/diff/-/diff-4.0.2.tgz#2e9bb89f9acc3ab0108f0f3dc4dbdcf2fff8a99c"
+  integrity sha512-mIenTfsIe586/yzsyfql69KRnA75S8SVXQbTLpDejRrjH0QSJcpu3AUOi/Vjnt9IOsXKxPhJfGpQUNMueIU1fQ==
+
 "@types/error-stack-parser@2.0.0":
   version "2.0.0"
   resolved "https://registry.npmjs.org/@types/error-stack-parser/-/error-stack-parser-2.0.0.tgz#93fc02d69353107c6b31db5ee2e226e8371fae05"
@@ -6354,6 +6359,11 @@ diff@^3.1.0, diff@^3.2.0, diff@^3.5.0:
   version "3.5.0"
   resolved "https://registry.npmjs.org/diff/-/diff-3.5.0.tgz#800c0dd1e0a8bfbc95835c202ad220fe317e5a12"
   integrity sha512-A46qtFgd+g7pDZinpnwiRJtxbC1hpgf0uzP3iG89scHk0AUC7A1TGxf5OiiOUv/JMZR8GOt8hL900hV0bOy5xA==
+
+diff@^4.0.1:
+  version "4.0.1"
+  resolved "https://registry.npmjs.org/diff/-/diff-4.0.1.tgz#0c667cb467ebbb5cea7f14f135cc2dba7780a8ff"
+  integrity sha512-s2+XdvhPCOF01LRQBC8hf4vhbVmI2CGS5aZnxLJlT5FtdhPCDFq80q++zK2KlrVorVDdL5BOGZ/VfLrVtYNF+Q==
 
 diffie-hellman@^5.0.0:
   version "5.0.3"
