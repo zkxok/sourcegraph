@@ -10,7 +10,6 @@ const FIXTURE_PARAMS: ProvideTextSearchResultsParams = {
     options: { files: { includes: ['p'], type: 'regexp' } },
 }
 
-// TODO!(sqs): use https://jestjs.io/docs/en/expect#expectextendmatchers
 const FIXTURE_RESULTS: TextSearchResult[] = [{ uri: 'file:///f0' }, { uri: 'file:///f1' }]
 
 describe('getResults', () => {

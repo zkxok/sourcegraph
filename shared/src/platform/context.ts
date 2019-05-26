@@ -1,5 +1,4 @@
 import { Endpoint, isEndpoint } from '@sourcegraph/comlink'
-import { readFile } from 'fs-extra'
 import { NextObserver, Observable, Subscribable } from 'rxjs'
 import { SettingsEdit } from '../api/client/services/settings'
 import { GraphQLResult } from '../graphql/graphql'

@@ -1,4 +1,4 @@
-import { EMPTY, merge, Observable, of } from 'rxjs'
+import { EMPTY, from, merge, Observable, ObservableInput, of } from 'rxjs'
 import { catchError, defaultIfEmpty, filter, map } from 'rxjs/operators'
 import { SearchOptions, SearchQuery, TextSearchResult } from 'sourcegraph'
 import { FeatureProviderRegistry } from './registry'
@@ -10,7 +10,7 @@ export interface ProvideTextSearchResultsParams {
 
 export type ProvideTextSearchResultsSignature = (
     params: ProvideTextSearchResultsParams
-) => Observable<TextSearchResult[]>
+) => ObservableInput<TextSearchResult[]>
 
 /**
  * Provides search results from matching registered providers.
@@ -44,7 +44,7 @@ export function getResults(
             providers.length > 0
                 ? merge(
                       ...providers.map(provider =>
-                          provider(params).pipe(
+                          from(provider(params)).pipe(
                               catchError(err => {
                                   if (logErrors) {
                                       console.error(err)

@@ -114,7 +114,7 @@ export async function createExtensionHostClientConnection(
         services.completionItems,
         services.codeActions
     )
-    const clientSearch = new ClientSearch(services.queryTransformer)
+    const clientSearch = new ClientSearch(services.queryTransformer, services.searchProviders)
     const clientCommands = new ClientCommands(services.commands)
     subscription.add(new ClientRoots(proxy.roots, services.workspace))
     subscription.add(new ClientExtensions(proxy.extensions, services.extensions))

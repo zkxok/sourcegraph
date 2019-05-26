@@ -17,6 +17,7 @@ import { TextDocumentLocationProviderIDRegistry, TextDocumentLocationProviderReg
 import { createModelService } from './services/modelService'
 import { NotificationsService } from './services/notifications'
 import { QueryTransformerRegistry } from './services/queryTransformer'
+import { SearchProviderRegistry } from './services/searchProviders'
 import { createSettingsService } from './services/settings'
 import { ViewProviderRegistry } from './services/view'
 import { createWorkspaceService } from './services/workspaceService'
@@ -57,6 +58,7 @@ export class Services {
     public readonly textDocumentHover = new TextDocumentHoverProviderRegistry()
     public readonly textDocumentDecoration = new TextDocumentDecorationProviderRegistry()
     public readonly queryTransformer = new QueryTransformerRegistry()
+    public readonly searchProviders = new SearchProviderRegistry()
     public readonly views = new ViewProviderRegistry()
     public readonly completionItems = new CompletionItemProviderRegistry()
     public readonly checkTemplates = new CheckTemplateRegistry()
