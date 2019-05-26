@@ -26,14 +26,14 @@ function startDiagnostics(): Unsubscribable {
                     const results = flatten(
                         await from(
                             sourcegraph.search.findTextInFiles(
-                                { pattern: '', type: 'regexp' },
+                                { pattern: '"import * as react"', type: 'regexp' },
                                 {
                                     repositories: { includes: ['sourcegraph$'], type: 'regexp' },
                                     files: {
-                                        includes: ['^web/src/(components|repo|enterprise)/.*\\.tsx?$'],
+                                        includes: ['^web/src/.*\\.tsx?$'],
                                         type: 'regexp',
                                     },
-                                    maxResults: 4,
+                                    maxResults: 3,
                                 }
                             )
                         )
@@ -85,7 +85,7 @@ function createCodeActionProvider(): sourcegraph.CodeActionProvider {
             const workspaceEdit = new sourcegraph.WorkspaceEdit()
             for (const _diag of context.diagnostics) {
                 for (const range of findMatchRanges(doc.text)) {
-                    workspaceEdit.replace(new URL(doc.uri), range, 'let')
+                    workspaceEdit.replace(new URL(doc.uri), range, "import React from 'react'")
                 }
             }
             return [{ title: 'Replace const -> let', edit: workspaceEdit }]
@@ -96,7 +96,7 @@ function createCodeActionProvider(): sourcegraph.CodeActionProvider {
 function findMatchRanges(text: string): sourcegraph.Range[] {
     const ranges: sourcegraph.Range[] = []
     for (const [i, line] of text.split('\n').entries()) {
-        const pat = /\b(function|const|class)\b/g
+        const pat = /^import \* as React from 'react'$/g
         for (let match = pat.exec(line); !!match; match = pat.exec(line)) {
             ranges.push(new sourcegraph.Range(i, match.index, i, match.index + match[0].length))
         }

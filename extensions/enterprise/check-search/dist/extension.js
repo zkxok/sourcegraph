@@ -34200,7 +34200,7 @@ function startDiagnostics() {
   subscriptions.add(diagnosticsCollection);
   subscriptions.add((0, _rxjs.from)(sourcegraph.workspace.rootChanges).pipe((0, _operators.startWith)(void 0), (0, _operators.map)(() => sourcegraph.workspace.roots), (0, _operators.switchMap)(async () => {
     const results = (0, _lodash.flatten)((await (0, _rxjs.from)(sourcegraph.search.findTextInFiles({
-      pattern: '',
+      pattern: '"import * as react"',
       type: 'regexp'
     }, {
       repositories: {
@@ -34208,10 +34208,10 @@ function startDiagnostics() {
         type: 'regexp'
       },
       files: {
-        includes: ['^web/src/(components|repo|enterprise)/.*\\.tsx?$'],
+        includes: ['^web/src/.*\\.tsx?$'],
         type: 'regexp'
       },
-      maxResults: 4
+      maxResults: 3
     })).pipe((0, _operators.toArray)()).toPromise()));
     return Promise.all(results.map(async ({
       uri
@@ -34250,7 +34250,7 @@ function createCodeActionProvider() {
 
       for (const _diag of context.diagnostics) {
         for (const range of findMatchRanges(doc.text)) {
-          workspaceEdit.replace(new URL(doc.uri), range, 'let');
+          workspaceEdit.replace(new URL(doc.uri), range, "import React from 'react'");
         }
       }
 
@@ -34266,7 +34266,7 @@ function findMatchRanges(text) {
   const ranges = [];
 
   for (const [i, line] of text.split('\n').entries()) {
-    const pat = /\b(function|const|class)\b/g;
+    const pat = /^import \* as React from 'react'$/g;
 
     for (let match = pat.exec(line); !!match; match = pat.exec(line)) {
       ranges.push(new sourcegraph.Range(i, match.index, i, match.index + match[0].length));

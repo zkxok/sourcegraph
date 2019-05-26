@@ -1606,7 +1606,10 @@ declare module 'sourcegraph' {
          * @param provider A code action provider.
          * @return An unsubscribable to unregister this provider.
          */
-        export function registerCodeActionProvider(selector: DocumentSelector, provider: CodeActionProvider): Disposable
+        export function registerCodeActionProvider(
+            selector: DocumentSelector,
+            provider: CodeActionProvider
+        ): Unsubscribable
     }
 
     /**
