@@ -1,8 +1,12 @@
+import { Range } from '@sourcegraph/extension-api-classes'
+import { LoadingSpinner } from '@sourcegraph/react-loading-spinner'
 import classNames from 'classnames'
 import H from 'history'
 import { upperFirst } from 'lodash'
 import AlertCircleOutlineIcon from 'mdi-react/AlertCircleOutlineIcon'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import { from, Subscription } from 'rxjs'
+import { catchError, map, startWith } from 'rxjs/operators'
 import * as sourcegraph from 'sourcegraph'
 import { DiagnosticSeverity } from '../../../../../../shared/src/api/types/diagnosticCollection'
 import { LinkOrSpan } from '../../../../../../shared/src/components/LinkOrSpan'
@@ -10,6 +14,8 @@ import { displayRepoName } from '../../../../../../shared/src/components/RepoFil
 import { ExtensionsControllerProps } from '../../../../../../shared/src/extensions/controller'
 import * as GQL from '../../../../../../shared/src/graphql/schema'
 import { PlatformContextProps } from '../../../../../../shared/src/platform/context'
+import { asError, ErrorLike, isErrorLike } from '../../../../../../shared/src/util/errors'
+import { makeRepoURI } from '../../../../../../shared/src/util/url'
 import { fetchHighlightedFileLines } from '../../../../repo/backend'
 import { FileDiffHunks } from '../../../../repo/compare/FileDiffHunks'
 import { ThreadSettings } from '../../settings'
@@ -22,6 +28,8 @@ export interface DiagnosticInfo extends sourcegraph.Diagnostic {
         repository: Pick<GQL.IRepository, 'name'>
     } & (Pick<GQL.IGitBlob, '__typename' | 'content'> | Pick<GQL.IGitTree, '__typename'>)
 }
+
+const LOADING: 'loading' = 'loading'
 
 interface Props extends ExtensionsControllerProps, PlatformContextProps {
     thread: Pick<GQL.IDiscussionThread, 'id' | 'idWithoutKind' | 'settings'>
@@ -56,8 +64,40 @@ export const ThreadInboxDiagnosticItem: React.FunctionComponent<Props> = ({
     diagnostic,
     className = '',
     isLightTheme,
+    extensionsController,
     ...props
 }) => {
+    const [codeActionsOrError, setCodeActionsOrError] = useState<typeof LOADING | sourcegraph.CodeAction[] | ErrorLike>(
+        LOADING
+    )
+    // tslint:disable-next-line: no-floating-promises
+    useEffect(() => {
+        const subscriptions = new Subscription()
+        subscriptions.add(
+            from(
+                extensionsController.services.codeActions.getCodeActions({
+                    textDocument: {
+                        uri: makeRepoURI({
+                            repoName: diagnostic.entry.repository.name,
+                            rev: diagnostic.entry.commit.oid,
+                            commitID: diagnostic.entry.commit.oid,
+                            filePath: diagnostic.entry.path,
+                        }),
+                    },
+                    range: Range.fromPlain(diagnostic.range),
+                    context: { diagnostics: [diagnostic] },
+                })
+            )
+                .pipe(
+                    map(codeActions => codeActions || []),
+                    catchError(err => [asError(err)]),
+                    startWith(LOADING)
+                )
+                .subscribe(setCodeActionsOrError)
+        )
+        return () => subscriptions.unsubscribe()
+    }, [diagnostic, extensionsController])
+
     const Icon = statusIcon(diagnostic)
     return (
         <div className={`card border ${className}`}>
@@ -85,7 +125,8 @@ export const ThreadInboxDiagnosticItem: React.FunctionComponent<Props> = ({
                             ) : (
                                 displayRepoName(diagnostic.entry.repository.name)
                             )}
-                        </LinkOrSpan>
+                        </LinkOrSpan>{' '}
+                        &mdash; {diagnostic.message}
                     </h3>
                     {/* TODO!(sqs) <small className="text-muted">
                         Changed {formatDistance(Date.parse(item.updatedAt), Date.now())} ago by{' '}
@@ -104,8 +145,14 @@ export const ThreadInboxDiagnosticItem: React.FunctionComponent<Props> = ({
                     )}
                     </div>*/}
             </div>
-            {/*<WorkspaceEditPreview {...props} diagnostic={diagnostic} />
-            <ThreadInboxItemActions {...props} diagnostic={diagnostic} className="border-top" /> TODO!(sqs)*/}
+            {codeActionsOrError === LOADING ? (
+                <LoadingSpinner className="icon-inline" />
+            ) : isErrorLike(codeActionsOrError) ? (
+                <span className="text-danger">{codeActionsOrError.message}</span>
+            ) : (
+                <WorkspaceEditPreview {...props} diagnostic={diagnostic} />
+            )}
+            {/*     <ThreadInboxItemActions {...props} diagnostic={diagnostic} className="border-top" /> TODO!(sqs)*/}
         </div>
     )
 }

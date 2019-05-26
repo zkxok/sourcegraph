@@ -34241,17 +34241,23 @@ function startDiagnostics() {
 
 function createCodeActionProvider() {
   return {
-    provideCodeActions: (doc, rangeOrSelection, context) => {
-      const workspaceEdit = new sourcegraph.WorkspaceEdit();
-
-      for (const range of findMatchRanges(doc.text)) {
-        workspaceEdit.replace(new URL(doc.uri), range, 'let');
+    provideCodeActions: async (doc, _rangeOrSelection, context) => {
+      if (context.diagnostics.length === 0) {
+        return [];
       }
 
-      return (0, _rxjs.of)([{
+      const workspaceEdit = new sourcegraph.WorkspaceEdit();
+
+      for (const _diag of context.diagnostics) {
+        for (const range of findMatchRanges(doc.text)) {
+          workspaceEdit.replace(new URL(doc.uri), range, 'let');
+        }
+      }
+
+      return [{
         title: 'Replace const -> let',
         edit: workspaceEdit
-      }]);
+      }];
     }
   };
 }

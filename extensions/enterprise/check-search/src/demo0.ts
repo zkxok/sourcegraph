@@ -78,12 +78,17 @@ function startDiagnostics(): Unsubscribable {
 
 function createCodeActionProvider(): sourcegraph.CodeActionProvider {
     return {
-        provideCodeActions: (doc, rangeOrSelection, context): Observable<sourcegraph.CodeAction[]> => {
-            const workspaceEdit = new sourcegraph.WorkspaceEdit()
-            for (const range of findMatchRanges(doc.text)) {
-                workspaceEdit.replace(new URL(doc.uri), range, 'let')
+        provideCodeActions: async (doc, _rangeOrSelection, context): Promise<sourcegraph.CodeAction[]> => {
+            if (context.diagnostics.length === 0) {
+                return []
             }
-            return of<sourcegraph.CodeAction[]>([{ title: 'Replace const -> let', edit: workspaceEdit }])
+            const workspaceEdit = new sourcegraph.WorkspaceEdit()
+            for (const _diag of context.diagnostics) {
+                for (const range of findMatchRanges(doc.text)) {
+                    workspaceEdit.replace(new URL(doc.uri), range, 'let')
+                }
+            }
+            return [{ title: 'Replace const -> let', edit: workspaceEdit }]
         },
     }
 }
