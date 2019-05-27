@@ -46,9 +46,9 @@ function startDiagnostics(): Unsubscribable {
                             const diagnostics: sourcegraph.Diagnostic[] = findMatchRanges(text).map(
                                 range =>
                                     ({
-                                        message: 'Found foo',
+                                        message: 'Unnecessary import * from React',
                                         range,
-                                        severity: sourcegraph.DiagnosticSeverity.Hint,
+                                        severity: sourcegraph.DiagnosticSeverity.Information,
                                     } as sourcegraph.Diagnostic)
                             )
                             return [new URL(uri), diagnostics] as [URL, sourcegraph.Diagnostic[]]
@@ -59,18 +59,6 @@ function startDiagnostics(): Unsubscribable {
             .subscribe(entries => {
                 diagnosticsCollection.set(entries)
             })
-    )
-
-    subscriptions.add(
-        sourcegraph.workspace.openedTextDocuments.subscribe(doc => {
-            diagnosticsCollection.set(new URL(doc.uri), [
-                {
-                    message: 'My diagnostic',
-                    range: new sourcegraph.Range(1, 2, 10, 4),
-                    severity: sourcegraph.DiagnosticSeverity.Error,
-                },
-            ])
-        })
     )
 
     return diagnosticsCollection
