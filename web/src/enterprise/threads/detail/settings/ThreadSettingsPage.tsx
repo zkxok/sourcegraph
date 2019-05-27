@@ -9,6 +9,7 @@ interface Props extends ExtensionsControllerProps {
     thread: GQL.IDiscussionThread
     threadSettings: ThreadSettings
     onThreadUpdate: (thread: GQL.IDiscussionThread) => void
+    className?: string
     isLightTheme: boolean
     history: H.History
 }
@@ -16,8 +17,8 @@ interface Props extends ExtensionsControllerProps {
 /**
  * The settings page for a single thread.
  */
-export const ThreadSettingsPage: React.FunctionComponent<Props> = ({ thread, ...props }) => (
-    <div className="thread-settings-page container">
+export const ThreadSettingsPage: React.FunctionComponent<Props> = ({ thread, className = '', ...props }) => (
+    <div className={`thread-settings-page ${className}`}>
         <ThreadSettingsEditForm {...props} thread={thread} />
     </div>
 )

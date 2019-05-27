@@ -23,6 +23,7 @@ interface Props extends ExtensionsControllerProps {
 
     areaURL: string
 
+    className?: string
     history: H.History
     location: H.Location
 }
@@ -36,9 +37,10 @@ export const ThreadOverview: React.FunctionComponent<Props> = ({
     threadSettings,
     project,
     areaURL,
+    className = '',
     ...props
 }) => (
-    <div className="thread-overview container">
+    <div className={`thread-overview ${className || ''}`}>
         <ThreadBreadcrumbs thread={thread} project={project} areaURL={areaURL} className="py-3" />
         <hr className="my-0" />
         <div className="d-flex align-items-center py-3">

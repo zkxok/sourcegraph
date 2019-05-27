@@ -19,6 +19,8 @@ interface Props extends ExtensionsControllerProps {
     // TODO!(sqs): cant show file create/rename/delete operations unless we use our internal
     // WorkspaceEdit type's #operations field.
     workspaceEdit: sourcegraph.WorkspaceEdit
+
+    className?: string
 }
 
 const LOADING: 'loading' = 'loading'
@@ -26,7 +28,11 @@ const LOADING: 'loading' = 'loading'
 /**
  * Previews a workspace edit's changes.
  */
-export const WorkspaceEditPreview: React.FunctionComponent<Props> = ({ workspaceEdit, extensionsController }) => {
+export const WorkspaceEditPreview: React.FunctionComponent<Props> = ({
+    workspaceEdit,
+    className = '',
+    extensionsController,
+}) => {
     const [rawDiff, setRawDiff] = useState<typeof LOADING | { diff: string } | ErrorLike>(LOADING)
     useEffectAsync(async () => {
         setRawDiff(LOADING)
@@ -42,6 +48,6 @@ export const WorkspaceEditPreview: React.FunctionComponent<Props> = ({ workspace
     ) : isErrorLike(rawDiff) ? (
         <span className="text-danger">{rawDiff.message}</span>
     ) : (
-        <Markdown dangerousInnerHTML={renderMarkdown('```diff\n' + rawDiff.diff + '\n```')} />
+        <Markdown dangerousInnerHTML={renderMarkdown('```diff\n' + rawDiff.diff + '\n```')} className={className} />
     )
 }

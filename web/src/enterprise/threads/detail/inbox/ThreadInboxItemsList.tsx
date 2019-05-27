@@ -2,7 +2,8 @@ import { LoadingSpinner } from '@sourcegraph/react-loading-spinner'
 import H from 'history'
 import React, { useEffect, useState } from 'react'
 import { from, Subscription } from 'rxjs'
-import { catchError, map, startWith, switchMap } from 'rxjs/operators'
+import { catchError, map, mapTo, startWith, switchMap } from 'rxjs/operators'
+import { Resizable } from '../../../../../../shared/src/components/Resizable'
 import { ExtensionsControllerProps } from '../../../../../../shared/src/extensions/controller'
 import { gql } from '../../../../../../shared/src/graphql/graphql'
 import * as GQL from '../../../../../../shared/src/graphql/schema'
@@ -11,10 +12,10 @@ import { asError, createAggregateError, ErrorLike, isErrorLike } from '../../../
 import { parseRepoURI } from '../../../../../../shared/src/util/url'
 import { queryGraphQL } from '../../../../backend/graphql'
 import { discussionThreadTargetFieldsFragment } from '../../../../discussions/backend'
+import { useEffectAsync } from '../../../../util/useEffectAsync'
 import { QueryParameterProps } from '../../components/withQueryParameter/WithQueryParameter'
 import { ThreadSettings } from '../../settings'
 import { DiagnosticInfo, ThreadInboxDiagnosticItem } from './ThreadInboxDiagnosticItem'
-import { useEffectAsync } from '../../../../util/useEffectAsync'
 
 // TODO!(sqs): use relative path/rev for DiscussionThreadTargetRepo
 const queryInboxItems = (threadID: GQL.ID): Promise<GQL.IDiscussionThreadTargetConnection> =>
@@ -107,6 +108,7 @@ interface Props extends QueryParameterProps, ExtensionsControllerProps, Platform
     onThreadUpdate: (thread: GQL.IDiscussionThread) => void
     threadSettings: ThreadSettings
 
+    className?: string
     history: H.History
     location: H.Location
     isLightTheme: boolean
@@ -123,6 +125,7 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
     threadSettings,
     query,
     onQueryChange,
+    className = '',
     extensionsController,
     ...props
 }) => {
@@ -174,6 +177,8 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
         subscriptions.add(
             from(extensionsController.services.diagnostics.collection.changes)
                 .pipe(
+                    mapTo(() => void 0),
+                    startWith(() => void 0),
                     map(() => Array.from(extensionsController.services.diagnostics.collection.entries())),
                     switchMap(async diagEntries => {
                         const entries = await queryCandidateFiles(diagEntries.map(([url]) => url))
@@ -195,7 +200,7 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
     }, [thread.id, threadSettings, extensionsController])
 
     return (
-        <div className="thread-inbox-items-list position-relative">
+        <div className={`thread-inbox-items-list ${className}`}>
             {isErrorLike(itemsOrError) ? (
                 <div className="alert alert-danger mt-2">{itemsOrError.message}</div>
             ) : (
@@ -225,22 +230,40 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
                     ) : itemsOrError.length === 0 ? (
                         <p className="p-2 mb-0 text-muted">Inbox is empty.</p>
                     ) : (
-                        <ul className="list-unstyled">
-                            {itemsOrError.map((diagnostic, i) => (
-                                <li key={i}>
-                                    <ThreadInboxDiagnosticItem
-                                        {...props}
-                                        key={i}
-                                        thread={thread}
-                                        threadSettings={threadSettings}
-                                        diagnostic={diagnostic}
-                                        onThreadUpdate={onThreadUpdate}
-                                        className="my-3"
-                                        extensionsController={extensionsController}
-                                    />
-                                </li>
-                            ))}
-                        </ul>
+                        <div className="d-flex">
+                            <div
+                                className="sticky-top flex-0 d-flex flex-column"
+                                style={{ height: '100vh', top: '39px' }}
+                            >
+                                <Resizable
+                                    className="flex-1 border-right"
+                                    handlePosition="right"
+                                    storageKey="thread-inbox-items-list__sidebar-resizable"
+                                    defaultSize={216 /* px */}
+                                    element={<div className="w-100">Hello, world!</div>}
+                                    style={{
+                                        minWidth: '8rem',
+                                        maxWidth: '75%',
+                                    }}
+                                />
+                            </div>
+                            <ul className="list-unstyled flex-1 overflow-hidden">
+                                {itemsOrError.map((diagnostic, i) => (
+                                    <li key={i}>
+                                        <ThreadInboxDiagnosticItem
+                                            {...props}
+                                            key={i}
+                                            thread={thread}
+                                            threadSettings={threadSettings}
+                                            diagnostic={diagnostic}
+                                            onThreadUpdate={onThreadUpdate}
+                                            className="rounded-0 border-left-0 border-right-0"
+                                            extensionsController={extensionsController}
+                                        />
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
                     )}
                 </>
             )}

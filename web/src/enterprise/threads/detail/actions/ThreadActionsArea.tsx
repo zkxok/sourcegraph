@@ -21,6 +21,7 @@ interface Props extends ExtensionsControllerProps, RouteComponentProps<{}> {
     onThreadUpdate: (thread: GQL.IDiscussionThread) => void
     threadSettings: ThreadSettings
 
+    className?: string
     history: H.History
     location: H.Location
 }
@@ -32,6 +33,7 @@ export const ThreadActionsArea: React.FunctionComponent<Props> = ({
     thread,
     onThreadUpdate,
     threadSettings,
+    className = '',
     ...props
 }) => {
     const context: ThreadAreaContext & { areaURL: string } & ExtensionsControllerProps = {
@@ -43,7 +45,7 @@ export const ThreadActionsArea: React.FunctionComponent<Props> = ({
     }
 
     return (
-        <div className="thread-actions-area container d-flex">
+        <div className={`thread-actions-area d-flex ${className}`}>
             <ThreadActionsAreaSidebar {...context} className="flex-0 mr-3" />
             <div className="flex-1">
                 <ErrorBoundary location={props.location}>

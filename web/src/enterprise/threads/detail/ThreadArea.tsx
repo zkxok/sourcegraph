@@ -83,11 +83,17 @@ export const ThreadArea: React.FunctionComponent<Props> = props => {
 
     return (
         <div className="thread-area flex-1 d-flex overflow-hidden">
-            <div className="flex-1 overflow-auto">
+            <div className="d-flex flex-column flex-1 overflow-auto">
                 <ErrorBoundary location={props.location}>
-                    <ThreadOverview {...context} location={props.location} history={props.history} />
+                    <ThreadOverview
+                        {...context}
+                        location={props.location}
+                        history={props.history}
+                        className="container flex-0 pb-3"
+                    />
+                    <div className="w-100 border-bottom" />
                     {(sections.review || sections.actions || sections.settings) && (
-                        <ThreadAreaNavbar {...context} sections={sections} className="my-3" />
+                        <ThreadAreaNavbar {...context} sections={sections} className="flex-0 sticky-top bg-body" />
                     )}
                 </ErrorBoundary>
                 <ErrorBoundary location={props.location}>
@@ -98,7 +104,11 @@ export const ThreadArea: React.FunctionComponent<Props> = props => {
                             exact={true}
                             // tslint:disable-next-line:jsx-no-lambda
                             render={routeComponentProps => (
-                                <ThreadDiscussionPage {...context} {...routeComponentProps} />
+                                <ThreadDiscussionPage
+                                    {...context}
+                                    {...routeComponentProps}
+                                    className="container mb-3"
+                                />
                             )}
                         />
                         {sections.review && (
@@ -118,7 +128,11 @@ export const ThreadArea: React.FunctionComponent<Props> = props => {
                                 key="hardcoded-key" // see https://github.com/ReactTraining/react-router/issues/4578#issuecomment-334489490
                                 // tslint:disable-next-line:jsx-no-lambda
                                 render={routeComponentProps => (
-                                    <ThreadActionsArea {...context} {...routeComponentProps} />
+                                    <ThreadActionsArea
+                                        {...context}
+                                        {...routeComponentProps}
+                                        className="container mt-3"
+                                    />
                                 )}
                             />
                         )}
@@ -129,7 +143,11 @@ export const ThreadArea: React.FunctionComponent<Props> = props => {
                                 exact={true}
                                 // tslint:disable-next-line:jsx-no-lambda
                                 render={routeComponentProps => (
-                                    <ThreadSettingsPage {...context} {...routeComponentProps} />
+                                    <ThreadSettingsPage
+                                        {...context}
+                                        {...routeComponentProps}
+                                        className="container mt-3"
+                                    />
                                 )}
                             />
                         )}

@@ -28,7 +28,7 @@ export const ThreadAreaNavbar: React.FunctionComponent<Props> = ({
     areaURL,
     className = '',
 }) => (
-    <div className={`thread-area-navbar border-top border-bottom ${className}`}>
+    <div className={`thread-area-navbar border-bottom ${className}`}>
         <div className="container px-0">
             <div className="nav nav-pills flex-nowrap">
                 <div className="nav-item">

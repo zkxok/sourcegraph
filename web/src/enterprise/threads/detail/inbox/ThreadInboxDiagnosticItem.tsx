@@ -154,6 +154,7 @@ export const ThreadInboxDiagnosticItem: React.FunctionComponent<Props> = ({
                             {...props}
                             workspaceEdit={codeAction.edit}
                             extensionsController={extensionsController}
+                            className="overflow-auto"
                         />
                     ) : (
                         'no edit'

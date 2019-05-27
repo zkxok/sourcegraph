@@ -11,6 +11,7 @@ interface Props extends ExtensionsControllerProps {
     onThreadUpdate: (thread: GQL.IDiscussionThread) => void
     threadSettings: ThreadSettings
 
+    className?: string
     history: H.History
     location: H.Location
 }
@@ -22,9 +23,10 @@ export const ThreadDiscussionPage: React.FunctionComponent<Props> = ({
     thread,
     onThreadUpdate,
     threadSettings,
+    className = '',
     ...props
 }) => (
-    <div className="thread-discussion-page container">
+    <div className={`thread-discussion-page ${className}`}>
         <DiscussionsThread
             {...props}
             threadIDWithoutKind={thread.idWithoutKind}
