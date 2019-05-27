@@ -33,7 +33,7 @@ function startDiagnostics(): Unsubscribable {
                                         includes: ['^web/src/.*\\.tsx?$'],
                                         type: 'regexp',
                                     },
-                                    maxResults: 3,
+                                    maxResults: 4,
                                 }
                             )
                         )

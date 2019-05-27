@@ -16,6 +16,7 @@ import * as GQL from '../../../../../../shared/src/graphql/schema'
 import { PlatformContextProps } from '../../../../../../shared/src/platform/context'
 import { asError, ErrorLike, isErrorLike } from '../../../../../../shared/src/util/errors'
 import { makeRepoURI } from '../../../../../../shared/src/util/url'
+import { DiagnosticSeverityIcon } from '../../../../diagnostics/components/DiagnosticSeverityIcon'
 import { ThreadSettings } from '../../settings'
 import { WorkspaceEditPreview } from './WorkspaceEditPreview'
 
@@ -40,21 +41,6 @@ interface Props extends ExtensionsControllerProps, PlatformContextProps {
     history: H.History
     location: H.Location
 }
-
-const SEVERITY_ICON: Record<
-    typeof DiagnosticSeverity[keyof typeof DiagnosticSeverity],
-    React.ComponentType<{ className?: string }>
-> = {
-    [DiagnosticSeverity.Error]: AlertCircleOutlineIcon,
-    [DiagnosticSeverity.Warning]: AlertCircleOutlineIcon,
-    [DiagnosticSeverity.Information]: AlertCircleOutlineIcon,
-    [DiagnosticSeverity.Hint]: AlertCircleOutlineIcon,
-}
-
-const statusIcon = ({
-    severity,
-}: Pick<sourcegraph.Diagnostic, 'severity'>): React.ComponentType<{ className?: string }> =>
-    SEVERITY_ICON[severity] || AlertCircleOutlineIcon
 
 /**
  * An inbox item in a thread that refers to a diagnostic.
@@ -99,20 +85,10 @@ export const ThreadInboxDiagnosticItem: React.FunctionComponent<Props> = ({
         return () => subscriptions.unsubscribe()
     }, [diagnostic, extensionsController])
 
-    const Icon = statusIcon(diagnostic)
     return (
         <div className={`card border ${className}`}>
             <div className={`card-header d-flex align-items-center ${headerClassName}`} style={headerStyle}>
-                <Icon
-                    className={classNames('icon-inline', 'mr-2', 'h5', 'mb-0', {
-                        'text-danger': diagnostic.severity === DiagnosticSeverity.Error,
-                        'text-warning': diagnostic.severity === DiagnosticSeverity.Warning,
-                        'text-info': diagnostic.severity === DiagnosticSeverity.Information,
-                        'text-success': diagnostic.severity === DiagnosticSeverity.Hint,
-                        // TODO!(sqs) 'text-muted': diagnostic.,
-                    })}
-                    data-tooltip={upperFirst(status)}
-                />
+                <DiagnosticSeverityIcon severity={diagnostic.severity} className="icon-inline mr-2" />
                 <div className="flex-1">
                     <h3 className="d-flex align-items-center mb-0 h6">
                         <LinkOrSpan to={diagnostic.entry.url} className="text-body">

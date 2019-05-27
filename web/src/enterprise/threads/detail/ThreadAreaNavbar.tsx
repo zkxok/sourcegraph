@@ -71,7 +71,7 @@ export const ThreadAreaNavbar: React.FunctionComponent<Props> = ({
                             className="thread-area-navbar__nav-link nav-link rounded-0"
                             activeClassName="thread-area-navbar__nav-link--active"
                         >
-                            <PlayCircleIcon className="icon-inline" /> Process
+                            <PlayCircleIcon className="icon-inline" /> Actions
                         </NavLink>
                     </div>
                 )}

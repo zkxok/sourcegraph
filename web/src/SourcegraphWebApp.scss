@@ -229,6 +229,10 @@ body,
     flex: 1;
 }
 
+.flex-const {
+    flex: 0 0 auto;
+}
+
 // Pages
 @import './Layout';
 @import './api/APIConsole';

@@ -15,6 +15,7 @@ import { discussionThreadTargetFieldsFragment } from '../../../../discussions/ba
 import { useEffectAsync } from '../../../../util/useEffectAsync'
 import { QueryParameterProps } from '../../components/withQueryParameter/WithQueryParameter'
 import { ThreadSettings } from '../../settings'
+import { ThreadInboxSidebar } from './sidebar/ThreadInboxSidebar'
 import { DiagnosticInfo, ThreadInboxDiagnosticItem } from './ThreadInboxDiagnosticItem'
 
 // TODO!(sqs): use relative path/rev for DiscussionThreadTargetRepo
@@ -197,7 +198,7 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
                 .subscribe(setItemsOrError)
         )
         return () => subscriptions.unsubscribe()
-    }, [thread.id, threadSettings, extensionsController])
+    }, [thread.id, extensionsController])
 
     return (
         <div className={`thread-inbox-items-list ${className}`}>
@@ -236,7 +237,14 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
                                 handlePosition="right"
                                 storageKey="thread-inbox-items-list__sidebar-resizable"
                                 defaultSize={216 /* px */}
-                                element={<div className="flex-1">Hello, world!</div>}
+                                element={
+                                    <ThreadInboxSidebar
+                                        diagnostics={itemsOrError}
+                                        query={query}
+                                        onQueryChange={onQueryChange}
+                                        className="flex-1"
+                                    />
+                                }
                                 style={{
                                     minWidth: '8rem',
                                     maxWidth: '75vh',
