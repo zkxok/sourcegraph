@@ -231,23 +231,20 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
                         <p className="p-2 mb-0 text-muted">Inbox is empty.</p>
                     ) : (
                         <div className="d-flex">
-                            <div
-                                className="sticky-top flex-0 d-flex flex-column"
-                                style={{ height: '100vh', top: '39px' }}
-                            >
-                                <Resizable
-                                    className="flex-1 border-right"
-                                    handlePosition="right"
-                                    storageKey="thread-inbox-items-list__sidebar-resizable"
-                                    defaultSize={216 /* px */}
-                                    element={<div className="w-100">Hello, world!</div>}
-                                    style={{
-                                        minWidth: '8rem',
-                                        maxWidth: '75%',
-                                    }}
-                                />
-                            </div>
-                            <ul className="list-unstyled flex-1 overflow-hidden">
+                            <Resizable
+                                className="sticky-top border-right"
+                                handlePosition="right"
+                                storageKey="thread-inbox-items-list__sidebar-resizable"
+                                defaultSize={216 /* px */}
+                                element={<div className="flex-1">Hello, world!</div>}
+                                style={{
+                                    minWidth: '8rem',
+                                    maxWidth: '75vh',
+                                    height: 'calc(100vh - 83.5px)', // 83.5px = 39px + 44.5px(GlobalNavbar)
+                                    top: '39px', // TODO!(sqs): this is the hardcoded height of ThreadAreaNavbar
+                                }}
+                            />
+                            <ul className="list-unstyled mb-0 flex-1" style={{ minWidth: '0' }}>
                                 {itemsOrError.map((diagnostic, i) => (
                                     <li key={i}>
                                         <ThreadInboxDiagnosticItem
@@ -257,7 +254,12 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
                                             threadSettings={threadSettings}
                                             diagnostic={diagnostic}
                                             onThreadUpdate={onThreadUpdate}
-                                            className="rounded-0 border-left-0 border-right-0"
+                                            className="rounded-0 border-0"
+                                            headerClassName="thread-inbox-items-list__item-header sticky-top"
+                                            headerStyle={{
+                                                // TODO!(sqs): this is the hardcoded height of ThreadAreaNavbar
+                                                top: '39px',
+                                            }}
                                             extensionsController={extensionsController}
                                         />
                                     </li>

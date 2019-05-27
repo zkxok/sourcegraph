@@ -34,6 +34,8 @@ interface Props extends ExtensionsControllerProps, PlatformContextProps {
     threadSettings: ThreadSettings
     diagnostic: DiagnosticInfo
     className?: string
+    headerClassName?: string
+    headerStyle?: React.CSSProperties
     isLightTheme: boolean
     history: H.History
     location: H.Location
@@ -60,6 +62,8 @@ const statusIcon = ({
 export const ThreadInboxDiagnosticItem: React.FunctionComponent<Props> = ({
     diagnostic,
     className = '',
+    headerClassName = '',
+    headerStyle,
     isLightTheme,
     extensionsController,
     ...props
@@ -98,7 +102,7 @@ export const ThreadInboxDiagnosticItem: React.FunctionComponent<Props> = ({
     const Icon = statusIcon(diagnostic)
     return (
         <div className={`card border ${className}`}>
-            <div className="card-header d-flex align-items-center">
+            <div className={`card-header d-flex align-items-center ${headerClassName}`} style={headerStyle}>
                 <Icon
                     className={classNames('icon-inline', 'mr-2', 'h5', 'mb-0', {
                         'text-danger': diagnostic.severity === DiagnosticSeverity.Error,
