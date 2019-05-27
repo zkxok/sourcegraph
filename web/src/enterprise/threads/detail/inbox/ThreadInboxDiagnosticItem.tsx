@@ -130,7 +130,7 @@ export const ThreadInboxDiagnosticItem: React.FunctionComponent<Props> = ({
                 codeActionsOrError.map((codeAction, i) =>
                     codeAction.edit ? (
                         <WorkspaceEditPreview
-                            key={i}
+                            key={JSON.stringify(codeAction.edit)}
                             {...props}
                             workspaceEdit={codeAction.edit}
                             extensionsController={extensionsController}

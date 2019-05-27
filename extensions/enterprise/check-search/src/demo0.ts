@@ -1,4 +1,6 @@
 import * as sourcegraph from 'sourcegraph'
+import { isDefined } from '../../../../shared/src/util/types'
+import { combineLatestOrDefault } from '../../../../shared/src/util/rxjs/combineLatestOrDefault'
 import { flatten } from 'lodash'
 import { Subscription, Observable, of, Unsubscribable, from } from 'rxjs'
 import { map, switchMap, startWith, first, toArray } from 'rxjs/operators'
@@ -33,14 +35,14 @@ function startDiagnostics(): Unsubscribable {
                                         includes: ['^web/src/.*\\.tsx?$'],
                                         type: 'regexp',
                                     },
-                                    maxResults: 4,
+                                    maxResults: 10,
                                 }
                             )
                         )
                             .pipe(toArray())
                             .toPromise()
                     )
-                    return Promise.all(
+                    return combineLatestOrDefault(
                         results.map(async ({ uri }) => {
                             const { text } = await sourcegraph.workspace.openTextDocument(new URL(uri))
                             const diagnostics: sourcegraph.Diagnostic[] = findMatchRanges(text).map(
@@ -53,8 +55,9 @@ function startDiagnostics(): Unsubscribable {
                             )
                             return [new URL(uri), diagnostics] as [URL, sourcegraph.Diagnostic[]]
                         })
-                    )
-                })
+                    ).pipe(map(items => items.filter(isDefined))) // .pipe(switchMap(results => flatten<[URL, sourcegraph.Diagnostic[]]>(results)))
+                }),
+                switchMap(results => results)
             )
             .subscribe(entries => {
                 diagnosticsCollection.set(entries)

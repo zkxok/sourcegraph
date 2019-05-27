@@ -4,17 +4,18 @@ import { Services } from '../api/client/services'
 import { gql } from '../graphql/graphql'
 import { PlatformContext } from '../platform/context'
 import { createAggregateError } from '../util/errors'
-import { parseRepoURI } from '../util/url'
+import { memoizeObservable } from '../util/memoizeObservable'
+import { ParsedRepoURI, parseRepoURI } from '../util/url'
 
 export function registerFileSystemContributions(
     { fileSystem }: Pick<Services, 'fileSystem'>,
     { requestGraphQL }: Pick<PlatformContext, 'requestGraphQL'>
 ): Unsubscribable {
     const subscriptions = new Subscription()
-    subscriptions.add(
-        fileSystem.setProvider(async uri => {
-            const parsed = parseRepoURI(uri.toString())
-            const { data, errors } = await requestGraphQL({
+
+    const readFile = memoizeObservable(
+        (variables: { repo: string; rev: string; path: string }) =>
+            requestGraphQL({
                 request: gql`
                     query ReadFile($repo: String!, $rev: String!, $path: String!) {
                         __typename
@@ -27,11 +28,19 @@ export function registerFileSystemContributions(
                         }
                     }
                 `,
-                variables: { repo: parsed.repoName, rev: parsed.rev || parsed.commitID, path: parsed.filePath },
+                variables,
                 mightContainPrivateInfo: false,
-            })
-                .pipe(first())
-                .toPromise()
+            }).pipe(first()),
+        ({ repo, rev, path }) => `${repo}:${rev}:${path}`
+    )
+    subscriptions.add(
+        fileSystem.setProvider(async uri => {
+            const parsed = parseRepoURI(uri.toString())
+            const { data, errors } = await readFile({
+                repo: parsed.repoName,
+                rev: parsed.rev || parsed.commitID!,
+                path: parsed.filePath!,
+            }).toPromise()
             if (errors && errors.length > 0) {
                 throw createAggregateError(errors)
             }
