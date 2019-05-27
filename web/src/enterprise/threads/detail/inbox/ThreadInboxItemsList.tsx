@@ -1,7 +1,7 @@
 import { LoadingSpinner } from '@sourcegraph/react-loading-spinner'
 import H from 'history'
 import React, { useEffect, useState } from 'react'
-import { from, Subscription } from 'rxjs'
+import { from, Subscription, Observable } from 'rxjs'
 import { catchError, map, mapTo, startWith, switchMap } from 'rxjs/operators'
 import { Resizable } from '../../../../../../shared/src/components/Resizable'
 import { ExtensionsControllerProps } from '../../../../../../shared/src/extensions/controller'
@@ -17,6 +17,7 @@ import { QueryParameterProps } from '../../components/withQueryParameter/WithQue
 import { ThreadSettings } from '../../settings'
 import { ThreadInboxSidebar } from './sidebar/ThreadInboxSidebar'
 import { DiagnosticInfo, ThreadInboxDiagnosticItem } from './ThreadInboxDiagnosticItem'
+import { memoizeObservable } from '../../../../../../shared/src/util/memoizeObservable'
 
 // TODO!(sqs): use relative path/rev for DiscussionThreadTargetRepo
 const queryInboxItems = (threadID: GQL.ID): Promise<GQL.IDiscussionThreadTargetConnection> =>
@@ -60,49 +61,50 @@ const queryInboxItems = (threadID: GQL.ID): Promise<GQL.IDiscussionThreadTargetC
         .toPromise()
 
 // TODO!(sqs): use relative path/rev for DiscussionThreadTargetRepo
-const queryCandidateFiles = (uris: URL[]): Promise<[URL, DiagnosticInfo['entry']][]> =>
-    Promise.all(
-        uris.map(uri => {
-            const parsed = parseRepoURI(uri.toString())
-            return queryGraphQL(
-                gql`
-                    query CandidateFile($repo: String!, $rev: String!, $path: String!) {
-                        repository(name: $repo) {
-                            commit(rev: $rev) {
-                                blob(path: $path) {
-                                    path
-                                    content
-                                    repository {
-                                        name
-                                    }
-                                    commit {
-                                        oid
-                                    }
+const queryCandidateFile = memoizeObservable(
+    (uri: URL): Observable<[URL, DiagnosticInfo['entry']]> => {
+        const parsed = parseRepoURI(uri.toString())
+        return queryGraphQL(
+            gql`
+                query CandidateFile($repo: String!, $rev: String!, $path: String!) {
+                    repository(name: $repo) {
+                        commit(rev: $rev) {
+                            blob(path: $path) {
+                                path
+                                content
+                                repository {
+                                    name
+                                }
+                                commit {
+                                    oid
                                 }
                             }
                         }
                     }
-                `,
-                { repo: parsed.repoName, rev: parsed.rev || parsed.commitID, path: parsed.filePath }
-            )
-                .pipe(
-                    map(({ data, errors }) => {
-                        if (
-                            !data ||
-                            !data.repository ||
-                            !data.repository.commit ||
-                            !data.repository.commit.blob ||
-                            (errors && errors.length > 0)
-                        ) {
-                            throw createAggregateError(errors)
-                        }
-                        return data.repository.commit.blob
-                    }),
-                    map(data => [uri, data] as [URL, DiagnosticInfo['entry']])
-                )
-                .toPromise()
-        })
-    )
+                }
+            `,
+            { repo: parsed.repoName, rev: parsed.rev || parsed.commitID, path: parsed.filePath }
+        ).pipe(
+            map(({ data, errors }) => {
+                if (
+                    !data ||
+                    !data.repository ||
+                    !data.repository.commit ||
+                    !data.repository.commit.blob ||
+                    (errors && errors.length > 0)
+                ) {
+                    throw createAggregateError(errors)
+                }
+                return data.repository.commit.blob
+            }),
+            map(data => [uri, data] as [URL, DiagnosticInfo['entry']])
+        )
+    },
+    uri => uri.toString()
+)
+
+const queryCandidateFiles = async (uris: URL[]): Promise<[URL, DiagnosticInfo['entry']][]> =>
+    Promise.all(uris.map(uri => queryCandidateFile(uri).toPromise()))
 
 interface Props extends QueryParameterProps, ExtensionsControllerProps, PlatformContextProps {
     thread: Pick<GQL.IDiscussionThread, 'id' | 'idWithoutKind' | 'title' | 'type' | 'settings'>
@@ -183,14 +185,18 @@ export const ThreadInboxItemsList: React.FunctionComponent<Props> = ({
                     map(() => Array.from(extensionsController.services.diagnostics.collection.entries())),
                     switchMap(async diagEntries => {
                         const entries = await queryCandidateFiles(diagEntries.map(([url]) => url))
-                        const m = new Map<URL, DiagnosticInfo['entry']>()
+                        const m = new Map<string, DiagnosticInfo['entry']>()
                         for (const [url, entry] of entries) {
-                            m.set(url, entry)
+                            m.set(url.toString(), entry)
                         }
-                        return diagEntries.flatMap(([url, diag]) =>
+                        return diagEntries.flatMap(([url, diag]) => {
+                            const entry = m.get(url.toString())
+                            if (!entry) {
+                                throw new Error(`no entry for url ${url}`)
+                            }
                             // tslint:disable-next-line: no-object-literal-type-assertion
-                            diag.map(d => ({ ...d, entry: m.get(url)! } as DiagnosticInfo))
-                        )
+                            return diag.map(d => ({ ...d, entry } as DiagnosticInfo))
+                        })
                     }),
                     catchError(err => [asError(err)]),
                     startWith(LOADING)
