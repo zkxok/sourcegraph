@@ -53,7 +53,9 @@ var nestedRx = regexp.MustCompile(`^!(hier|nested)!`)
 
 // Search provides search results and suggestions.
 func (r *schemaResolver) Search(args *struct {
-	Query string
+	Query  string
+	Offset *searchOffset
+	Limit  *searchLimit
 }) (interface {
 	Results(context.Context) (*searchResultsResolver, error)
 	Suggestions(context.Context, *searchSuggestionsArgs) ([]*searchSuggestionResolver, error)
@@ -78,7 +80,9 @@ func (r *schemaResolver) Search(args *struct {
 		return nil, err
 	}
 	return &searchResolver{
-		query: query,
+		query:  query,
+		offset: args.Offset,
+		limit:  args.Limit,
 	}, nil
 }
 
@@ -108,9 +112,26 @@ func asString(v *searchquerytypes.Value) string {
 	}
 }
 
+// searchOffset represents a pagination offset for search.
+// Consult schema.graphql for documentation on this.
+type searchOffset struct {
+	Repositories          int32
+	SkipEmptyRepositories bool
+	Results               *int32
+}
+
+// searchLimit represents a pagination limit for search.
+// Consult schema.graphql for documentation on this.
+type searchLimit struct {
+	Repositories int32
+	Results      *int32
+}
+
 // searchResolver is a resolver for the GraphQL type `Search`
 type searchResolver struct {
-	query *query.Query // the parsed search query
+	query  *query.Query // the parsed search query
+	offset *searchOffset
+	limit  *searchLimit
 
 	// Cached resolveRepositories results.
 	reposMu                   sync.Mutex
@@ -269,6 +290,22 @@ func (r *searchResolver) resolveRepositories(ctx context.Context, effectiveRepoF
 		r.repoResults = repoResults
 		r.repoOverLimit = overLimit
 		r.repoErr = err
+	}
+	if r.limit != nil || r.offset != nil {
+		// for paginated requests we must sort repositories into a determistic order.
+		for _, repoRev := range repoRevs {
+			sort.Slice(repoRev.Revs, func(i, j int) bool {
+				return repoRev.Revs[i].Less(repoRev.Revs[j])
+			})
+		}
+		sort.Slice(repoRevs, func(i, j int) bool {
+			a := repoRevs[i]
+			b := repoRevs[j]
+			if a.Repo.Name != b.Repo.Name {
+				return a.Repo.Name < b.Repo.Name
+			}
+			return a.Repo.ID < b.Repo.ID
+		})
 	}
 	return repoRevs, missingRepoRevs, repoResults, overLimit, err
 }

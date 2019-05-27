@@ -23,6 +23,8 @@ import (
 
 	"github.com/google/zoekt"
 	zoektquery "github.com/google/zoekt/query"
+	"github.com/sourcegraph/issues/pkg/mutablelimiter"
+	"github.com/sourcegraph/sourcegraph/cmd/frontend/db"
 	"github.com/sourcegraph/sourcegraph/cmd/frontend/internal/pkg/search"
 	"github.com/sourcegraph/sourcegraph/cmd/frontend/internal/pkg/search/query"
 	"github.com/sourcegraph/sourcegraph/cmd/frontend/types"
@@ -703,9 +705,112 @@ func zoektIndexedRepos(ctx context.Context, repos []*search.RepositoryRevisions)
 	return indexed, unindexed, indexedRevisions, nil
 }
 
+type numTotalReposCache struct {
+	sync.RWMutex
+	lastUpdate time.Time
+	count      int
+}
+
+func (n *numTotalReposCache) get(ctx context.Context) int {
+	n.RLock()
+	if !n.lastUpdate.IsZero() && time.Since(n.lastUpdate) < 1*time.Minute {
+		defer n.RUnlock()
+		return n.count
+	}
+	n.RUnlock()
+
+	n.Lock()
+	newCount, err := db.Repos.Count(ctx, db.ReposListOptions{Enabled: true})
+	if err != nil {
+		defer n.Unlock()
+		log15.Error("failed to determine numTotalRepos", "error", err)
+		return n.count
+	}
+	n.count = newCount
+	n.Unlock()
+	return newCount
+}
+
+var numTotalRepos = &numTotalReposCache{}
+
+func clamp(x, min, max int32) int32 {
+	if x < min {
+		return min
+	}
+	if x > max {
+		return max
+	}
+	return x
+}
+
+// paginatedSearchFilesInRepos searches a set of repos for a pattern while
+// respecting the (optional) offset and limit pagination parameters.
+//
+// The input args.Repos must already be sorted.
+func paginatedSearchFilesInRepos(ctx context.Context, args *search.Args, offset *searchOffset, limit *searchLimit) (res []*fileMatchResolver, common *searchResultsCommon, err error) {
+	if offset == nil && limit == nil {
+		// not a paginated request.
+		return searchFilesInRepos(ctx, args)
+	}
+	if offset == nil {
+		offset = &searchOffset{}
+	}
+	if limit == nil {
+		limit = &searchLimit{}
+	}
+	offset.Repositories = clamp(offset.Repositories, 0, int32(len(args.Repos)))
+	limit.Repositories = clamp(limit.Repositories, 0, int32(len(args.Repos)))
+	args.Repos = args.Repos[offset.Repositories:]
+
+	// There is no guarantee that the repos we search have any results for the
+	// user, so if we did them one-by-one or even consecutively then
+	// needle-in-the-haystack searches could be very slow compared to non
+	// paginated searches which effectively search all repositories
+	// concurrently.
+	//
+	// So, we concurrently search a bucket of repositories that is based on the
+	// total number of repositories on Sourcegraph. This makes our absolute
+	// worst-case performance for such queries N times worse than non-paginated
+	// queries where N is the divisor (8).
+	numTotalRepos := numTotalRepos.get(ctx)
+	concurrentSearchBucketSize := numTotalRepos / 8
+
+	common = &searchResultsCommon{}
+	for start := 0; start <= len(args.Repos); start += concurrentSearchBucketSize {
+		if start > len(args.Repos) {
+			break
+		}
+
+		end := start + concurrentSearchBucketSize
+		if end > len(args.Repos) {
+			end = len(args.Repos)
+		}
+		bucket := *args
+		bucket.Repos = args.Repos[start:end]
+
+		// TODO: optimization: ask searchFilesInRepos to stop after finding
+		// enough results when searchOffset.SkipEmptyRepositories is true.
+		r, c, err := searchFilesInRepos(ctx, &bucket)
+		if err != nil {
+			return nil, nil, err // TODO: confirm this is proper error handling
+		}
+		res = append(res, r...)
+		common.update(*c)
+		if !offset.SkipEmptyRepositories && len(common.repos) >= int(limit.Repositories) {
+			break
+		}
+		if offset.SkipEmptyRepositories && common.repositoriesWithMatchesCount >= limit.Repositories {
+			break
+		}
+	}
+	return res, common, nil
+}
+
 var mockSearchFilesInRepos func(args *search.Args) ([]*fileMatchResolver, *searchResultsCommon, error)
 
 // searchFilesInRepos searches a set of repos for a pattern.
+//
+// The returned results are sorted.
 func searchFilesInRepos(ctx context.Context, args *search.Args) (res []*fileMatchResolver, common *searchResultsCommon, err error) {
 	if mockSearchFilesInRepos != nil {
 		return mockSearchFilesInRepos(args)
@@ -772,11 +877,12 @@ func searchFilesInRepos(ctx context.Context, args *search.Args) (res []*fileMatc
 
 	var (
 		// TODO: convert wg to an errgroup
-		wg                sync.WaitGroup
-		mu                sync.Mutex
-		unflattened       [][]*fileMatchResolver
-		flattenedSize     int
-		overLimitCanceled bool // canceled because we were over the limit
+		wg                      sync.WaitGroup
+		mu                      sync.Mutex
+		unflattened             [][]*fileMatchResolver
+		flattenedSize           int
+		overLimitCanceled       bool // canceled because we were over the limit
+		repositoriesWithMatches = map[*types.Repo]struct{}{}
 	)
 
 	// addMatches assumes the caller holds mu.
@@ -789,6 +895,11 @@ func searchFilesInRepos(ctx context.Context, args *search.Args) (res []*fileMatc
 			})
 			unflattened = append(unflattened, matches)
 			flattenedSize += len(matches)
+
+			for _, match := range matches {
+				repositoriesWithMatches[match.repo] = struct{}{}
+			}
+			common.repositoriesWithMatchesCount = int32(len(repositoriesWithMatches))
 
 			// Stop searching once we have found enough matches. This does
 			// lead to potentially unstable result ordering, but is worth
